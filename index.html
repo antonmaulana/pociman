@@ -72,8 +72,9 @@
         </div>
       </div>
 
-      <!-- Right: Sound & Pause -->
+      <!-- Right: Fullscreen, Sound & Pause -->
       <div class="hud-right">
+        <button id="fullscreenBtn" class="ui-btn-icon" title="Layar Penuh / Fullscreen">⛶</button>
         <button id="soundBtn" class="ui-btn-icon" title="Toggle Suara">🔊</button>
         <button id="pauseBtn" class="ui-btn-icon" title="Jeda Game">⏸</button>
       </div>
@@ -282,6 +283,18 @@
     <!-- Mobile Touch Control Helper -->
     <div id="touchHelper" class="touch-helper">
       <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X UNTUK LOMPAT TINGGI</span>
+    </div>
+  </div>
+
+  <!-- Force Landscape Prompt Overlay for Mobile & Tablet -->
+  <div id="rotateOverlay" class="rotate-overlay">
+    <div class="rotate-card">
+      <div class="rotate-icon-anim">📱</div>
+      <h2 class="rotate-title">PUTAR KE POSISI LANDSKAP</h2>
+      <p class="rotate-desc">
+        Pociman butuh pandangan luas! Silakan putar HP / Tablet kamu ke posisi mendatar (landscape) agar seluruh aksi dan area permainan terlihat jelas &amp; seru.
+      </p>
+      <button id="lockLandscapeBtn" class="btn-play">🔄 KUNCI LANDSKAP &amp; FULLSCREEN</button>
     </div>
   </div>
 

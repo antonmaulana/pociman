@@ -43,6 +43,8 @@
   const resumeBtn = document.getElementById('resumeBtn');
   const soundBtn = document.getElementById('soundBtn');
   const pauseBtn = document.getElementById('pauseBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const lockLandscapeBtn = document.getElementById('lockLandscapeBtn');
 
   const stageClearTitleEl = document.getElementById('stageClearTitle');
   const stageClearTimeEl = document.getElementById('stageClearTime');
@@ -2067,6 +2069,41 @@
   soundBtn.addEventListener('click', () => {
     const isMuted = window.soundManager.toggleMute();
     soundBtn.textContent = isMuted ? '🔇' : '🔊';
+  });
+
+  async function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          await document.documentElement.webkitRequestFullscreen();
+        }
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape').catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
+  if (lockLandscapeBtn) {
+    lockLandscapeBtn.addEventListener('click', () => {
+      window.soundManager.init();
+      toggleFullscreen();
+    });
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    if (fullscreenBtn) {
+      fullscreenBtn.textContent = document.fullscreenElement ? '✖' : '⛶';
+    }
   });
 
   // Init
