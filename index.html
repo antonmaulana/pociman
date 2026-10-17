@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pociman: Kabur dari Warga</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+    <!-- In-Game Throw Warning Overlay -->
+    <div id="throwWarning" class="throw-warning hidden">
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-text">AWAS TIMPUKAN!</span>
+    </div>
+
+    <!-- Stage Level Up Popup Banner -->
+    <div id="stageBanner" class="stage-banner hidden">
+      <span id="stageBannerText">STAGE 2: WARGA MAKIN BANYAK!</span>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div id="hud" class="overlay-ui">
+      <!-- Left: Stage, Benjol, & Jarak -->
+      <div class="hud-left">
+        <div class="stat-badge stage-badge">
+          <span class="icon">⭐</span>
+          <span class="label">STAGE</span>
+          <span id="stageVal">1</span><span class="stage-max">/25</span>
+        </div>
+        <div class="stat-badge bump-badge">
+          <span class="icon">🤕</span>
+          <span class="label">BENJOL:</span>
+          <span id="bumpCount">0</span>
+        </div>
+        <div class="stat-badge distance-badge">
+          <span class="label">JARAK:</span>
+          <span id="distanceVal">0m</span>
+        </div>
+      </div>
+
+      <!-- Center: Synchronized Stage Progress (TPU Finish) & Warga Chase Danger -->
+      <div class="hud-center">
+        <div class="sync-meters-card">
+          <!-- 1. Meter Progres Menuju Gerbang TPU (Kondisi LOLOS) -->
+          <div class="meter-row tpu-row">
+            <div class="meter-labels">
+              <span class="meter-start">🏃 AWAL</span>
+              <span class="meter-title">MENUJU TPU: <strong id="stageTimeVal">45s</strong></span>
+              <span class="meter-finish">🪦 MASUK TPU (LOLOS!)</span>
+            </div>
+            <div class="progress-track tpu-track">
+              <div id="tpuBar" class="progress-fill tpu-fill" style="width: 0%;"></div>
+              <div id="tpuPin" class="track-pin tpu-pin" style="left: 0%;">👻</div>
+            </div>
+          </div>
+
+          <!-- 2. Meter Kejaran Warga (Kondisi TERTANGKAP) -->
+          <div class="meter-row chase-row">
+            <div class="meter-labels">
+              <span class="meter-danger" id="dangerLabel">🔥 TERTANGKAP!</span>
+              <span class="meter-sub">JARAK KEJARAN WARGA</span>
+              <span class="meter-safe">🛡️ JARAK AMAN</span>
+            </div>
+            <div class="progress-track danger-track">
+              <div id="escapeBar" class="progress-fill danger-fill" style="width: 50%;"></div>
+              <div id="dangerPin" class="track-pin danger-pin" style="left: 50%;">👥</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Sound & Pause -->
+      <div class="hud-right">
+        <button id="soundBtn" class="ui-btn-icon" title="Toggle Suara">🔊</button>
+        <button id="pauseBtn" class="ui-btn-icon" title="Jeda Game">⏸</button>
+      </div>
+    </div>
+
+    <!-- Start / Title Screen Modal -->
+    <div id="startScreen" class="modal-screen">
+      <div class="modal-card">
+        <div class="tagline">PETUALANGAN KOCAK SI POCONG LUCU</div>
+        <h1 class="game-title">POCIMAN</h1>
+        <p class="story-desc">
+          Lagi asyik jalan santai di kampung malam hari, Pociman ketahuan Pak RT dan warga ronda! 
+          Lompat untuk kabur, hindari rintangan jalan, dan waspada timpukan sandal/panci dari belakang!
+        </p>
+
+
+        <div class="tips-grid">
+          <div class="tip-card tip-control-card">
+            <span class="tip-icon">📱</span>
+            <div class="tip-text">
+              <strong>HP &amp; Tablet (Sentuh Layar)</strong>
+              <small>Tap 1x = Lompat &bull; Tap 2x = Double Jump di udara</small>
+            </div>
+          </div>
+          <div class="tip-card tip-control-card">
+            <span class="tip-icon">🖱️</span>
+            <div class="tip-text">
+              <strong>Mouse / Laptop (Klik)</strong>
+              <small>Klik Kiri 1x = Lompat &bull; Klik 2x = Double Jump</small>
+            </div>
+          </div>
+          <div class="tip-card tip-control-card">
+            <span class="tip-icon">⌨️</span>
+            <div class="tip-text">
+              <strong>Keyboard (Tombol)</strong>
+              <small>[SPASI] / [↑] / [W] = Lompat &bull; [P] = Jeda</small>
+            </div>
+          </div>
+          <div class="tip-card">
+            <span class="tip-icon">⚠️</span>
+            <div class="tip-text">
+              <strong>Awas Timpukan Warga &amp; Kucing Oren</strong>
+              <small>Lompati kucing &amp; sandal/batu! Masuk gerbang TPU untuk menang.</small>
+            </div>
+          </div>
+        </div>
+
+        <button id="startBtn" class="btn-play">KABUR SEKARANG! 🏃💨</button>
+
+        <div class="creator-credits-footer">
+          <div class="credits-by">
+            Karya &amp; Desain: <strong>Anton Maulana</strong> &bull; <span>Developed by Kawan Kita Solusindo (AI Dev Team)</span>
+          </div>
+          <div class="modal-footer-btns">
+            <button id="creditsBtn" class="btn-credits-link" type="button">ℹ️ Kredit &amp; Info Game</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage Clear Modal -->
+    <div id="stageClearScreen" class="modal-screen hidden">
+      <div class="modal-card win-card">
+        <div class="win-banner">ALHAMDULILLAH MASUK KUBURAN! 🪦</div>
+        <h1 class="game-title win-title" id="stageClearTitle">STAGE 1 SELESAI!</h1>
+        <p class="story-desc">
+          Pociman berhasil masuk gerbang TPU! Gerbang terkunci dan warga takut masuk kuburan malam-malam.
+        </p>
+
+        <div class="stats-summary">
+          <div class="summary-item">
+            <span class="summary-label">Waktu Tempuh</span>
+            <span id="stageClearTime" class="summary-value highlight">45s</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Benjol Kepala</span>
+            <span id="stageClearBumps" class="summary-value">0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Lemparan Dihindari</span>
+            <span id="stageClearDodges" class="summary-value highlight">0</span>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button id="nextStageBtn" class="btn-play">LANJUT STAGE BERIKUTNYA ⏩</button>
+          <button id="replayStageBtn" class="btn-secondary">ULANGI STAGE 🔄</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Screen Modal (Game Complete - Stage 25) -->
+    <div id="victoryScreen" class="modal-screen hidden">
+      <div class="modal-card win-card">
+        <div class="win-banner">TAMAT! ALHAMDULILLAH 👑</div>
+        <h1 class="game-title win-title">SELURUH 25 STAGE SELESAI!</h1>
+        <p class="story-desc">
+          Pociman berhasil sampai ke makam kramat dan tidur pulas di liang lahatnya dengan aman tanpa gangguan warga kampung!
+        </p>
+
+        <div class="stats-summary">
+          <div class="summary-item">
+            <span class="summary-label">Total Jarak</span>
+            <span id="winDistance" class="summary-value highlight">0m</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Stage Dituntaskan</span>
+            <span id="winStage" class="summary-value highlight">25/25 👑</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Total Benjol</span>
+            <span id="winBumps" class="summary-value">0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Predikat</span>
+            <span id="winRank" class="summary-value highlight">Pociman Legendaris ⚡</span>
+          </div>
+        </div>
+
+        <div class="victory-tribute-card">
+          <p class="tribute-quote">"Terima kasih telah menemani Pociman lolos sampai ke TPU!"</p>
+          <div class="tribute-author">Sebuah karya dari <strong>Anton Maulana</strong> &amp; <strong>Kawan Kita Solusindo</strong></div>
+        </div>
+
+        <button id="winPlayAgainBtn" class="btn-play">MAIN LAGI DARI AWAL 🔄</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen Modal -->
+    <div id="gameOverScreen" class="modal-screen hidden">
+      <div class="modal-card game-over-card">
+        <div class="gameover-title">TERTANGKAP WARGA! 💥</div>
+        <p id="deathReason" class="death-reason">Kena kepung warga ronda! Sekarang diajak selfie sama Pak RT...</p>
+
+        <div class="stats-summary">
+          <div class="summary-item">
+            <span class="summary-label">Tertangkap di</span>
+            <span id="finalStage" class="summary-value highlight">Stage 1</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Jarak Ditempuh</span>
+            <span id="finalDistance" class="summary-value">0m</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Total Benjol</span>
+            <span id="finalBumps" class="summary-value highlight">0</span>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button id="restartBtn" class="btn-play">ULANGI STAGE INI 🔄</button>
+          <button id="resetStage1Btn" class="btn-secondary">MULAI DARI STAGE 1 ⏪</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause Screen Modal -->
+    <div id="pauseScreen" class="modal-screen hidden">
+      <div class="modal-card mini-card">
+        <h2>PERMAINAN DIJEDA</h2>
+        <p>Pociman lagi selonjoran dulu tarik napas!</p>
+        <button id="resumeBtn" class="btn-play">LANJUT KABUR ▶</button>
+      </div>
+    </div>
+
+    <!-- Credits & Game Info Modal -->
+    <div id="creditsScreen" class="modal-screen hidden">
+      <div class="modal-card credits-card">
+        <div class="win-banner">TENTANG GAME &amp; TIM PRODUKSI 📜</div>
+        <h2 class="game-title credits-title">POCIMAN</h2>
+        <p class="story-desc">The Village Chase &bull; Versi 1.0</p>
+
+        <div class="credits-list">
+          <div class="credit-row">
+            <span class="credit-role">Ide Cerita &amp; Game Design</span>
+            <span class="credit-name highlight">Anton Maulana</span>
+          </div>
+          <div class="credit-row">
+            <span class="credit-role">Konsep Visual &amp; Karakter</span>
+            <span class="credit-name highlight">Anton Maulana</span>
+          </div>
+          <div class="credit-row">
+            <span class="credit-role">Pengembangan Teknis</span>
+            <span class="credit-name">Tim Dev Kawan Kita Solusindo (AI Assisted)</span>
+          </div>
+          <div class="credit-row">
+            <span class="credit-role">Audio &amp; Efek Suara</span>
+            <span class="credit-name">Web Audio API Procedural Synthesizer</span>
+          </div>
+          <div class="credit-row">
+            <span class="credit-role">Arsitektur Game</span>
+            <span class="credit-name">Pure HTML5 Canvas 2D (0 Dependency)</span>
+          </div>
+        </div>
+
+        <div class="credits-copyright">
+          &copy; 2026 PT Kawan Kita Solusindo &bull; All Rights Reserved
+        </div>
+
+        <button id="closeCreditsBtn" class="btn-play" type="button">TUTUP ✖️</button>
+      </div>
+    </div>
+
+
+
+    <!-- Mobile Touch Control Helper -->
+    <div id="touchHelper" class="touch-helper">
+      <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X UNTUK LOMPAT TINGGI</span>
+    </div>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
