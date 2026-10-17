@@ -942,24 +942,25 @@
     ctx.font = 'bold 12px sans-serif';
     const textW = ctx.measureText(text).width;
     const pad = 8;
+    const bx = Math.max(12, Math.min(V_WIDTH - textW - pad * 2 - 12, x - pad));
 
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(x - pad, y - 16, textW + pad * 2, 24, 6);
+    ctx.roundRect(bx, y - 16, textW + pad * 2, 24, 6);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(x + 10, y + 8);
-    ctx.lineTo(x, y + 16);
-    ctx.lineTo(x + 18, y + 8);
+    ctx.moveTo(bx + 16, y + 8);
+    ctx.lineTo(bx + 6, y + 16);
+    ctx.lineTo(bx + 24, y + 8);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#dc2626';
-    ctx.fillText(text, x, y);
+    ctx.fillText(text, bx + pad, y);
     ctx.restore();
   }
 
@@ -1104,7 +1105,8 @@
   }
 
   function addComicText(text, x, y, color = '#facc15') {
-    comicTexts.push({ text, x, y, alpha: 1, vy: -55, color });
+    const clampedX = Math.max(20, Math.min(V_WIDTH - 180, x));
+    comicTexts.push({ text, x: clampedX, y, alpha: 1, vy: -55, color });
   }
 
   // --- Start & Stage Management ---
@@ -1148,6 +1150,7 @@
     initVillageScenery();
     updateHUD();
     hideAllModals();
+    updateTouchHelper();
 
     gameState = STATE.PLAYING;
     lastTime = performance.now();
@@ -1779,10 +1782,18 @@
     }
 
     ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.beginPath();
+    ctx.roundRect(V_WIDTH / 2 - 145, 62, 290, 26, 13);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
     ctx.font = 'bold 12px sans-serif';
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = '#f8fafc';
     ctx.textAlign = 'center';
-    ctx.fillText("Sentuh / Tekan Spasi untuk Lewati ⏭️", V_WIDTH / 2, 35);
+    ctx.textBaseline = 'middle';
+    ctx.fillText("Sentuh Layar / Spasi untuk Lewati ⏭️", V_WIDTH / 2, 75);
     ctx.restore();
   }
 
@@ -2037,7 +2048,7 @@
 
   const gameContainer = document.getElementById('game-container');
   gameContainer.addEventListener('pointerdown', (e) => {
-    if (gameState !== STATE.PLAYING || e.target.closest('button') || e.target.closest('.modal-card')) return;
+    if ((gameState !== STATE.PLAYING && gameState !== STATE.BUSTED) || e.target.closest('button') || e.target.closest('.modal-card')) return;
     e.preventDefault();
     window.soundManager.init();
     handleJumpAction();
@@ -2084,7 +2095,47 @@
     });
   }
 
+  const mobileToastEl = document.getElementById('mobileToast');
+  let toastTimer = null;
+  function showToast(msg) {
+    if (!mobileToastEl) return;
+    mobileToastEl.textContent = msg;
+    mobileToastEl.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      mobileToastEl.classList.add('hidden');
+    }, 3200);
+  }
+
+  const touchHelperEl = document.getElementById('touchHelper');
+  let touchHelperTimer = null;
+  function updateTouchHelper() {
+    if (!touchHelperEl) return;
+    const isTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    if (isTouch) {
+      touchHelperEl.classList.remove('hidden');
+      clearTimeout(touchHelperTimer);
+      touchHelperTimer = setTimeout(() => {
+        touchHelperEl.classList.add('hidden');
+      }, 5000);
+    } else {
+      touchHelperEl.classList.add('hidden');
+    }
+  }
+
+  const isFsSupported = !!(
+    document.fullscreenEnabled ||
+    document.webkitFullscreenEnabled ||
+    document.documentElement.requestFullscreen ||
+    document.documentElement.webkitRequestFullscreen ||
+    (gameContainer && (gameContainer.requestFullscreen || gameContainer.webkitRequestFullscreen))
+  );
+
   async function toggleFullscreen() {
+    if (!isFsSupported) {
+      showToast('📱 Layar otomatis menyesuaikan ke ukuran HP!');
+      return;
+    }
     try {
       const doc = document;
       const fsEl = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
@@ -2174,6 +2225,10 @@
   });
 
   // Init
+  if (!isFsSupported) {
+    if (startFullscreenBtn) startFullscreenBtn.textContent = '📱 Layar Otomatis Pas';
+    if (fullscreenBtn) fullscreenBtn.style.display = 'none';
+  }
   initVillageScenery();
   fitGameToScreen();
   updateHUD();

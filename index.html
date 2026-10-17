@@ -36,6 +36,7 @@
           <span id="bumpCount">0</span>
         </div>
         <div class="stat-badge distance-badge">
+          <span class="icon">🏃</span>
           <span class="label">JARAK:</span>
           <span id="distanceVal">0m</span>
         </div>
@@ -261,16 +262,19 @@
 
 
 
-    <!-- Portrait Orientation Hint -->
-    <div id="portraitNotice" class="portrait-notice">
-      <span>📱 Putar HP ke horizontal (landscape) untuk tampilan lebih luas!</span>
-    </div>
-
     <!-- Mobile Touch Control Helper -->
-    <div id="touchHelper" class="touch-helper">
-      <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X UNTUK LOMPAT TINGGI</span>
+    <div id="touchHelper" class="touch-helper hidden">
+      <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X DOUBLE JUMP</span>
     </div>
   </div>
+
+  <!-- Portrait Orientation Hint (Fixed above game container) -->
+  <div id="portraitNotice" class="portrait-notice">
+    <span>📱 Putar HP ke horizontal (landscape) untuk tampilan lebih nyaman &amp; luas!</span>
+  </div>
+
+  <!-- Mobile Toast Banner -->
+  <div id="mobileToast" class="mobile-toast hidden"></div>
 
   <script src="audio.js"></script>
   <script src="game.js"></script>
