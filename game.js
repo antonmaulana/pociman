@@ -2056,9 +2056,13 @@
 
   function fitGameToScreen() {
     if (!gameContainer) return;
+    const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
     const vp = window.visualViewport;
-    const availW = Math.max(280, (vp ? vp.width : window.innerWidth) - 4);
-    const availH = Math.max(160, (vp ? vp.height : window.innerHeight) - 4);
+    const screenW = isFull ? window.innerWidth : (vp ? vp.width : window.innerWidth);
+    const screenH = isFull ? window.innerHeight : (vp ? vp.height : window.innerHeight);
+
+    const availW = Math.max(280, screenW - (isFull ? 0 : 4));
+    const availH = Math.max(160, screenH - (isFull ? 0 : 4));
     const targetRatio = 16 / 9;
 
     let w = availW;
@@ -2067,12 +2071,14 @@
       h = availH;
       w = h * targetRatio;
     }
-    if (w > 960) {
+    if (!isFull && w > 960) {
       w = 960;
       h = 540;
     }
     gameContainer.style.width = Math.floor(w) + 'px';
     gameContainer.style.height = Math.floor(h) + 'px';
+    gameContainer.style.marginLeft = 'auto';
+    gameContainer.style.marginRight = 'auto';
   }
 
   function bindBtn(el, handler) {
@@ -2142,7 +2148,7 @@
       if (!fsEl) {
         const root = document.documentElement;
         if (root.requestFullscreen) {
-          await root.requestFullscreen();
+          await root.requestFullscreen({ navigationUI: 'hide' }).catch(() => root.requestFullscreen());
         } else if (root.webkitRequestFullscreen) {
           await root.webkitRequestFullscreen();
         } else if (gameContainer.requestFullscreen) {
@@ -2153,6 +2159,7 @@
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(() => {});
         }
+        showToast('⛶ Layar Penuh Aktif');
       } else {
         if (doc.exitFullscreen) {
           await doc.exitFullscreen();
@@ -2163,6 +2170,7 @@
         } else if (doc.msExitFullscreen) {
           await doc.msExitFullscreen();
         }
+        showToast('✖ Mode Layar Biasa');
       }
     } catch (e) {
       console.warn('Fullscreen toggle:', e);

@@ -782,19 +782,53 @@ canvas {
 }
 
 
-/* Fullscreen mode on container */
+/* Fullscreen Root & Body: Fill 100% of display and center content symmetrically */
 :fullscreen,
-:-webkit-full-screen,
+:-webkit-full-screen {
+  width: 100% !important;
+  width: 100vw !important;
+  height: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: radial-gradient(circle at center, #0d1527 0%, #060913 100%) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+:fullscreen body,
+:-webkit-full-screen body {
+  width: 100% !important;
+  width: 100vw !important;
+  height: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  padding-left: env(safe-area-inset-left, 0) !important;
+  padding-right: env(safe-area-inset-right, 0) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: transparent !important;
+  overflow: hidden !important;
+}
+
+/* Fullscreen Game Container: Centered 16:9 with balanced side margins */
 :fullscreen #game-container,
 :-webkit-full-screen #game-container,
 #game-container:fullscreen,
 #game-container:-webkit-full-screen {
-  width: min(100vw, calc(100dvh * (16 / 9)));
-  height: min(100dvh, calc(100vw * (9 / 16)));
+  width: min(100vw, calc(100dvh * (16 / 9))) !important;
+  height: min(100dvh, calc(100vw * (9 / 16))) !important;
   max-width: 100vw;
   max-height: 100dvh;
+  margin: auto !important;
   border-radius: 0;
-  box-shadow: none;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* Responsive on Mobile, Tablet & Short viewports (accounts for browser bars) */
@@ -803,6 +837,7 @@ canvas {
     width: min(100vw, calc(100dvh * (16 / 9)));
     height: min(100dvh, calc(100vw * (9 / 16)));
     border-radius: 6px;
+    margin: auto;
   }
   .overlay-ui {
     padding: 3px 8px;
