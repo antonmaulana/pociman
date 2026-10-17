@@ -123,16 +123,135 @@
   let warningActive = false;
   let obstacleTimer = 2.0;
 
-  // Villager shouts
+  // Mob cycle & Power-up State
+  let mobRunCycle = 0;
+
+  const kuntiPowerup = {
+    itemActive: false,
+    itemX: -999,
+    itemY: GROUND_Y - 95,
+    itemBob: 0,
+    active: false,
+    timer: 0,
+    duration: 4.5,
+    spawnedThisStage: 0,
+    maxSpawnsPerStage: 2,
+    dialogTimer: 0,
+    dialogText: "Sini Mas Poci, ku gendong terbang dulu biar gak digebukin warga! Hihihi~",
+
+    reset() {
+      this.itemActive = false;
+      this.itemX = -999;
+      this.itemY = GROUND_Y - 95;
+      this.itemBob = 0;
+      this.active = false;
+      this.timer = 0;
+      this.spawnedThisStage = 0;
+      this.dialogTimer = 0;
+    }
+  };
+
+  // Expanded Indonesian Villager Shouts (Anti-Repetition)
   const VILLAGER_SHOUTS = [
-    "TANGKEEEP!",
+    "TANGKEEEP, JANGAN KASIH KENDOR!",
     "HOI BALIKIN AYAM GUA!",
-    "JANGAN KASIH LOLOS!",
     "POCIMAN NGEPET KAH ITU?!",
-    "AMPUN PAK RT CEPET BANGET!",
-    "HANSIP, KEPUNG DARI KANAN!",
-    "AWAS KENA JEMURAN, MAK!"
+    "HANSIP, KEPUNG DARI KANAN-KIRI!",
+    "AWAS KENA JEMURAN TETANGGA, MAK!",
+    "TIUP PELUITNYA PAK HANSIP, PRIIIT!",
+    "LEMPAR PAKE SENDAL JEPIT, EMAK!",
+    "BERHENTI LU POCI, SARUNG LU MAU COPOT!",
+    "PAK RT NAFASNYA UDAH SENIN-KAMIS NIH!",
+    "WADUH POCONGNYA MINUM EXTRA JOSS!",
+    "JANGAN LARI KE KEBUN PISANG, HOI!",
+    "SAYANGNYA GUA LUPA BAWA TALI RAFIA!",
+    "EMA-AKK, SENDAL SWALLOW KESAYANGAN MELAYANG!",
+    "POCONG ZAMAN NOW LINCAH AMAT!",
+    "CEPATAN, KEBURU MASUK GAPURA TPU!",
+    "BOCIL MINGGIR DULU, BIAR HANSIP MAJU!",
+    "AWAS KECOA TERBANG KENA MUKA!",
+    "LEMPAR PANCI EMAS KELUARGA, MAK!",
+    "GELAP BANGET, SENTERNYA MATI LAMPU!",
+    "KITA KEPUNG SAMPE BEDUK SUBUH!",
+    "POCONG APA KELINCI SIH, LONCAT MULU!",
+    "WOI POCONG, TUNGGUIN SIKIT DONG!",
+    "KETAWA LU YA, KETANGKAP GUA IKET DI TIANG!",
+    "LARI TERUSS SAMPE TALI KAFANNYA PUTUS!",
+    "SERBBUUU! JANGAN KASIH AMPUN!"
   ];
+
+  // Expanded Pociman Dodge Taunts (25+ entries)
+  const DODGE_TAUNTS = [
+    "WLEEE! 😝",
+    "GAK KENA WLEEE! 😜",
+    "MELESET BOS! 🤪",
+    "KASIAN DEH LUU! 😛",
+    "KEJARR DONG KALAU BISA! 💨",
+    "LEMPAR LAGI SINI, KURANG LURUS! 😆",
+    "HUHUHU KASIAN DEH WARGA! 👻",
+    "LONCATAN KELAS DUNIA! 🤸‍♂️",
+    "SENDAL BUTUT KOK DILEMPAR! 🩴",
+    "GAK KENA, COBA LAGI BESOK! 🤣",
+    "KAFAN SAYA ANTI-PELURU BOS! 🛡️",
+    "LARINYA LELET KAYA SIPUT! 🐌",
+    "BYE-BYE WARGA KAMPUNG! 🏃‍♂️",
+    "CIYE YANG LEMPARANNYA NYASAR! 🤭",
+    "POCI DILAWAN, YA JELAS MENANG! ✨",
+    "KURANG CEPET NGEJARNYA PAK HANSIP! 👮‍♂️",
+    "EMAAK SAPUNYA PATAH TUH! 🧹",
+    "LONCAT INDAH 10 POIN DARI JURI! 🥇",
+    "SINI GUA AJARIN PARKOUR! 🕺",
+    "GAK AKAN KETANGKAP MALAM INI! 🚀",
+    "WLEEE, NAFASNYA UDAH NGOS-NGOSAN! 😝",
+    "LEMPAR BATU SEMBUNYI TANGAN! 🪨",
+    "POCIMAN TERLALU CEPAT UNTUK KALIAN! ⚡",
+    "AYO SEMANGATTT, DIKIT LAGI KAGA KENA! 😆",
+    "KASIAN DEH GAK DAPET POCONG! 😛"
+  ];
+
+  // Expanded Pociman Short Throw Taunts (15 entries)
+  const SHORT_THROW_TAUNTS = [
+    "GAK NYAMPEEE! 🤣",
+    "TENAGA LOYO NIH YEE! 😆",
+    "KURANG MAKAN APA BOS?! 😜",
+    "KENDOR BANGET LEMPARNYA! 🤪",
+    "NYAMPE KAGA, CAPEK IYA! 😝",
+    "SARAPAN DULU SANA PAK RT! 🥣",
+    "LEMPARAN JARAK DEKAT AJA GAGAL! 😆",
+    "OTOT KAWAT TAPI LEMPAR 2 METER! 🏋️‍♂️",
+    "JAUH BANGET MELESETNYA! 😂",
+    "SENDALNYA JATUH KE TANAH TUH! 🩴",
+    "MINUM SUSU DULU BIAR KUAT! 🥛",
+    "ANGINNYA KEBERATAN YA BOS?! 💨",
+    "LEMPARANNYA CUMA SAMPAI DEPAN KAKI! 🤣",
+    "LEMES BANGET KAYA BELUM GAJIAN! 💸",
+    "LEMASS TANGANNYA, KEBANYAKAN RONDA! 😴"
+  ];
+
+  function createShuffleBag(items) {
+    let bag = [];
+    let lastItem = null;
+    return function getNext() {
+      if (bag.length === 0) {
+        bag = [...items];
+        for (let i = bag.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [bag[i], bag[j]] = [bag[j], bag[i]];
+        }
+        if (bag.length > 1 && bag[bag.length - 1] === lastItem) {
+          const swap = Math.floor(Math.random() * (bag.length - 1));
+          [bag[bag.length - 1], bag[swap]] = [bag[swap], bag[bag.length - 1]];
+        }
+      }
+      lastItem = bag.pop();
+      return lastItem;
+    };
+  }
+
+  const getNextVillagerShout = createShuffleBag(VILLAGER_SHOUTS);
+  const getNextDodgeTaunt = createShuffleBag(DODGE_TAUNTS);
+  const getNextShortTaunt = createShuffleBag(SHORT_THROW_TAUNTS);
+
   let currentShout = "";
   let shoutTimer = 0;
 
@@ -403,13 +522,36 @@
 
   function drawPocimanEyesAndMouth(ctx, p) {
     const faceY = -20;
-    if (p.hitTimer > 0) {
+    if (kuntiPowerup.active) {
+      drawFaceKuntiJoy(ctx, p, faceY);
+    } else if (p.hitTimer > 0) {
       drawFaceHit(ctx, p, faceY);
     } else if (p.tauntTimer > 0) {
       drawFaceTaunt(ctx, p, faceY);
     } else {
       drawFacePanic(ctx, p, faceY);
     }
+  }
+
+  function drawFaceKuntiJoy(ctx, p, faceY) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(-7, faceY - 2, 5, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.arc(7, faceY - 2, 5, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
+    ctx.beginPath();
+    ctx.arc(-11, faceY + 5, 4, 0, Math.PI * 2);
+    ctx.arc(11, faceY + 5, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(0, faceY + 4, 5, 0, Math.PI);
+    ctx.fill();
+    ctx.stroke();
   }
 
   function drawFaceHit(ctx, p, faceY) {
@@ -695,16 +837,14 @@
       drawCrowdSilhouette(ctx, currentStage);
     }
 
-    // Main Foreground Characters
-    drawPemuda(ctx, 45, 0);
-    drawPakRT(ctx, 0, 0);
-    drawEmak(ctx, -45, 0);
+    // Main Foreground Characters (Humanized & Running Mob with Hansip front & center)
+    drawHansip(ctx, 45, 0, mobRunCycle);
+    drawPemuda(ctx, 90, 0, mobRunCycle + 1.2);
+    drawPakRT(ctx, 0, 0, mobRunCycle + 2.4);
+    drawEmak(ctx, -50, 0, mobRunCycle + 3.6);
 
-    if (currentStage >= 10) {
-      drawHansip(ctx, -90, 0);
-    }
-    if (currentStage >= 40) {
-      drawBocilSarung(ctx, 90, 0);
+    if (currentStage >= 15) {
+      drawBocilSarung(ctx, -95, 0, mobRunCycle + 4.8);
     }
 
     // Comic speech bubble
@@ -734,117 +874,185 @@
     }
   }
 
-  function drawPemuda(ctx, x, y) {
+  function drawRunningHumanLegs(ctx, runPhase, trouserColor, shoeColor, isSandal = false) {
+    const swingL = Math.sin(runPhase) * 0.55;
+    const swingR = Math.sin(runPhase + Math.PI) * 0.55;
+
+    // Back leg (Right)
     ctx.save();
-    ctx.translate(x, y);
-    ctx.strokeStyle = '#3e352d';
+    ctx.translate(4, -22);
+    ctx.rotate(swingR);
+    ctx.fillStyle = trouserColor;
+    ctx.fillRect(-3, 0, 6, 16); ctx.strokeRect(-3, 0, 6, 16);
+    ctx.fillStyle = shoeColor;
+    if (isSandal) {
+      ctx.fillRect(-4, 16, 9, 3); ctx.strokeRect(-4, 16, 9, 3);
+      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-3, 13, 6, 4);
+    } else {
+      ctx.fillRect(-4, 15, 9, 7); ctx.strokeRect(-4, 15, 9, 7);
+    }
+    ctx.restore();
+
+    // Front leg (Left)
+    ctx.save();
+    ctx.translate(-4, -22);
+    ctx.rotate(swingL);
+    ctx.fillStyle = trouserColor;
+    ctx.fillRect(-3, 0, 6, 16); ctx.strokeRect(-3, 0, 6, 16);
+    ctx.fillStyle = shoeColor;
+    if (isSandal) {
+      ctx.fillRect(-4, 16, 9, 3); ctx.strokeRect(-4, 16, 9, 3);
+      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-3, 13, 6, 4);
+    } else {
+      ctx.fillRect(-4, 15, 9, 7); ctx.strokeRect(-4, 15, 9, 7);
+    }
+    ctx.restore();
+  }
+
+  function drawHansipHead(ctx) {
+    ctx.fillStyle = '#fed7aa';
+    ctx.beginPath(); ctx.arc(0, -64, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#14532d';
+    ctx.beginPath(); ctx.roundRect(-10, -77, 21, 9, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-2, -70, 14, 3);
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath(); ctx.arc(0, -74, 2.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-4, -64, 4.5, 0, Math.PI * 2); ctx.arc(4, -64, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3e352d';
+    ctx.beginPath(); ctx.arc(-3, -64, 1.8, 0, Math.PI * 2); ctx.arc(5, -64, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7f1d1d';
+    ctx.beginPath(); ctx.arc(0, -56, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#facc15'; ctx.fillRect(2, -58, 6, 3);
+  }
+
+  function drawHansip(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
+    ctx.save();
+    ctx.translate(x, y - bob);
+    ctx.strokeStyle = '#2d3748';
     ctx.lineWidth = 2.2;
 
-    // Legs & Green Plaid Sarung
-    ctx.fillStyle = '#fed7aa';
-    ctx.fillRect(-7, -24, 6, 24); ctx.strokeRect(-7, -24, 6, 24);
-    ctx.fillRect(4, -24, 6, 24); ctx.strokeRect(4, -24, 6, 24);
-    ctx.fillStyle = '#15803d';
-    ctx.beginPath(); ctx.roundRect(-12, -48, 25, 26, 4); ctx.fill(); ctx.stroke();
+    drawRunningHumanLegs(ctx, runPhase, '#14532d', '#0f172a', false);
 
-    // Kaos Singlet & Round Chibi Torso
+    ctx.fillStyle = '#166534';
+    ctx.beginPath(); ctx.roundRect(-11, -52, 24, 28, 4); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#f8fafc';
-    ctx.beginPath(); ctx.roundRect(-10, -70, 22, 24, 6); ctx.fill(); ctx.stroke();
-
-    // Chibi Head & Spiky Hair
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(1, -78, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#1e1b18';
-    ctx.beginPath();
-    ctx.moveTo(-9, -82); ctx.lineTo(-12, -92); ctx.lineTo(-4, -86);
-    ctx.lineTo(1, -94);  ctx.lineTo(6, -86);  ctx.lineTo(12, -90);
-    ctx.lineTo(9, -80);  ctx.closePath(); ctx.fill(); ctx.stroke();
-
-    // Googly Eyes & Shouting Mouth
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-3, -78, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(5, -78, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
-    ctx.beginPath(); ctx.arc(-2, -78, 1.8, 0, Math.PI * 2); ctx.arc(6, -78, 1.8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(2, -71, 3.5, 0, Math.PI); ctx.fill(); ctx.stroke();
-
-    // Bamboo Torch & Cartoon Flame
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(6, -60); ctx.lineTo(26, -90); ctx.stroke();
-    const flk = Math.sin(performance.now() / 80) * 3;
-    ctx.fillStyle = '#ea580c';
-    ctx.beginPath();
-    ctx.moveTo(22, -90); ctx.lineTo(30, -90); ctx.lineTo(26 + flk, -114);
-    ctx.closePath(); ctx.fill();
+    ctx.fillRect(-12, -36, 26, 4.5); ctx.strokeRect(-12, -36, 26, 4.5);
     ctx.fillStyle = '#facc15';
-    ctx.beginPath(); ctx.arc(26, -94, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5, -45, 2.5, 0, Math.PI * 2); ctx.fill();
+
+    drawHansipHead(ctx);
+
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.45;
+    ctx.save();
+    ctx.translate(6, -46); ctx.rotate(armSwing);
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(16, -24); ctx.stroke();
+    ctx.restore();
 
     ctx.restore();
   }
 
-  function drawPakRT(ctx, x, y) {
+  function drawPemudaHead(ctx) {
+    ctx.fillStyle = '#fed7aa';
+    ctx.beginPath(); ctx.arc(1, -78, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#dc2626'; ctx.fillRect(-10, -84, 22, 4);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(-10, -80, 22, 3);
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.moveTo(-9, -84); ctx.lineTo(-12, -94); ctx.lineTo(-4, -88);
+    ctx.lineTo(1, -96);  ctx.lineTo(6, -88);  ctx.lineTo(12, -92);
+    ctx.lineTo(9, -82);  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-3, -77, 4.5, 0, Math.PI * 2); ctx.arc(5, -77, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3e352d';
+    ctx.beginPath(); ctx.arc(-2, -77, 1.8, 0, Math.PI * 2); ctx.arc(6, -77, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7f1d1d';
+    ctx.beginPath(); ctx.arc(2, -70, 3.5, 0, Math.PI); ctx.fill(); ctx.stroke();
+  }
+
+  function drawPemudaTorch(ctx, runPhase) {
+    const torchArm = Math.sin(runPhase) * 0.4;
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(6, -60); ctx.rotate(torchArm);
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -30); ctx.stroke();
+    const flk = Math.sin(performance.now() / 80) * 3;
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath(); ctx.moveTo(14, -30); ctx.lineTo(22, -30); ctx.lineTo(18 + flk, -52); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(18, -34, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPemuda(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
+    ctx.save();
+    ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
-    // Dark trousers
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-8, -24, 7, 24); ctx.strokeRect(-8, -24, 7, 24);
-    ctx.fillRect(3, -24, 7, 24);  ctx.strokeRect(3, -24, 7, 24);
+    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#0f172a', true);
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath(); ctx.roundRect(-12, -48, 25, 26, 4); ctx.fill(); ctx.stroke();
 
-    // Round Dumpling Belly in Brown Batik
-    ctx.fillStyle = '#92400e';
-    ctx.beginPath(); ctx.ellipse(0, -42, 16, 18, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath(); ctx.roundRect(-10, -70, 22, 24, 6); ctx.fill(); ctx.stroke();
 
-    // Head with Big Black Peci
+    drawPemudaHead(ctx);
+    drawPemudaTorch(ctx, runPhase);
+
+    ctx.restore();
+  }
+
+  function drawPakRTHead(ctx) {
     ctx.fillStyle = '#fed7aa';
     ctx.beginPath(); ctx.arc(0, -66, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.roundRect(-12, -81, 24, 11, 3); ctx.fill(); ctx.stroke();
 
-    // Big Googly Eyes with Angry Brows
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -67, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(5, -67, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-5, -67, 5, 0, Math.PI * 2); ctx.arc(5, -67, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#3e352d';
     ctx.beginPath(); ctx.arc(-4, -67, 2, 0, Math.PI * 2); ctx.arc(6, -67, 2, 0, Math.PI * 2); ctx.fill();
-
-    // Fluffy Mustache & Open Mouth
     ctx.fillStyle = '#262626';
     ctx.beginPath(); ctx.ellipse(0, -60, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7f1d1d';
     ctx.beginPath(); ctx.arc(0, -56, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
+  }
 
-    // Petromak Lantern
+  function drawPakRT(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3;
+    ctx.save();
+    ctx.translate(x, y - bob);
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2.2;
+
+    drawRunningHumanLegs(ctx, runPhase, '#1e293b', '#78350f', true);
+
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath(); ctx.ellipse(0, -42, 16, 18, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(-5, -42, 2, 0, Math.PI * 2); ctx.arc(4, -38, 2, 0, Math.PI * 2); ctx.fill();
+
+    drawPakRTHead(ctx);
+
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.35;
+    ctx.save();
+    ctx.translate(-8, -46); ctx.rotate(armSwing);
     ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-8, -46); ctx.lineTo(-24, -60); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-16, -14); ctx.stroke();
     ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.roundRect(-30, -60, 14, 16, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-22, -14, 14, 16, 3); ctx.fill(); ctx.stroke();
+    ctx.restore();
 
     ctx.restore();
   }
 
-  function drawEmak(ctx, x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.strokeStyle = '#3e352d';
-    ctx.lineWidth = 2.2;
-
-    // Floral Orange Daster (A-Line)
-    ctx.fillStyle = '#ea580c';
-    ctx.beginPath();
-    ctx.moveTo(-10, -54); ctx.lineTo(10, -54);
-    ctx.lineTo(17, -10);  ctx.lineTo(-17, -10);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-
-    // Yellow flower dots
-    ctx.fillStyle = '#fde047';
-    ctx.beginPath();
-    ctx.arc(-5, -32, 2.5, 0, Math.PI * 2); ctx.arc(6, -24, 2.5, 0, Math.PI * 2); ctx.fill();
-
-    // Head with Pink Hair Rollers
+  function drawEmakHead(ctx) {
     ctx.fillStyle = '#fed7aa';
     ctx.beginPath(); ctx.arc(0, -66, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#ec4899';
@@ -852,86 +1060,70 @@
     ctx.roundRect(-12, -78, 6, 6, 2); ctx.roundRect(-2, -80, 6, 6, 2); ctx.roundRect(8, -78, 6, 6, 2);
     ctx.fill(); ctx.stroke();
 
-    // Screaming Mouth & Googly Eyes
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -67, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(5, -67, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-5, -67, 4.5, 0, Math.PI * 2); ctx.arc(5, -67, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#3e352d';
     ctx.beginPath(); ctx.arc(-4, -67, 1.8, 0, Math.PI * 2); ctx.arc(6, -67, 1.8, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7f1d1d';
     ctx.beginPath(); ctx.arc(0, -58, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-    // Raising Sapu Lidi
-    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(8, -48); ctx.lineTo(26, -80); ctx.stroke();
-    ctx.fillStyle = '#eab308';
-    ctx.fillRect(24, -94, 8, 16); ctx.strokeRect(24, -94, 8, 16);
-
-    ctx.restore();
   }
 
-  function drawHansip(ctx, x, y) {
+  function drawEmak(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
-    // Green trousers
-    ctx.fillStyle = '#14532d';
-    ctx.fillRect(-7, -24, 6, 24); ctx.strokeRect(-7, -24, 6, 24);
-    ctx.fillRect(3, -24, 6, 24);  ctx.strokeRect(3, -24, 6, 24);
+    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#38bdf8', true);
 
-    // Green Shirt with White Belt
-    ctx.fillStyle = '#166534';
-    ctx.beginPath(); ctx.roundRect(-11, -52, 24, 28, 4); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(-12, -36, 26, 4.5); ctx.strokeRect(-12, -36, 26, 4.5);
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.moveTo(-10, -54); ctx.lineTo(10, -54);
+    ctx.lineTo(17, -14);  ctx.lineTo(-17, -14);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath(); ctx.arc(-5, -34, 2.5, 0, Math.PI * 2); ctx.arc(6, -26, 2.5, 0, Math.PI * 2); ctx.fill();
 
-    // Head with Green Peaked Cap
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -64, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#14532d';
-    ctx.beginPath(); ctx.roundRect(-10, -76, 20, 8, 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#facc15';
-    ctx.beginPath(); ctx.arc(0, -73, 2.5, 0, Math.PI * 2); ctx.fill();
+    drawEmakHead(ctx);
 
-    // Googly Eyes & Shouting Mouth
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-4, -64, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(4, -64, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
-    ctx.beginPath(); ctx.arc(-3, -64, 1.8, 0, Math.PI * 2); ctx.arc(5, -64, 1.8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -56, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
-
-    // Wooden Baton
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(6, -46); ctx.lineTo(20, -72); ctx.stroke();
+    const broomSwing = Math.sin(runPhase + Math.PI) * 0.6;
+    ctx.save();
+    ctx.translate(8, -48); ctx.rotate(broomSwing);
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(20, -32); ctx.stroke();
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(18, -46, 8, 16); ctx.strokeRect(18, -46, 8, 16);
+    ctx.restore();
 
     ctx.restore();
   }
 
-  function drawBocilSarung(ctx, x, y) {
+  function drawBocilSarung(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 3)) * 3;
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2;
 
-    // Little boy wrapped in blue ninja sarung
-    ctx.fillStyle = '#0284c7';
-    ctx.beginPath(); ctx.ellipse(0, -28, 11, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Running little legs
+    drawRunningHumanLegs(ctx, runPhase * 1.4, '#fed7aa', '#0f172a', true);
 
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -50, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Blue ninja sarung
     ctx.fillStyle = '#0284c7';
-    ctx.fillRect(-7, -58, 14, 5); ctx.strokeRect(-7, -58, 14, 5);
+    ctx.beginPath(); ctx.ellipse(0, -30, 11, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // Head with sarung mask
+    ctx.fillStyle = '#fed7aa';
+    ctx.beginPath(); ctx.arc(0, -52, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(-7, -60, 14, 5); ctx.strokeRect(-7, -60, 14, 5);
 
     // Big excited eyes
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-3, -50, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(3, -50, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-3, -52, 3.5, 0, Math.PI * 2); ctx.arc(3, -52, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#3e352d';
-    ctx.beginPath(); ctx.arc(-2, -50, 1.5, 0, Math.PI * 2); ctx.arc(4, -50, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-2, -52, 1.5, 0, Math.PI * 2); ctx.arc(4, -52, 1.5, 0, Math.PI * 2); ctx.fill();
 
     ctx.restore();
   }
@@ -1059,6 +1251,8 @@
     const lastObs = obstacles[obstacles.length - 1];
     if (lastObs && lastObs.x > V_WIDTH - 85) return;
     const obsDef = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+    const isCat = obsDef.type === 'kucing';
+    const isWalkingCat = isCat && Math.random() < 0.65;
     obstacles.push({
       x: V_WIDTH + 30,
       y: GROUND_Y - obsDef.yOffset,
@@ -1067,11 +1261,18 @@
       type: obsDef.type,
       name: obsDef.name,
       color: obsDef.color,
-      state: 'idle',
+      state: isCat ? (isWalkingCat ? 'walking' : 'idle') : 'idle',
       spooked: false,
       runSpeed: 0,
+      walkSpeed: isCat ? -(35 + Math.random() * 25) : 0,
       animTime: 0
     });
+    if (isCat) {
+      if (window.soundManager && window.soundManager.playCatMeow) {
+        window.soundManager.playCatMeow();
+      }
+      addComicText("Meoong~ 🐾", V_WIDTH + 15, GROUND_Y - 45, '#fb923c');
+    }
   }
 
   function createDust(x, y) {
@@ -1139,6 +1340,7 @@
     cemeteryGate.x = -999;
 
     player.reset();
+    kuntiPowerup.reset();
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -1215,38 +1417,123 @@
     }
 
     const wargaX = getWargaX();
+    mobRunCycle = (mobRunCycle + dt * 13) % (Math.PI * 2);
+
     shoutTimer -= dt;
     if (shoutTimer <= 0 && escapeGap < 75) {
-      currentShout = VILLAGER_SHOUTS[Math.floor(Math.random() * VILLAGER_SHOUTS.length)];
+      currentShout = getNextVillagerShout();
       shoutTimer = Math.max(1.5, 3.5 - stage * 0.02);
     }
 
     player.update(dt);
+    if (kuntiPowerup.active) {
+      player.isGrounded = false;
+      player.vy = 0;
+      const targetY = GROUND_Y - 170 + Math.sin(player.animTime * 3.5) * 8;
+      player.y += (targetY - player.y) * Math.min(1, dt * 7);
+      player.tripTimer = 0;
+      player.slowTimer = 0;
+      player.hitTimer = 0;
+      if (Math.random() < 0.35) {
+        createKuntiSparkles(player.x - 10 + Math.random() * 40, player.y + 40, 1);
+      }
+    }
+
+    updatePowerupMechanics(dt);
     updateThrownMechanics(dt, wargaX);
     updateObstacleMechanics(dt);
     updateParticlesAndScenery(dt);
     updateHUD();
   }
 
-  const DODGE_TAUNTS = [
-    "WLEEE! 😝", "GAK KENA WLEEE! 😜", "MELESET BOS! 🤪",
-    "KASIAN DEH LUU! 😛", "KEJARR DONG! 💨", "LEMPAR LAGI SINI! 😆"
-  ];
-  const SHORT_THROW_TAUNTS = [
-    "GAK NYAMPEEE! 🤣", "TENAGA LOYO NIH YEE! 😆", "KURANG MAKAN APA BOS?! 😜",
-    "KENDOR BANGET LEMPARNYA! 🤪", "NYAMPE KAGA, CAPEK IYA! 😝"
-  ];
-
   function triggerPocimanTaunt(isShort = false) {
     if (player.tripTimer > 0 || player.hitTimer > 0) return;
     if (isShort && player.tauntTimer > 0.4) return;
     player.tauntTimer = 1.6;
-    const list = isShort ? SHORT_THROW_TAUNTS : DODGE_TAUNTS;
-    const shout = list[Math.floor(Math.random() * list.length)];
-    player.tauntText = shout;
+    player.tauntText = isShort ? getNextShortTaunt() : getNextDodgeTaunt();
     player.tauntIsShort = isShort;
     if (window.soundManager && window.soundManager.playTaunt) {
       window.soundManager.playTaunt();
+    }
+  }
+
+  function createKuntiSparkles(x, y, count = 2) {
+    const colors = ['#c084fc', '#e879f9', '#38bdf8', '#fef08a'];
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: x + (Math.random() - 0.5) * 30,
+        y: y + (Math.random() - 0.5) * 30,
+        vx: -50 - Math.random() * 40,
+        vy: (Math.random() - 0.5) * 60,
+        radius: 2 + Math.random() * 3,
+        alpha: 0.95,
+        life: 0.45,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+  }
+
+  function activateKuntiPowerup() {
+    kuntiPowerup.itemActive = false;
+    kuntiPowerup.active = true;
+    kuntiPowerup.timer = kuntiPowerup.duration;
+    kuntiPowerup.dialogTimer = 3.6;
+
+    player.tripTimer = 0;
+    player.slowTimer = 0;
+    player.hitTimer = 0;
+    player.tauntTimer = 0;
+    escapeGap = Math.min(100, escapeGap + 25);
+
+    if (window.soundManager && window.soundManager.playKuntiRescue) {
+      window.soundManager.playKuntiRescue();
+    }
+    addComicText("DITOLONG MBAK KUNTI! 👻💖", player.x, player.y - 40, '#d8b4fe');
+    createKuntiSparkles(player.x, player.y, 14);
+  }
+
+  function deactivateKuntiPowerup() {
+    kuntiPowerup.active = false;
+    addComicText("DAH MAS POCI, HATI-HATI! 👋", player.x, player.y - 35, '#c084fc');
+    createKuntiSparkles(player.x, player.y, 12);
+    player.vy = 60;
+  }
+
+  function updatePowerupMechanics(dt) {
+    const progress = 1 - (stageTimer / stageTotalTime);
+    const canSpawn = progress > 0.22 && progress < 0.80 &&
+      kuntiPowerup.spawnedThisStage < kuntiPowerup.maxSpawnsPerStage &&
+      !kuntiPowerup.itemActive && !kuntiPowerup.active;
+
+    if (canSpawn) {
+      const milestone = kuntiPowerup.spawnedThisStage === 0 ? 0.28 : 0.62;
+      if (progress >= milestone) {
+        kuntiPowerup.itemActive = true;
+        kuntiPowerup.itemX = V_WIDTH + 50;
+        kuntiPowerup.itemY = GROUND_Y - 95;
+        kuntiPowerup.spawnedThisStage++;
+        addComicText("✨ LENTERA MBAK KUNTI! ✨", V_WIDTH - 150, GROUND_Y - 130, '#c084fc');
+      }
+    }
+
+    if (kuntiPowerup.itemActive) {
+      kuntiPowerup.itemX -= gameSpeed * dt;
+      kuntiPowerup.itemBob += dt * 4;
+      kuntiPowerup.itemY = GROUND_Y - 95 + Math.sin(kuntiPowerup.itemBob) * 14;
+
+      const pBox = { x: kuntiPowerup.itemX - 16, y: kuntiPowerup.itemY - 16, w: 32, h: 32 };
+      if (checkRectOverlap(player, pBox)) {
+        activateKuntiPowerup();
+      }
+      if (kuntiPowerup.itemX < -60) kuntiPowerup.itemActive = false;
+    }
+
+    if (kuntiPowerup.active) {
+      kuntiPowerup.timer -= dt;
+      if (kuntiPowerup.dialogTimer > 0) kuntiPowerup.dialogTimer -= dt;
+      if (kuntiPowerup.timer <= 0) {
+        deactivateKuntiPowerup();
+      }
     }
   }
 
@@ -1283,7 +1570,7 @@
     updateHUD();
   }
 
-  function updateThrownMechanics(dt, wargaX) {
+  function updateThrowTimer(dt, wargaX) {
     throwTimer -= dt;
     if (throwTimer <= 0.8 && !warningActive) {
       warningActive = true;
@@ -1297,6 +1584,10 @@
       throwWarningEl.classList.add('hidden');
       throwTimer = Math.max(1.1, 3.6 - (stage - 1) * 0.09 + Math.random() * 0.5);
     }
+  }
+
+  function updateThrownMechanics(dt, wargaX) {
+    updateThrowTimer(dt, wargaX);
 
     for (let i = thrownItems.length - 1; i >= 0; i--) {
       const item = thrownItems[i];
@@ -1305,7 +1596,7 @@
       item.y += item.vy * dt;
       item.rot += item.rotSpeed * dt;
 
-      if (player.invulnerableTime <= 0 && checkRectOverlap(player, item)) {
+      if (!kuntiPowerup.active && player.invulnerableTime <= 0 && checkRectOverlap(player, item)) {
         handleItemHit(i);
         continue;
       }
@@ -1318,9 +1609,7 @@
 
       if (item.y > GROUND_Y - 10) {
         createDust(item.x, GROUND_Y);
-        if (!item.passed && item.x < player.x - 30) {
-          triggerPocimanTaunt(true);
-        }
+        if (!item.passed && item.x < player.x - 30) triggerPocimanTaunt(true);
         thrownItems.splice(i, 1);
         continue;
       }
@@ -1339,8 +1628,14 @@
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
-      if (window.soundManager && window.soundManager.playCatScreech) window.soundManager.playCatScreech();
-      addComicText("DICAKAR OREN! 😼💥", player.x, player.y - 25, '#f97316');
+      obs.state = 'running';
+      obs.spooked = true;
+      obs.runSpeed = 290 + Math.random() * 50;
+      if (window.soundManager && window.soundManager.playCatScreech) {
+        window.soundManager.playCatScreech();
+      }
+      addComicText("TERINJAK! NGEBULL! 🙀💨", player.x, player.y - 25, '#f97316');
+      createDust(obs.x + 8, GROUND_Y);
     } else {
       window.soundManager.playTrip();
       addComicText("GUBRAK! MERAYAP ULAT! 🐛", player.x, player.y - 25, '#f59e0b');
@@ -1348,6 +1643,19 @@
 
     createDust(player.x, GROUND_Y);
     updateHUD();
+  }
+
+  function updateCatSpookCheck(obs) {
+    if (!obs.spooked && obs.x - (player.x + player.w) < 80 && Math.random() < 0.08) {
+      obs.spooked = true;
+      obs.state = 'running';
+      obs.runSpeed = 260 + Math.random() * 40;
+      if (window.soundManager && window.soundManager.playCatScreech) window.soundManager.playCatScreech();
+      addComicText("KAGET! 🙀💨", obs.x, obs.y - 18, '#fbbf24');
+    }
+    if (obs.state === 'running' && Math.random() < 0.3) {
+      createDust(obs.x + 4, GROUND_Y);
+    }
   }
 
   function updateObstacleMechanics(dt) {
@@ -1361,22 +1669,16 @@
       const obs = obstacles[i];
       obs.animTime = (obs.animTime || 0) + dt;
 
-      if (obs.type === 'kucing' && !obs.spooked && obs.x - (player.x + player.w) < 210) {
-        obs.spooked = true;
-        obs.state = 'running';
-        obs.runSpeed = 230 + Math.random() * 40;
-        addComicText("MEONG! 🙀", obs.x, obs.y - 18, '#fbbf24');
-        if (window.soundManager && window.soundManager.playCatScreech) window.soundManager.playCatScreech();
-      }
+      if (obs.type === 'kucing') updateCatSpookCheck(obs);
 
-      if (obs.type === 'kucing' && obs.state === 'running' && Math.random() < 0.25) {
-        createDust(obs.x + 4, GROUND_Y);
+      let vx = -gameSpeed;
+      if (obs.type === 'kucing') {
+        if (obs.state === 'running') vx = obs.runSpeed - gameSpeed;
+        else if (obs.state === 'walking') vx = obs.walkSpeed - gameSpeed;
       }
-
-      const vx = (obs.type === 'kucing' && obs.state === 'running') ? (obs.runSpeed - gameSpeed) : -gameSpeed;
       obs.x += vx * dt;
 
-      if (player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
+      if (!kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
       }
 
@@ -1657,6 +1959,11 @@
       drawCemeteryGate(ctx, cemeteryGate);
     }
 
+    // 7.8. Kunti Power-up Pickup Item
+    if (kuntiPowerup.itemActive) {
+      drawKuntiPickup(ctx, kuntiPowerup.itemX, kuntiPowerup.itemY, kuntiPowerup.itemBob);
+    }
+
     // 8. Front Obstacles
     for (const obs of obstacles) {
       drawObstacle(ctx, obs);
@@ -1672,6 +1979,9 @@
       drawBustedCutscene(ctx);
     } else {
       player.draw(ctx);
+      if (kuntiPowerup.active) {
+        drawKuntilanakRescue(ctx, player);
+      }
     }
 
     // 11. Particles & Comic Texts
@@ -1847,9 +2157,10 @@
 
   function drawCatObstacle(ctx, obs) {
     const isRunning = obs.state === 'running';
+    const isWalking = obs.state === 'walking';
     const anim = obs.animTime || 0;
-    const legPhase = isRunning ? Math.sin(anim * 26) * 5 : 0;
-    const tailWiggle = isRunning ? Math.sin(anim * 22) * 7 : Math.sin(anim * 4) * 2;
+    const legPhase = isRunning ? Math.sin(anim * 26) * 5 : (isWalking ? Math.sin(anim * 9) * 3 : 0);
+    const tailWiggle = isRunning ? Math.sin(anim * 22) * 7 : Math.sin(anim * 5) * 3;
 
     ctx.save();
     if (!isRunning) {
@@ -1860,6 +2171,120 @@
     drawCatBody(ctx, obs, isRunning, legPhase, tailWiggle);
     drawCatHead(ctx, obs.w * 0.75, obs.h * 0.4);
     ctx.restore();
+  }
+
+  function drawKuntiPickup(ctx, x, y, bob) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    const rad = 28 + Math.sin(bob * 2) * 5;
+    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, rad);
+    aura.addColorStop(0, 'rgba(216, 180, 254, 0.7)');
+    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.35)');
+    aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
+    ctx.fillStyle = aura;
+    ctx.fillRect(-rad, -rad, rad * 2, rad * 2);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI * 2) / 5 + bob * 0.5;
+      const px = Math.cos(angle) * 11;
+      const py = Math.sin(angle) * 11;
+      ctx.beginPath();
+      ctx.ellipse(px, py, 7, 4.5, angle, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#f5d0fe';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("Mbak Kunti", 0, -18);
+
+    ctx.restore();
+  }
+
+  function drawKuntilanakRescue(ctx, p) {
+    const kx = p.x - 12;
+    const ky = p.y - 36;
+    const anim = p.animTime || 0;
+    const floatWiggle = Math.sin(anim * 4) * 4;
+
+    ctx.save();
+    ctx.translate(kx, ky + floatWiggle);
+
+    const aura = ctx.createRadialGradient(0, 0, 10, 0, 0, 65);
+    aura.addColorStop(0, 'rgba(192, 132, 252, 0.45)');
+    aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
+    ctx.fillStyle = aura;
+    ctx.fillRect(-65, -65, 130, 130);
+
+    drawKuntiDress(ctx, anim);
+    drawKuntiHeadAndHair(ctx, anim);
+
+    ctx.restore();
+
+    if (kuntiPowerup.dialogTimer > 0) {
+      drawSpeechBubble(ctx, p.x + 20, p.y - 75, kuntiPowerup.dialogText);
+    }
+  }
+
+  function drawKuntiDress(ctx, anim) {
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.8;
+    ctx.fillStyle = '#f8fafc';
+
+    ctx.beginPath();
+    ctx.moveTo(-10, -20);
+    ctx.lineTo(10, -20);
+    const wave1 = Math.sin(anim * 5) * 5;
+    const wave2 = Math.cos(anim * 6) * 6;
+    ctx.quadraticCurveTo(24 + wave1, 20, 20 + wave1, 52);
+    ctx.lineTo(-20 + wave2, 52);
+    ctx.quadraticCurveTo(-24 + wave2, 20, -10, -20);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#fed7aa';
+    ctx.strokeStyle = '#c084fc';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.roundRect(6, -6, 26, 7, 3);
+    ctx.fill(); ctx.stroke();
+  }
+
+  function drawKuntiHeadAndHair(ctx, anim) {
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    const hairSway = Math.sin(anim * 4) * 6;
+    ctx.moveTo(-6, -34);
+    ctx.quadraticCurveTo(-28 + hairSway, -10, -24 + hairSway, 38);
+    ctx.lineTo(-8, 20);
+    ctx.lineTo(0, -20);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, -32, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(-4, -32, 3.5, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.arc(4, -32, 3.5, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
+    ctx.beginPath(); ctx.arc(-7, -26, 2.5, 0, Math.PI * 2); ctx.arc(7, -26, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath(); ctx.ellipse(0, -24, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawObstacle(ctx, obs) {
