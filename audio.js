@@ -10,7 +10,7 @@ class SoundManager {
     this.bgmTimer = null;
     this.bgmStep = 0;
     this.bgmNextTime = 0;
-    this.selectedBgmTrack = 'spooky';
+    this.selectedBgmTrack = (typeof localStorage !== 'undefined' && localStorage.getItem('pociman_bgm')) || 'koplo';
   }
 
   init() {
@@ -478,28 +478,61 @@ class SoundManager {
     }
   }
 
-  playBgmStep(step, time) {
-    const bass = [110.00, 0, 220.00, 0, 110.00, 0, 196.00, 0, 110.00, 0, 220.00, 0, 164.81, 0, 196.00, 0];
-    const mel = [440.00, 0, 523.25, 0, 659.25, 622.25, 587.33, 0, 523.25, 0, 440.00, 0, 392.00, 0, 440.00, 0];
-    if (bass[step]) this.playTone(bass[step], 'sawtooth', 0.12, 0.16, time);
-    if (mel[step]) this.playTone(mel[step], 'square', 0.10, 0.12, time);
-    if (step % 4 === 0) this.playDrumHit('kick', time);
-    if (step % 4 === 2) this.playDrumHit('hat', time);
-    if (step === 4 || step === 12) this.playDrumHit('tak', time);
+  setBgmTrack(trackId) {
+    if (!BGM_TRACKS[trackId]) return;
+    this.selectedBgmTrack = trackId;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('pociman_bgm', trackId);
+    }
+    if (this.currentBgm) {
+      this.playBgm(trackId);
+    }
   }
 
-  playBgm(trackId = 'spooky') {
+  playBgmDrums(trackId, step, time) {
+    if (trackId === 'koplo') {
+      if (step % 8 === 0 || step % 8 === 6) this.playDrumHit('kick', time);
+      if (step % 8 === 4 || step % 8 === 7) this.playDrumHit('tak', time);
+      if (step % 2 === 0) this.playDrumHit('hat', time);
+    } else if (trackId === 'circus') {
+      if (step % 8 === 0) this.playDrumHit('kick', time);
+      if (step % 8 === 4) this.playDrumHit('tak', time);
+      if (step % 4 === 2) this.playDrumHit('hat', time);
+    } else {
+      if (step % 4 === 0) this.playDrumHit('kick', time);
+      if (step % 4 === 2) this.playDrumHit('tak', time);
+      if (step % 2 === 1) this.playDrumHit('hat', time);
+    }
+  }
+
+  playBgmStep(step, time) {
+    const trackId = this.currentBgm || this.selectedBgmTrack || 'koplo';
+    const track = BGM_TRACKS[trackId] || BGM_TRACKS['koplo'];
+    const bassNote = track.bass[step % track.bass.length];
+    const melNote = track.mel[step % track.mel.length];
+
+    if (bassNote) {
+      this.playTone(midiToFreq(bassNote), track.bassType, track.stepDuration * 0.9, 0.18, time);
+    }
+    if (melNote) {
+      this.playTone(midiToFreq(melNote), track.melType, track.stepDuration * 0.85, 0.13, time);
+    }
+    this.playBgmDrums(trackId, step, time);
+  }
+
+  playBgm(trackId = null) {
     this.stopBgm();
     if (this.isMuted) return;
     this.init();
     if (!this.ctx) return;
-    this.currentBgm = trackId || 'spooky';
+
+    this.currentBgm = trackId || this.selectedBgmTrack || 'koplo';
     this.bgmStep = 0;
     this.bgmNextTime = this.ctx.currentTime + 0.05;
 
     this.bgmTimer = setInterval(() => {
       this.tickBgm();
-    }, 40);
+    }, 35);
   }
 
   stopBgm() {
@@ -512,9 +545,10 @@ class SoundManager {
 
   tickBgm() {
     if (!this.ctx || this.isMuted || !this.currentBgm) return;
-    const stepDuration = 0.12;
+    const track = BGM_TRACKS[this.currentBgm] || BGM_TRACKS['koplo'];
+    const stepDuration = track.stepDuration || 0.11;
     while (this.bgmNextTime < this.ctx.currentTime + 0.16) {
-      const s = this.bgmStep % 16;
+      const s = this.bgmStep % 128;
       this.playBgmStep(s, this.bgmNextTime);
       this.bgmNextTime += stepDuration;
       this.bgmStep++;
@@ -522,4 +556,90 @@ class SoundManager {
   }
 }
 
+function midiToFreq(m) {
+  return m ? 440 * Math.pow(2, (m - 69) / 12) : 0;
+}
+
+const BGM_TRACKS = {
+  koplo: {
+    name: 'Koplo Slapstick',
+    stepDuration: 0.11,
+    bassType: 'sawtooth',
+    melType: 'triangle',
+    bass: [
+      45,0,45,0, 40,0,45,0, 48,0,45,0, 40,0,45,0,
+      45,0,45,0, 40,0,45,0, 48,0,45,0, 40,0,45,0,
+      43,0,43,0, 38,0,43,0, 47,0,43,0, 38,0,43,0,
+      40,0,40,0, 35,0,40,0, 44,0,40,0, 35,0,40,0,
+      45,0,45,0, 40,0,45,0, 48,0,45,0, 40,0,45,0,
+      41,0,41,0, 36,0,41,0, 45,0,41,0, 36,0,41,0,
+      43,0,43,0, 38,0,43,0, 40,0,40,0, 35,0,40,0,
+      40,0,40,0, 44,0,40,0, 35,0,40,0, 44,0,47,0
+    ],
+    mel: [
+      69,0,72,0, 76,74,72,0, 69,0,72,74, 72,0,69,0,
+      69,0,72,0, 76,74,72,0, 74,76,74,72, 69,0,72,0,
+      74,0,77,0, 76,74,72,0, 71,0,72,74, 76,0,71,0,
+      71,0,74,0, 72,71,69,0, 68,0,69,71, 72,71,69,0,
+      76,0,79,0, 81,79,76,0, 77,0,76,74, 72,0,69,0,
+      77,0,81,0, 79,77,76,0, 74,0,76,77, 76,0,72,0,
+      74,0,77,0, 76,74,72,0, 71,0,74,0, 72,0,71,0,
+      69,71,72,74, 76,74,72,71, 69,68,69,71, 72,74,76,0
+    ]
+  },
+  circus: {
+    name: 'Sirkus Hantu Tiptoe',
+    stepDuration: 0.115,
+    bassType: 'triangle',
+    melType: 'sine',
+    bass: [
+      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
+      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
+      48,0,51,0, 53,54,55,0, 51,0,48,0, 47,0,48,0,
+      45,0,48,0, 50,51,52,0, 49,0,45,0, 43,0,45,0,
+      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
+      50,0,53,0, 51,0,48,0, 46,0,43,0, 42,0,43,0,
+      48,0,45,0, 43,0,42,0, 45,0,48,0, 50,0,45,0,
+      43,0,45,0, 46,0,48,0, 49,0,50,0, 52,0,45,0
+    ],
+    mel: [
+      62,0,65,0, 69,68,67,0, 65,0,62,0, 61,62,65,0,
+      62,0,65,0, 69,68,67,0, 70,0,69,0, 67,65,62,0,
+      67,0,70,0, 74,73,72,0, 70,0,67,0, 66,67,70,0,
+      69,0,73,0, 72,70,69,0, 67,0,65,0, 64,65,67,0,
+      74,0,72,0, 70,69,67,0, 65,67,69,0, 62,0,65,0,
+      76,0,74,0, 73,72,70,0, 69,70,72,0, 67,0,69,0,
+      70,0,69,0, 67,65,64,0, 65,0,67,0, 69,0,64,0,
+      62,64,65,67, 69,70,72,73, 74,73,70,69, 67,65,64,0
+    ]
+  },
+  ragtime: {
+    name: 'Ragtime Kartun',
+    stepDuration: 0.105,
+    bassType: 'sawtooth',
+    melType: 'square',
+    bass: [
+      36,0,43,0, 36,0,43,0, 36,0,43,0, 36,0,43,0,
+      41,0,48,0, 41,0,48,0, 36,0,43,0, 36,0,43,0,
+      43,0,50,0, 43,0,50,0, 36,0,43,0, 36,0,43,0,
+      43,0,50,0, 43,0,50,0, 36,0,40,0, 43,0,48,0,
+      36,0,43,0, 36,0,43,0, 36,0,43,0, 36,0,43,0,
+      41,0,48,0, 41,0,48,0, 36,0,43,0, 36,0,43,0,
+      43,0,50,0, 43,0,50,0, 36,0,43,0, 45,0,41,0,
+      43,0,47,0, 50,0,47,0, 36,0,40,0, 43,0,36,0
+    ],
+    mel: [
+      60,62,64,67, 69,67,64,60, 62,0,64,65, 67,0,69,0,
+      72,71,69,67, 65,64,62,60, 59,60,62,64, 65,67,69,71,
+      72,0,76,0, 74,72,69,0, 67,0,69,72, 74,0,72,0,
+      74,0,76,0, 77,76,74,0, 72,0,74,72, 71,69,67,0,
+      72,0,76,0, 74,72,69,0, 67,69,72,0, 69,67,64,0,
+      65,0,69,0, 72,69,65,0, 64,65,67,0, 64,62,60,0,
+      62,0,65,0, 69,67,65,0, 67,0,71,0, 74,72,71,0,
+      72,74,76,77, 76,74,72,69, 67,64,62,60, 64,67,72,0
+    ]
+  }
+};
+
+window.BGM_TRACKS = BGM_TRACKS;
 window.soundManager = new SoundManager();

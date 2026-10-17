@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.2.0" />
+  <link rel="stylesheet" href="style.css?v=2.3.0" />
 </head>
 <body>
   <div id="game-container">
@@ -99,6 +99,29 @@
             <span class="ctrl-icon">🖱️</span>
             <span><strong>Laptop / PC:</strong> Klik Mouse atau [SPASI]</span>
           </div>
+        </div>
+
+        <!-- Pilihan Opsi Musik 13-15s Loop -->
+        <div class="music-selector-box">
+          <div class="music-selector-title">🎵 PILIH OPSI MUSIK (LOOP 13-15 DETIK):</div>
+          <div class="music-options-grid">
+            <button class="music-option-btn active" data-track="koplo" type="button">
+              <span class="m-icon">🪘</span>
+              <span class="m-label">1. Koplo Slapstick</span>
+              <span class="m-badge">Rekomendasi</span>
+            </button>
+            <button class="music-option-btn" data-track="circus" type="button">
+              <span class="m-icon">🎪</span>
+              <span class="m-label">2. Sirkus Tiptoe</span>
+              <span class="m-badge">Kocak</span>
+            </button>
+            <button class="music-option-btn" data-track="ragtime" type="button">
+              <span class="m-icon">🏃</span>
+              <span class="m-label">3. Kartun Ragtime</span>
+              <span class="m-badge">Cepat</span>
+            </button>
+          </div>
+          <div class="music-preview-hint">Klik tombol di atas untuk dengarkan pratinjau loop 🔊</div>
         </div>
 
         <div class="start-btn-group">
@@ -276,7 +299,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.2.0"></script>
-  <script src="game.js?v=2.2.0"></script>
+  <script src="audio.js?v=2.3.0"></script>
+  <script src="game.js?v=2.3.0"></script>
 </body>
 </html>

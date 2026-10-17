@@ -1359,7 +1359,7 @@
 
     showStageBanner(`⭐ STAGE ${stage}: MENUJU GERBANG TPU!`);
     window.soundManager.playStageUp();
-    window.soundManager.playBgm('spooky');
+    window.soundManager.playBgm();
   }
 
   // --- Main Update Loop ---
@@ -2657,11 +2657,29 @@
     setTimeout(fitGameToScreen, 150);
   });
 
+  const musicOptionBtns = document.querySelectorAll('.music-option-btn');
+  function initMusicSelector() {
+    const activeTrack = (window.soundManager && window.soundManager.selectedBgmTrack) || 'koplo';
+    musicOptionBtns.forEach(btn => {
+      const track = btn.dataset.track;
+      btn.classList.toggle('active', track === activeTrack);
+      bindBtn(btn, () => {
+        musicOptionBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (window.soundManager) {
+          window.soundManager.setBgmTrack(track);
+          window.soundManager.playBgm(track);
+        }
+      });
+    });
+  }
+
   // Init
   if (!isFsSupported) {
     if (startFullscreenBtn) startFullscreenBtn.textContent = '📱 Layar Otomatis Pas';
     if (fullscreenBtn) fullscreenBtn.style.display = 'none';
   }
+  initMusicSelector();
   initVillageScenery();
   fitGameToScreen();
   updateHUD();
