@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -82,54 +82,35 @@
 
     <!-- Start / Title Screen Modal -->
     <div id="startScreen" class="modal-screen">
-      <div class="modal-card">
+      <div class="modal-card start-card">
         <div class="tagline">PETUALANGAN KOCAK SI POCONG LUCU</div>
         <h1 class="game-title">POCIMAN</h1>
         <p class="story-desc">
-          Lagi asyik jalan santai di kampung malam hari, Pociman ketahuan Pak RT dan warga ronda! 
-          Lompat untuk kabur, hindari rintangan jalan, dan waspada timpukan sandal/panci dari belakang!
+          Kabur dari kejaran warga kampung sampai masuk gerbang TPU!
         </p>
 
-
-        <div class="tips-grid">
-          <div class="tip-card tip-control-card">
-            <span class="tip-icon">📱</span>
-            <div class="tip-text">
-              <strong>HP &amp; Tablet (Sentuh Layar)</strong>
-              <small>Tap 1x = Lompat &bull; Tap 2x = Double Jump di udara</small>
-            </div>
+        <div class="quick-controls-box">
+          <div class="quick-ctrl-item">
+            <span class="ctrl-icon">📱</span>
+            <span><strong>HP / Tablet:</strong> Sentuh Layar (2x Double Jump)</span>
           </div>
-          <div class="tip-card tip-control-card">
-            <span class="tip-icon">🖱️</span>
-            <div class="tip-text">
-              <strong>Mouse / Laptop (Klik)</strong>
-              <small>Klik Kiri 1x = Lompat &bull; Klik 2x = Double Jump</small>
-            </div>
-          </div>
-          <div class="tip-card tip-control-card">
-            <span class="tip-icon">⌨️</span>
-            <div class="tip-text">
-              <strong>Keyboard (Tombol)</strong>
-              <small>[SPASI] / [↑] / [W] = Lompat &bull; [P] = Jeda</small>
-            </div>
-          </div>
-          <div class="tip-card">
-            <span class="tip-icon">⚠️</span>
-            <div class="tip-text">
-              <strong>Awas Timpukan Warga &amp; Kucing Oren</strong>
-              <small>Lompati kucing &amp; sandal/batu! Masuk gerbang TPU untuk menang.</small>
-            </div>
+          <div class="quick-ctrl-item">
+            <span class="ctrl-icon">🖱️</span>
+            <span><strong>Laptop / PC:</strong> Klik Mouse atau [SPASI]</span>
           </div>
         </div>
 
-        <button id="startBtn" class="btn-play">KABUR SEKARANG! 🏃💨</button>
+        <div class="start-btn-group">
+          <button id="startBtn" class="btn-play btn-play-main">KABUR SEKARANG! 🏃💨</button>
+          <button id="startFullscreenBtn" class="btn-fullscreen-toggle" type="button">⛶ Layar Penuh</button>
+        </div>
 
         <div class="creator-credits-footer">
           <div class="credits-by">
-            Karya &amp; Desain: <strong>Anton Maulana</strong> &bull; <span>Developed by Kawan Kita Solusindo (AI Dev Team)</span>
+            Karya: <strong>Anton Maulana</strong> &bull; <span>Kawan Kita Solusindo</span>
           </div>
           <div class="modal-footer-btns">
-            <button id="creditsBtn" class="btn-credits-link" type="button">ℹ️ Kredit &amp; Info Game</button>
+            <button id="creditsBtn" class="btn-credits-link" type="button">ℹ️ Info &amp; Kontrol Lengkap</button>
           </div>
         </div>
       </div>
@@ -280,21 +261,14 @@
 
 
 
+    <!-- Portrait Orientation Hint -->
+    <div id="portraitNotice" class="portrait-notice">
+      <span>📱 Putar HP ke horizontal (landscape) untuk tampilan lebih luas!</span>
+    </div>
+
     <!-- Mobile Touch Control Helper -->
     <div id="touchHelper" class="touch-helper">
       <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X UNTUK LOMPAT TINGGI</span>
-    </div>
-  </div>
-
-  <!-- Force Landscape Prompt Overlay for Mobile & Tablet -->
-  <div id="rotateOverlay" class="rotate-overlay">
-    <div class="rotate-card">
-      <div class="rotate-icon-anim">📱</div>
-      <h2 class="rotate-title">PUTAR KE POSISI LANDSKAP</h2>
-      <p class="rotate-desc">
-        Pociman butuh pandangan luas! Silakan putar HP / Tablet kamu ke posisi mendatar (landscape) agar seluruh aksi dan area permainan terlihat jelas &amp; seru.
-      </p>
-      <button id="lockLandscapeBtn" class="btn-play">🔄 KUNCI LANDSKAP &amp; FULLSCREEN</button>
     </div>
   </div>
 

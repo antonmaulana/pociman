@@ -11,7 +11,11 @@
   -webkit-touch-callout: none;
 }
 
-body {
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   background: #09090b;
   color: #f3f4f6;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -19,7 +23,6 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   touch-action: manipulation;
 }
 
@@ -31,7 +34,7 @@ body {
   max-height: 540px;
   aspect-ratio: 16 / 9;
   background: #0f172a;
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.08);
   overflow: hidden;
   margin: auto;
@@ -300,18 +303,19 @@ canvas {
 .modal-screen {
   position: absolute;
   inset: 0;
-  background: rgba(10, 15, 30, 0.88);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 15, 30, 0.92);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
   z-index: 50;
-  transition: opacity 0.2s ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-screen.hidden {
-  display: none;
+  display: none !important;
   opacity: 0;
   pointer-events: none;
 }
@@ -319,18 +323,111 @@ canvas {
 .modal-card {
   background: #1e293b;
   border: 2px solid #334155;
-  border-radius: 16px;
-  padding: 24px 28px;
-  max-width: 500px;
+  border-radius: 14px;
+  padding: 16px 20px;
+  max-width: 440px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
+  max-height: 96%;
+}
+
+.start-card {
+  max-width: 420px;
+  padding: 14px 18px;
 }
 
 .mini-card {
   max-width: 360px;
-  padding: 20px;
+  padding: 18px;
+}
+
+/* Quick Controls Box in Start Screen */
+.quick-controls-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.quick-ctrl-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.quick-ctrl-item .ctrl-icon {
+  font-size: 14px;
+}
+
+.start-btn-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.btn-play-main {
+  flex: 1;
+}
+
+.btn-fullscreen-toggle {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+}
+
+.btn-fullscreen-toggle:hover {
+  background: #0369a1;
+}
+
+/* Floating Non-Blocking Portrait Notice */
+.portrait-notice {
+  display: none;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(245, 158, 11, 0.95);
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 45;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: pulseNotice 2s infinite ease-in-out;
+}
+
+@keyframes pulseNotice {
+  0% { opacity: 0.85; }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.03); }
+  100% { opacity: 0.85; }
+}
+
+@media screen and (orientation: portrait) and (max-width: 900px) {
+  .portrait-notice {
+    display: block;
+  }
 }
 
 @keyframes slideUp {
@@ -649,65 +746,6 @@ canvas {
   font-size: 12px;
 }
 
-/* --- Rotate to Landscape Prompt Overlay (Mobile & Tablet) --- */
-.rotate-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: rgba(10, 15, 30, 0.98);
-  backdrop-filter: blur(14px);
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  text-align: center;
-}
-
-/* Muncul otomatis saat device berposisi potret di layar sentuh / mobile / tablet */
-@media screen and (orientation: portrait) and (max-width: 1024px) {
-  .rotate-overlay {
-    display: flex;
-  }
-}
-
-.rotate-card {
-  max-width: 380px;
-  background: rgba(30, 41, 59, 0.92);
-  border: 2px solid #38bdf8;
-  border-radius: 16px;
-  padding: 24px 20px;
-  box-shadow: 0 0 35px rgba(56, 189, 248, 0.35);
-}
-
-.rotate-icon-anim {
-  font-size: 52px;
-  margin-bottom: 12px;
-  display: inline-block;
-  animation: rotateDevice 2.2s infinite ease-in-out;
-}
-
-@keyframes rotateDevice {
-  0% { transform: rotate(0deg); }
-  35% { transform: rotate(-90deg); }
-  70% { transform: rotate(-90deg); }
-  100% { transform: rotate(0deg); }
-}
-
-.rotate-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: #facc15;
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-
-.rotate-desc {
-  font-size: 12px;
-  color: #cbd5e1;
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
 
 /* Fullscreen mode on container */
 :fullscreen #game-container,

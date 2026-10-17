@@ -44,7 +44,7 @@
   const soundBtn = document.getElementById('soundBtn');
   const pauseBtn = document.getElementById('pauseBtn');
   const fullscreenBtn = document.getElementById('fullscreenBtn');
-  const lockLandscapeBtn = document.getElementById('lockLandscapeBtn');
+  const startFullscreenBtn = document.getElementById('startFullscreenBtn');
 
   const stageClearTitleEl = document.getElementById('stageClearTitle');
   const stageClearTimeEl = document.getElementById('stageClearTime');
@@ -2037,39 +2037,28 @@
 
   const gameContainer = document.getElementById('game-container');
   gameContainer.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('button') || e.target.closest('.modal-card')) return;
+    if (gameState !== STATE.PLAYING || e.target.closest('button') || e.target.closest('.modal-card')) return;
     e.preventDefault();
     window.soundManager.init();
     handleJumpAction();
   });
 
-  startBtn.addEventListener('click', () => { window.soundManager.init(); startStage(highestStage); });
-  creditsBtn.addEventListener('click', () => { window.soundManager.init(); creditsScreen.classList.remove('hidden'); });
-  closeCreditsBtn.addEventListener('click', () => { creditsScreen.classList.add('hidden'); });
-
-  nextStageBtn.addEventListener('click', () => { window.soundManager.init(); startStage(Math.min(TOTAL_STAGES, stage + 1)); });
-  replayStageBtn.addEventListener('click', () => { window.soundManager.init(); startStage(stage); });
-  restartBtn.addEventListener('click', () => { window.soundManager.init(); startStage(stage); });
-  resetStage1Btn.addEventListener('click', () => { window.soundManager.init(); startStage(1); });
-  winPlayAgainBtn.addEventListener('click', () => { window.soundManager.init(); startStage(1); });
-  resumeBtn.addEventListener('click', () => { togglePause(); });
-  pauseBtn.addEventListener('click', () => { togglePause(); });
-
-  function togglePause() {
-    if (gameState === STATE.PLAYING) {
-      gameState = STATE.PAUSED;
-      pauseScreen.classList.remove('hidden');
-    } else if (gameState === STATE.PAUSED) {
-      gameState = STATE.PLAYING;
-      pauseScreen.classList.add('hidden');
-      lastTime = performance.now();
-    }
+  function bindBtn(el, handler) {
+    if (!el) return;
+    let last = 0;
+    const run = (e) => {
+      const now = Date.now();
+      if (now - last < 300) return;
+      last = now;
+      window.soundManager.init();
+      handler(e);
+    };
+    el.addEventListener('click', run);
+    el.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      run(e);
+    });
   }
-
-  soundBtn.addEventListener('click', () => {
-    const isMuted = window.soundManager.toggleMute();
-    soundBtn.textContent = isMuted ? '🔇' : '🔊';
-  });
 
   async function toggleFullscreen() {
     try {
@@ -2092,18 +2081,40 @@
     } catch (e) {}
   }
 
-  if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
-  if (lockLandscapeBtn) {
-    lockLandscapeBtn.addEventListener('click', () => {
-      window.soundManager.init();
-      toggleFullscreen();
-    });
+  bindBtn(startBtn, () => startStage(highestStage));
+  bindBtn(startFullscreenBtn, toggleFullscreen);
+  bindBtn(fullscreenBtn, toggleFullscreen);
+  bindBtn(creditsBtn, () => creditsScreen.classList.remove('hidden'));
+  bindBtn(closeCreditsBtn, () => creditsScreen.classList.add('hidden'));
+
+  bindBtn(nextStageBtn, () => startStage(Math.min(TOTAL_STAGES, stage + 1)));
+  bindBtn(replayStageBtn, () => startStage(stage));
+  bindBtn(restartBtn, () => startStage(stage));
+  bindBtn(resetStage1Btn, () => startStage(1));
+  bindBtn(winPlayAgainBtn, () => startStage(1));
+  bindBtn(resumeBtn, togglePause);
+  bindBtn(pauseBtn, togglePause);
+
+  function togglePause() {
+    if (gameState === STATE.PLAYING) {
+      gameState = STATE.PAUSED;
+      pauseScreen.classList.remove('hidden');
+    } else if (gameState === STATE.PAUSED) {
+      gameState = STATE.PLAYING;
+      pauseScreen.classList.add('hidden');
+      lastTime = performance.now();
+    }
   }
 
+  bindBtn(soundBtn, () => {
+    const isMuted = window.soundManager.toggleMute();
+    soundBtn.textContent = isMuted ? '🔇' : '🔊';
+  });
+
   document.addEventListener('fullscreenchange', () => {
-    if (fullscreenBtn) {
-      fullscreenBtn.textContent = document.fullscreenElement ? '✖' : '⛶';
-    }
+    const isFull = !!document.fullscreenElement;
+    if (fullscreenBtn) fullscreenBtn.textContent = isFull ? '✖' : '⛶';
+    if (startFullscreenBtn) startFullscreenBtn.textContent = isFull ? '✖ Layar Biasa' : '⛶ Layar Penuh';
   });
 
   // Init
