@@ -2043,42 +2043,80 @@
     handleJumpAction();
   });
 
+  function fitGameToScreen() {
+    if (!gameContainer) return;
+    const vp = window.visualViewport;
+    const availW = Math.max(280, (vp ? vp.width : window.innerWidth) - 4);
+    const availH = Math.max(160, (vp ? vp.height : window.innerHeight) - 4);
+    const targetRatio = 16 / 9;
+
+    let w = availW;
+    let h = w / targetRatio;
+    if (h > availH) {
+      h = availH;
+      w = h * targetRatio;
+    }
+    if (w > 960) {
+      w = 960;
+      h = 540;
+    }
+    gameContainer.style.width = Math.floor(w) + 'px';
+    gameContainer.style.height = Math.floor(h) + 'px';
+  }
+
   function bindBtn(el, handler) {
     if (!el) return;
     let last = 0;
     const run = (e) => {
       const now = Date.now();
-      if (now - last < 300) return;
+      if (now - last < 250) return;
       last = now;
-      window.soundManager.init();
+      if (window.soundManager && window.soundManager.init) {
+        window.soundManager.init();
+      }
       handler(e);
     };
     el.addEventListener('click', run);
-    el.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      run(e);
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'touch') {
+        run(e);
+      }
     });
   }
 
   async function toggleFullscreen() {
     try {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
-          await document.documentElement.webkitRequestFullscreen();
+      const doc = document;
+      const fsEl = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+      if (!fsEl) {
+        const root = document.documentElement;
+        if (root.requestFullscreen) {
+          await root.requestFullscreen();
+        } else if (root.webkitRequestFullscreen) {
+          await root.webkitRequestFullscreen();
+        } else if (gameContainer.requestFullscreen) {
+          await gameContainer.requestFullscreen();
+        } else if (gameContainer.webkitRequestFullscreen) {
+          await gameContainer.webkitRequestFullscreen();
         }
         if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape').catch(() => {});
+          screen.orientation.lock('landscape').catch(() => {});
         }
       } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          await document.webkitExitFullscreen();
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Fullscreen toggle:', e);
+    }
+    setTimeout(fitGameToScreen, 150);
   }
 
   bindBtn(startBtn, () => startStage(highestStage));
@@ -2111,14 +2149,33 @@
     soundBtn.textContent = isMuted ? '🔇' : '🔊';
   });
 
-  document.addEventListener('fullscreenchange', () => {
-    const isFull = !!document.fullscreenElement;
+  function updateFullscreenUI() {
+    const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
     if (fullscreenBtn) fullscreenBtn.textContent = isFull ? '✖' : '⛶';
     if (startFullscreenBtn) startFullscreenBtn.textContent = isFull ? '✖ Layar Biasa' : '⛶ Layar Penuh';
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    updateFullscreenUI();
+    fitGameToScreen();
+  });
+  document.addEventListener('webkitfullscreenchange', () => {
+    updateFullscreenUI();
+    fitGameToScreen();
+  });
+
+  window.addEventListener('resize', fitGameToScreen);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitGameToScreen);
+    window.visualViewport.addEventListener('scroll', fitGameToScreen);
+  }
+  window.addEventListener('orientationchange', () => {
+    setTimeout(fitGameToScreen, 150);
   });
 
   // Init
   initVillageScenery();
+  fitGameToScreen();
   updateHUD();
   requestAnimationFrame(gameLoop);
 

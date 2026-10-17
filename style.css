@@ -14,6 +14,7 @@
 html, body {
   width: 100%;
   height: 100%;
+  height: 100dvh;
   margin: 0;
   padding: 0;
   background: #09090b;
@@ -28,13 +29,13 @@ html, body {
 
 #game-container {
   position: relative;
-  width: min(100vw, calc(100vh * (16 / 9)));
-  height: min(100vh, calc(100vw * (9 / 16)));
+  width: min(100vw, calc(100dvh * (16 / 9)));
+  height: min(100dvh, calc(100vw * (9 / 16)));
   max-width: 960px;
   max-height: 540px;
   aspect-ratio: 16 / 9;
   background: #0f172a;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.08);
   overflow: hidden;
   margin: auto;
@@ -748,100 +749,140 @@ canvas {
 
 
 /* Fullscreen mode on container */
+:fullscreen,
+:-webkit-full-screen,
 :fullscreen #game-container,
-:-webkit-full-screen #game-container {
-  width: min(100vw, calc(100vh * (16 / 9)));
-  height: min(100vh, calc(100vw * (9 / 16)));
+:-webkit-full-screen #game-container,
+#game-container:fullscreen,
+#game-container:-webkit-full-screen {
+  width: min(100vw, calc(100dvh * (16 / 9)));
+  height: min(100dvh, calc(100vw * (9 / 16)));
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100dvh;
   border-radius: 0;
   box-shadow: none;
 }
 
-/* Responsive Landscape on Mobile & Tablet (Short viewport heights) */
-@media (max-height: 540px) and (orientation: landscape) {
+/* Responsive on Mobile, Tablet & Short viewports (accounts for browser bars) */
+@media (max-height: 560px), (max-width: 768px) and (orientation: landscape) {
   #game-container {
-    width: min(100vw, calc(100vh * (16 / 9)));
-    height: min(100vh, calc(100vw * (9 / 16)));
-    border-radius: 0;
-    box-shadow: none;
+    width: min(100vw, calc(100dvh * (16 / 9)));
+    height: min(100dvh, calc(100vw * (9 / 16)));
+    border-radius: 6px;
   }
   .overlay-ui {
-    padding: 4px 10px;
+    padding: 3px 8px;
   }
   .stat-badge {
-    padding: 3px 8px;
-    font-size: 11px;
-    gap: 4px;
-  }
-  .hud-center {
-    max-width: 300px;
-    margin: 0 6px;
-  }
-  .sync-meters-card {
-    padding: 4px 8px;
+    padding: 2px 6px;
+    font-size: 10px;
     gap: 3px;
   }
+  .hud-center {
+    max-width: 260px;
+    margin: 0 4px;
+  }
+  .sync-meters-card {
+    padding: 3px 6px;
+    gap: 2px;
+  }
   .progress-track {
-    height: 7px;
+    height: 6px;
   }
   .meter-labels {
-    font-size: 8px;
+    font-size: 7.5px;
   }
   .ui-btn-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .modal-screen {
+    padding: 4px;
   }
   .modal-card {
-    max-width: 540px;
-    padding: 10px 16px;
-    max-height: 94vh;
+    max-width: 480px;
+    padding: 8px 12px;
+    max-height: 98%;
     overflow-y: auto;
+  }
+  .start-card {
+    max-width: 440px;
+    padding: 8px 12px;
+  }
+  .tagline {
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-bottom: 1px;
   }
   .game-title {
     font-size: 18px;
     margin-bottom: 2px;
+    letter-spacing: 0.5px;
   }
   .story-desc {
+    font-size: 10px;
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+  .quick-controls-box {
+    padding: 4px 8px;
+    margin-bottom: 5px;
+    gap: 2px;
+  }
+  .quick-ctrl-item {
+    font-size: 9.5px;
+    gap: 4px;
+  }
+  .quick-ctrl-item .ctrl-icon {
+    font-size: 12px;
+  }
+  .start-btn-group {
+    margin-bottom: 4px;
+    gap: 6px;
+  }
+  .btn-play-main {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+  .btn-fullscreen-toggle {
+    padding: 7px 10px;
     font-size: 10.5px;
-    line-height: 1.3;
-    margin-bottom: 6px;
   }
   .tips-grid {
     grid-template-columns: 1fr 1fr;
     gap: 4px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .tip-card {
-    padding: 4px 8px;
-    gap: 6px;
+    padding: 4px 6px;
+    gap: 4px;
   }
   .tip-icon {
-    font-size: 15px;
+    font-size: 14px;
   }
   .tip-text strong {
-    font-size: 10px;
-  }
-  .tip-text small {
-    font-size: 9px;
-  }
-  .btn-play {
-    padding: 8px 14px;
-    font-size: 12px;
-  }
-  .creator-credits-footer {
-    margin-top: 6px;
-    padding-top: 6px;
-    gap: 4px;
     font-size: 9.5px;
   }
+  .tip-text small {
+    font-size: 8.5px;
+  }
+  .btn-play {
+    padding: 7px 12px;
+    font-size: 11.5px;
+  }
+  .creator-credits-footer {
+    margin-top: 3px;
+    padding-top: 3px;
+    gap: 2px;
+    font-size: 8.5px;
+  }
   .stats-summary {
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    gap: 8px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    gap: 6px;
   }
   .summary-value {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
