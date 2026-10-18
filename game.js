@@ -3519,7 +3519,7 @@
     if (!startBtn) return;
     if (highestStage > 1 && highestStage <= TOTAL_STAGES) {
       startBtn.textContent = `LANJUTKAN (STAGE ${highestStage}) 🏃💨`;
-      if (startResetStageBtn) startResetStageBtn.style.display = 'block';
+      if (startResetStageBtn) startResetStageBtn.style.display = 'inline-flex';
     } else {
       startBtn.textContent = 'KABUR SEKARANG! 🏃💨';
       if (startResetStageBtn) startResetStageBtn.style.display = 'none';

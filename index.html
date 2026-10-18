@@ -92,18 +92,18 @@
 
         <div class="quick-controls-box">
           <div class="quick-ctrl-item">
-            <span class="ctrl-icon">📱</span>
-            <span><strong>HP / Tablet:</strong> Sentuh Layar (2x Double Jump)</span>
+            <span class="ctrl-tag">📱 HP / Tablet</span>
+            <span class="ctrl-desc">Sentuh layar (<kbd>2x Tap</kbd> Double Jump)</span>
           </div>
           <div class="quick-ctrl-item">
-            <span class="ctrl-icon">🖱️</span>
-            <span><strong>Laptop / PC:</strong> Klik Mouse atau [SPASI]</span>
+            <span class="ctrl-tag">💻 Laptop / PC</span>
+            <span class="ctrl-desc">Klik Mouse atau tekan <kbd>SPASI</kbd></span>
           </div>
         </div>
 
-        <!-- Pilihan Opsi Musik 13-15s Loop -->
+        <!-- Pilihan Opsi Musik -->
         <div class="music-selector-box">
-          <div class="music-selector-title">🎵 PILIH OPSI MUSIK (LOOP 13-15 DETIK):</div>
+          <div class="music-selector-title">🎵 PILIH SUASANA MUSIK:</div>
           <div class="music-options-grid">
             <button class="music-option-btn active" data-track="koplo" type="button">
               <span class="m-icon">🪘</span>
@@ -121,25 +121,25 @@
               <span class="m-badge">Cepat</span>
             </button>
           </div>
-          <div class="music-preview-hint">Klik tombol di atas untuk dengarkan pratinjau loop 🔊</div>
+          <div class="music-preview-hint">Klik tombol untuk pratinjau lagu 🔊</div>
         </div>
 
-        <div class="start-btn-group">
-          <button id="startBtn" class="btn-play btn-play-main">KABUR SEKARANG! 🏃💨</button>
-          <button id="startFullscreenBtn" class="btn-fullscreen-toggle" type="button">⛶ Layar Penuh</button>
+        <div class="start-hero-cta">
+          <button id="startBtn" class="btn-play btn-hero-start">KABUR SEKARANG! 🏃💨</button>
         </div>
 
         <div class="start-secondary-btn-group">
-          <button id="startWallOfHonorBtn" class="btn-honor-toggle" type="button">🏆 Wall of Honor</button>
-          <button id="startResetStageBtn" class="btn-reset-stage" type="button">🔄 Ulang Dari Stage 1</button>
+          <button id="startWallOfHonorBtn" class="btn-sub-action btn-honor-toggle" type="button">🏆 Wall of Honor</button>
+          <button id="startResetStageBtn" class="btn-sub-action btn-reset-stage" type="button">🔄 Ulang Dari Stage 1</button>
         </div>
 
         <div class="creator-credits-footer">
+          <div class="start-utility-row">
+            <button id="startFullscreenBtn" class="btn-util-pill" type="button">⛶ Layar Penuh</button>
+            <button id="creditsBtn" class="btn-util-pill" type="button">ℹ️ Panduan &amp; Info</button>
+          </div>
           <div class="credits-by">
             Karya: <strong>Anton Maulana</strong> &bull; <span>Kawan Kita Solusindo</span>
-          </div>
-          <div class="modal-footer-btns">
-            <button id="creditsBtn" class="btn-credits-link" type="button">ℹ️ Info &amp; Kontrol Lengkap</button>
           </div>
         </div>
       </div>
@@ -358,7 +358,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.9.2"></script>
-  <script src="game.js?v=2.9.2"></script>
+  <script src="audio.js?v=2.9.3"></script>
+  <script src="game.js?v=2.9.3"></script>
 </body>
 </html>
