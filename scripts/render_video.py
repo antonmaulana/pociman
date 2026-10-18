@@ -278,106 +278,122 @@ def draw_pociman(draw, cx, cy, t, is_dancing=True):
     draw.ellipse([cx - 25 + sway - sw_drop1 * 0.4, df_cy - 16 - sw_drop1, cx - 19 + sway - sw_drop1 * 0.4, df_cy - 8 - sw_drop1], fill="#38bdf8", outline="#0284c7")
     draw.ellipse([cx + 20 + sway + sw_drop2 * 0.4, df_cy - 18 - sw_drop2, cx + 26 + sway + sw_drop2 * 0.4, df_cy - 10 - sw_drop2], fill="#38bdf8", outline="#0284c7")
 
-def draw_pemuda_resting(draw, px, py, t):
+def draw_pemuda_resting(draw, px, ground_y, t):
     panting = math.sin(t * 7.5) * 4
     outline = "#3e352d"
-    # Legs (bare legs #fed7aa, rolled green sarung #15803d, black sandals #0f172a matching Screenshot 3)
-    draw.rectangle([px - 18, 422, px - 6, 464], fill="#fed7aa", outline=outline, width=2)
-    draw.rectangle([px + 6, 422, px + 18, 464], fill="#fed7aa", outline=outline, width=2)
-    draw.rectangle([px - 20, 462, px - 4, 470], fill="#0f172a")
-    draw.rectangle([px + 4, 462, px + 20, 470], fill="#0f172a")
+    
+    # 1. Bare Legs & Sandals
+    draw.rectangle([px - 16, ground_y - 28, px - 6, ground_y - 6], fill="#fed7aa", outline=outline, width=2)
+    draw.rectangle([px + 6, ground_y - 28, px + 18, ground_y - 6], fill="#fed7aa", outline=outline, width=2)
+    draw.rectangle([px - 18, ground_y - 8, px - 4, ground_y], fill="#0f172a")
+    draw.rectangle([px + 4, ground_y - 8, px + 18, ground_y], fill="#0f172a")
+    
+    # 2. Rolled Green Sarung Waist & White Singlet Torso
+    draw.rounded_rectangle([px - 22, ground_y - 48 - panting, px + 22, ground_y - 26 - panting], radius=6, fill="#15803d", outline=outline, width=3)
+    draw.rounded_rectangle([px - 20, ground_y - 76 - panting, px + 20, ground_y - 44 - panting], radius=8, fill="#f8fafc", outline=outline, width=3)
+    
+    # Arms: Left arm on knee, Right arm holding Torch!
+    draw.line([(px - 18, ground_y - 65 - panting), (px - 26, ground_y - 48 - panting), (px - 16, ground_y - 40 - panting)], fill="#fed7aa", width=5)
+    draw.line([(px + 18, ground_y - 65 - panting), (px + 30, ground_y - 65 - panting), (px + 36, ground_y - 78 - panting)], fill="#fed7aa", width=5)
 
-    # Rolled Green Sarung (#15803d) & White Singlet Torso (#f8fafc) matching Screenshot 3
-    draw.rectangle([px - 20, 408, px + 20, 424], fill="#15803d", outline=outline, width=2)
-    draw.rectangle([px - 18, 358 - panting, px + 18, 412], fill="#f8fafc", outline=outline, width=2)
+    # Blazing Bamboo Torch (Obor)
+    draw.line([(px + 36, ground_y - 40), (px + 36, ground_y - 100)], fill="#ca8a04", width=5)
+    draw.rectangle([px + 31, ground_y - 110, px + 41, ground_y - 97], fill="#854d0e", outline=outline, width=1)
+    flk = math.sin(t * 18) * 4
+    draw.polygon([(px + 29, ground_y - 110), (px + 43, ground_y - 110), (px + 36 + flk, ground_y - 140)], fill="#ea580c")
+    draw.polygon([(px + 32, ground_y - 110), (px + 40, ground_y - 110), (px + 36 + flk * 0.7, ground_y - 131)], fill="#f59e0b")
+    draw.ellipse([px + 33, ground_y - 120, px + 39, ground_y - 112], fill="#fef08a")
 
-    # Arms leaning forward on knees
-    draw.line([(px - 16, 368 - panting), (px - 24, 412), (px - 12, 430)], fill="#fed7aa", width=6)
-    draw.line([(px + 16, 368 - panting), (px + 24, 412), (px + 12, 430)], fill="#fed7aa", width=6)
-
-    # Head & Spiky 3-Point Messy Hair matching Screenshot 3 & game.js
-    hy = 312 - panting
-    draw.ellipse([px - 17, hy, px + 17, hy + 38], fill="#fed7aa", outline=outline, width=2)
+    # Head (True Chibi Round Head)
+    hy = ground_y - 99 - panting
+    draw.ellipse([px - 25, hy - 25, px + 25, hy + 25], fill="#fed7aa", outline=outline, width=3)
+    
+    # Spiky 3-Point Messy Hair
     draw.polygon([
-        (px - 17, hy + 10), (px - 24, hy - 12), (px - 9, hy - 2),
-        (px, hy - 16), (px + 9, hy - 2), (px + 24, hy - 12), (px + 17, hy + 10)
-    ], fill="#1e1b18", outline=outline)
+        (px - 22, hy - 14), (px - 28, hy - 38), (px - 13, hy - 24),
+        (px, hy - 43), (px + 13, hy - 24), (px + 28, hy - 38), (px + 22, hy - 14)
+    ], fill="#1e1b18", outline=outline, width=2)
+    
+    # Pita Merah Putih Headband with Fluttering Ribbon
+    draw.rectangle([px - 24, hy - 18, px + 24, hy - 11], fill="#dc2626")
+    draw.rectangle([px - 24, hy - 11, px + 24, hy - 5], fill="#ffffff")
+    draw.rectangle([px - 24, hy - 18, px + 24, hy - 5], outline=outline, width=2)
+    ribbon_w = math.sin(t * 8) * 5
+    draw.polygon([(px - 24, hy - 16), (px - 44, hy - 22 + ribbon_w), (px - 38, hy - 6 + ribbon_w), (px - 24, hy - 6)], fill="#dc2626", outline=outline, width=2)
+    
+    # Expressive Anime Eyes
+    draw.ellipse([px - 14, hy - 8, px - 1, hy + 6], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([px + 1, hy - 8, px + 14, hy + 6], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([px - 10, hy - 6, px - 5, hy], fill="#1e1b18")
+    draw.ellipse([px + 5, hy - 6, px + 11, hy], fill="#1e1b18")
+    draw.ellipse([px - 9, hy - 5, px - 7, hy - 3], fill="#ffffff")
+    draw.ellipse([px + 6, hy - 5, px + 8, hy - 3], fill="#ffffff")
+    
+    # Rosy Cheeks & Open Smile with Tongue
+    draw.ellipse([px - 21, hy + 2, px - 13, hy + 10], fill="#fca5a5")
+    draw.ellipse([px + 13, hy + 2, px + 21, hy + 10], fill="#fca5a5")
+    draw.chord([px - 8, hy + 6, px + 8, hy + 20], 0, 180, fill="#7f1d1d", outline=outline, width=2)
+    draw.ellipse([px - 4, hy + 13, px + 4, hy + 19], fill="#f43f5e")
 
-    # Pita Merah Putih Headband (#dc2626 & #ffffff) with Ribbon fluttering to left
-    draw.rectangle([px - 18, hy + 8, px + 18, hy + 13], fill="#dc2626")
-    draw.rectangle([px - 18, hy + 13, px + 18, hy + 18], fill="#ffffff")
-    ribbon_w = math.sin(t * 8) * 4
-    draw.polygon([(px - 17, hy + 10), (px - 34, hy + 6 + ribbon_w), (px - 28, hy + 19 + ribbon_w), (px - 17, hy + 18)], fill="#dc2626")
-
-    # Shouting/Panting Expressive Anime Eyes & Open Mouth with Tongue matching Screenshot 3
-    draw.ellipse([px - 11, hy + 17, px - 3, hy + 26], fill="#ffffff", outline=outline, width=2)
-    draw.ellipse([px - 8, hy + 19, px - 4, hy + 24], fill="#1e1b18")
-    draw.ellipse([px - 8, hy + 19, px - 6, hy + 21], fill="#ffffff")
-
-    draw.ellipse([px + 3, hy + 17, px + 11, hy + 26], fill="#ffffff", outline=outline, width=2)
-    draw.ellipse([px + 5, hy + 19, px + 9, hy + 24], fill="#1e1b18")
-    draw.ellipse([px + 5, hy + 19, px + 7, hy + 21], fill="#ffffff")
-
-    # Rosy cheeks & open mouth
-    draw.ellipse([px - 14, hy + 25, px - 9, hy + 30], fill="#fca5a5")
-    draw.ellipse([px + 9, hy + 25, px + 14, hy + 30], fill="#fca5a5")
-    draw.chord([px - 6, hy + 26, px + 6, hy + 36], 0, 180, fill="#7f1d1d", outline=outline, width=1)
-    draw.ellipse([px - 3, hy + 31, px + 3, hy + 35], fill="#f43f5e")
-
-    # Cyan sweat drop
-    sw = (t * 35) % 20
-    draw.ellipse([px + 18, hy + 10 + sw, px + 24, hy + 18 + sw], fill="#38bdf8")
-
-    # Resting Torch leaning on pillar with bright flickering flame
-    draw.line([(px - 28, 470), (px - 24, 365)], fill="#ca8a04", width=5)
-    draw.rectangle([px - 28, 355, px - 20, 370], fill="#854d0e")
-    flk = math.sin(t * 18) * 3
-    draw.polygon([(px - 29, 355), (px - 19, 355), (px - 24 + flk, 332)], fill="#ea580c")
-    draw.polygon([(px - 27, 355), (px - 21, 355), (px - 24 + flk * 0.7, 338)], fill="#f59e0b")
-    draw.ellipse([px - 26, 348, px - 22, 354], fill="#fef08a")
-
-def draw_emak_resting(draw, ex, ey, t):
-    panting = math.sin(t * 6.5) * 4
+def draw_emak_resting(draw, ex, ground_y, t):
+    panting = math.sin(t * 6.5) * 3
     outline = "#3e352d"
-    # Bare legs & BLUE flip-flop sandals (#38bdf8) matching Screenshot 3 1:1!
-    draw.rectangle([ex - 16, 448, ex - 6, 464], fill="#fed7aa", outline=outline, width=2)
-    draw.rectangle([ex + 6, 448, ex + 16, 464], fill="#fed7aa", outline=outline, width=2)
-    draw.rectangle([ex - 18, 462, ex - 4, 470], fill="#38bdf8", outline=outline, width=1)
-    draw.rectangle([ex + 4, 462, ex + 18, 470], fill="#38bdf8", outline=outline, width=1)
-
-    # Wide Orange A-line Daster (#ea580c with gold dumbbell/dot pattern #fde047) matching Screenshot 3
+    
+    # Bare Legs & Blue Flip-Flops
+    draw.rectangle([ex - 16, ground_y - 24, ex - 6, ground_y - 6], fill="#fed7aa", outline=outline, width=2)
+    draw.rectangle([ex + 6, ground_y - 24, ex + 16, ground_y - 6], fill="#fed7aa", outline=outline, width=2)
+    draw.rectangle([ex - 18, ground_y - 8, ex - 4, ground_y], fill="#38bdf8", outline="#0284c7", width=1)
+    draw.rectangle([ex + 4, ground_y - 8, ex + 18, ground_y], fill="#38bdf8", outline="#0284c7", width=1)
+    
+    # Orange Batik A-Line Daster
     draw.polygon([
-        (ex - 22, 365 - panting), (ex + 22, 365 - panting),
-        (ex + 34, 452), (ex - 34, 452)
-    ], fill="#ea580c", outline=outline, width=2)
-    for dx, dy in [(-12, 385), (12, 385), (0, 410), (-14, 432), (14, 432)]:
-        draw.ellipse([ex + dx - 4, dy - panting - 4, ex + dx + 4, dy - panting + 4], fill="#fde047")
+        (ex - 18, ground_y - 76 - panting), (ex + 18, ground_y - 76 - panting),
+        (ex + 30, ground_y - 24 - panting), (ex - 30, ground_y - 24 - panting)
+    ], fill="#ea580c", outline=outline, width=3)
+    
+    # Batik Yellow Connected Flower Motif
+    draw.line([(ex - 14, ground_y - 58 - panting), (ex + 14, ground_y - 42 - panting)], fill="#fde047", width=3)
+    draw.line([(ex + 14, ground_y - 58 - panting), (ex - 14, ground_y - 42 - panting)], fill="#fde047", width=3)
+    for dx, dy in [(-14, -58), (14, -58), (-14, -42), (14, -42), (0, -50)]:
+        draw.ellipse([ex + dx - 4, ground_y + dy - panting - 4, ex + dx + 4, ground_y + dy - panting + 4], fill="#fde047")
+        
+    # Arms: Left arm on hip, Right arm holding spatula!
+    draw.line([(ex - 18, ground_y - 65 - panting), (ex - 28, ground_y - 50 - panting), (ex - 18, ground_y - 40 - panting)], fill="#fed7aa", width=5)
+    draw.line([(ex + 18, ground_y - 65 - panting), (ex + 30, ground_y - 68 - panting), (ex + 38, ground_y - 82 - panting)], fill="#fed7aa", width=5)
 
-    # Head (#fed7aa) & Rosy Cheeks
-    hy = 314 - panting
-    draw.ellipse([ex - 18, hy, ex + 18, hy + 38], fill="#fed7aa", outline=outline, width=2)
-    draw.ellipse([ex - 14, hy + 22, ex - 7, hy + 29], fill="#fca5a5")
-    draw.ellipse([ex + 7, hy + 22, ex + 14, hy + 29], fill="#fca5a5")
+    # Golden Spatula / Sutil in Hand!
+    draw.line([(ex + 38, ground_y - 82 - panting), (ex + 44, ground_y - 110 - panting)], fill="#ca8a04", width=5)
+    draw.rounded_rectangle([ex + 38, ground_y - 128 - panting, ex + 56, ground_y - 105 - panting], radius=4, fill="#eab308", outline=outline, width=2)
+    draw.line([(ex + 38, ground_y - 116 - panting), (ex + 56, ground_y - 116 - panting)], fill="#ef4444", width=3)
 
-    # 3 Giant Hair Curlers (#ec4899 pink, #06b6d4 cyan, #a855f7 purple) matching Screenshot 3 & game.js
-    draw.rounded_rectangle([ex - 21, hy - 9, ex - 8, hy + 6], radius=3, fill="#ec4899", outline=outline, width=2)
-    draw.rounded_rectangle([ex - 7, hy - 13, ex + 7, hy + 2], radius=3, fill="#06b6d4", outline=outline, width=2)
-    draw.rounded_rectangle([ex + 8, hy - 9, ex + 21, hy + 6], radius=3, fill="#a855f7", outline=outline, width=2)
-
-    # Slanted Angry Brows, Fierce Round Eyes & Red Lipstick Mouth
-    draw.line([(ex - 12, hy + 13), (ex - 3, hy + 17)], fill=outline, width=2)
-    draw.line([(ex + 12, hy + 13), (ex + 3, hy + 17)], fill=outline, width=2)
-    draw.ellipse([ex - 11, hy + 17, ex - 3, hy + 25], fill="#ffffff", outline=outline, width=2)
-    draw.ellipse([ex - 9, hy + 19, ex - 5, hy + 23], fill="#1e1b18")
-    draw.ellipse([ex + 3, hy + 17, ex + 11, hy + 25], fill="#ffffff", outline=outline, width=2)
-    draw.ellipse([ex + 5, hy + 19, ex + 9, hy + 23], fill="#1e1b18")
-    draw.ellipse([ex - 6, hy + 26, ex + 6, hy + 35], fill="#dc2626", outline=outline, width=1)
-    draw.ellipse([ex - 4, hy + 28, ex + 4, hy + 33], fill="#7f1d1d")
-
-    # Sapu Lidi (Yellow bristles #eab308, red tape #ef4444, wooden handle #ca8a04) resting beside bench
-    draw.line([(ex + 36, 470), (ex + 46, 355)], fill="#ca8a04", width=5)
-    draw.rounded_rectangle([ex + 42, 345, ex + 56, 380], radius=3, fill="#eab308", outline=outline, width=2)
-    draw.line([(ex + 42, 360), (ex + 56, 360)], fill="#ef4444", width=3)
+    # Head (True Chibi Round Head)
+    hy = ground_y - 100 - panting
+    draw.ellipse([ex - 25, hy - 25, ex + 25, hy + 25], fill="#fed7aa", outline=outline, width=3)
+    
+    # 3 Giant Hair Rollers (Pink, Cyan, Purple)
+    draw.rounded_rectangle([ex - 25, hy - 40, ex - 9, hy - 24], radius=4, fill="#ec4899", outline=outline, width=2)
+    draw.rounded_rectangle([ex - 8, hy - 43, ex + 8, hy - 27], radius=4, fill="#06b6d4", outline=outline, width=2)
+    draw.rounded_rectangle([ex + 9, hy - 40, ex + 25, hy - 24], radius=4, fill="#a855f7", outline=outline, width=2)
+    
+    # Angry Slanted Eyebrows
+    draw.line([(ex - 15, hy - 14), (ex - 3, hy - 9)], fill=outline, width=3)
+    draw.line([(ex + 15, hy - 14), (ex + 3, hy - 9)], fill=outline, width=3)
+    
+    # Fierce Cartoon Eyes
+    draw.ellipse([ex - 14, hy - 9, ex - 1, hy + 5], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([ex + 1, hy - 9, ex + 15, hy + 5], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([ex - 10, hy - 6, ex - 4, hy], fill="#1e1b18")
+    draw.ellipse([ex + 4, hy - 6, ex + 10, hy], fill="#1e1b18")
+    draw.ellipse([ex - 8, hy - 5, ex - 6, hy - 3], fill="#ffffff")
+    draw.ellipse([ex + 6, hy - 5, ex + 8, hy - 3], fill="#ffffff")
+    
+    # Rosy Cheeks
+    draw.ellipse([ex - 21, hy + 2, ex - 13, hy + 10], fill="#fca5a5")
+    draw.ellipse([ex + 13, hy + 2, ex + 21, hy + 10], fill="#fca5a5")
+    
+    # Open Shouting Circle Mouth with Red Lipstick
+    draw.ellipse([ex - 8, hy + 6, ex + 8, hy + 22], fill="#dc2626", outline=outline, width=2)
+    draw.ellipse([ex - 5, hy + 9, ex + 5, hy + 19], fill="#7f1d1d")
 
 def draw_kunti_flower_pil(draw, fx, fy, size=8):
     for i in range(5):
@@ -477,65 +493,114 @@ def draw_kuntilanak(draw, cx, cy, t):
     draw.rectangle([tea_x - 4, tea_y + 6, tea_x + 2, tea_y + 12], fill="#fed7aa")
 
 # --- 3. Scene 1 Characters (Pos Ronda Resting) ---
-def draw_pak_rt_resting(draw, rt_x, rt_y, t):
-    rt_panting = math.sin(t * 8) * 6
+def draw_pak_rt_resting(draw, rt_x, ground_y, t):
+    panting = math.sin(t * 8) * 4
     outline = "#3e352d"
-    # Large adult potbelly torso (Batik #92400e with gold pattern dots #f59e0b)
-    draw.rectangle([rt_x - 30, 360 - rt_panting, rt_x + 30, 435], fill="#92400e", outline="#451a03", width=2)
-    for bx, by in [(rt_x - 16, 375 - rt_panting), (rt_x + 16, 375 - rt_panting), (rt_x, 395 - rt_panting), (rt_x - 16, 415 - rt_panting), (rt_x + 16, 415 - rt_panting)]:
-        draw.ellipse([bx - 4, by - 4, bx + 4, by + 4], fill="#f59e0b")
-    # Sarung / Trousers (#1e293b matching Screenshot 3 & game.js)
-    draw.rectangle([rt_x - 34, 425, rt_x + 34, 465], fill="#1e293b", outline="#0f172a", width=2)
-    # Head & Tilted black peci (Skin #fed7aa, Peci #1e1b18 matching Screenshot 3)
-    draw.ellipse([rt_x - 20, 315 - rt_panting, rt_x + 20, 360 - rt_panting], fill="#fed7aa", outline=outline, width=2)
-    draw.rounded_rectangle([rt_x - 22, 300 - rt_panting, rt_x + 22, 324 - rt_panting], radius=4, fill="#1e1b18", outline="#0f172a", width=2)
-    # Big Bushy Black Mustache (#262626) & Tired Panting Face (#7f1d1d)
-    draw.ellipse([rt_x - 14, 342 - rt_panting, rt_x + 14, 354 - rt_panting], fill="#262626")
-    # Signature Wire Glasses (#94a3b8) matching Screenshot 3 & game.js
-    draw.rectangle([rt_x - 14, 323 - rt_panting, rt_x - 3, 335 - rt_panting], fill="#ffffff", outline="#94a3b8", width=2)
-    draw.ellipse([rt_x - 10, 327 - rt_panting, rt_x - 6, 331 - rt_panting], fill="#1e1b18")
-    draw.rectangle([rt_x + 3, 323 - rt_panting, rt_x + 14, 335 - rt_panting], fill="#ffffff", outline="#94a3b8", width=2)
-    draw.ellipse([rt_x + 6, 327 - rt_panting, rt_x + 10, 331 - rt_panting], fill="#1e1b18")
-    draw.line([(rt_x - 3, 329 - rt_panting), (rt_x + 3, 329 - rt_panting)], fill="#94a3b8", width=2)
-    draw.chord([rt_x - 7, 350 - rt_panting, rt_x + 7, 359 - rt_panting], 0, 180, fill="#7f1d1d")
-    # Cyan sweat drops popping off head
-    sw_drop = (t * 40) % 25
-    draw.ellipse([rt_x + 26, 315 + sw_drop, rt_x + 34, 326 + sw_drop], fill="#38bdf8")
+    
+    # Legs & Sandals
+    draw.rectangle([rt_x - 22, ground_y - 28, rt_x - 8, ground_y - 4], fill="#1e293b", outline=outline, width=2)
+    draw.rectangle([rt_x + 8, ground_y - 28, rt_x + 22, ground_y - 4], fill="#1e293b", outline=outline, width=2)
+    draw.rectangle([rt_x - 24, ground_y - 6, rt_x - 6, ground_y], fill="#78350f")
+    draw.rectangle([rt_x + 6, ground_y - 6, rt_x + 24, ground_y], fill="#78350f")
+    
+    # Large Round Potbelly Torso (Perut Buncit Bulat)
+    draw.ellipse([rt_x - 30, ground_y - 82 - panting, rt_x + 30, ground_y - 26 - panting], fill="#92400e", outline=outline, width=3)
+    # Batik gold dots
+    for dx, dy in [(-11, -60), (11, -54), (0, -42)]:
+        draw.ellipse([rt_x + dx - 3.5, ground_y + dy - panting - 3.5, rt_x + dx + 3.5, ground_y + dy - panting + 3.5], fill="#f59e0b")
+        
+    # Arms resting on knees / belly
+    draw.line([(rt_x - 24, ground_y - 65 - panting), (rt_x - 32, ground_y - 48 - panting), (rt_x - 18, ground_y - 42 - panting)], fill="#fed7aa", width=5)
+    draw.line([(rt_x + 24, ground_y - 65 - panting), (rt_x + 32, ground_y - 48 - panting), (rt_x + 18, ground_y - 42 - panting)], fill="#fed7aa", width=5)
 
-    # Megaphone TOA resting on bench beside Pak RT (matching Screenshot 3 & game.js)
-    draw.polygon([(rt_x - 34, 452), (rt_x - 56, 442), (rt_x - 56, 464)], fill="#f8fafc", outline=outline)
-    draw.rectangle([rt_x - 59, 440, rt_x - 56, 466], fill="#ef4444")
-    draw.rectangle([rt_x - 36, 448, rt_x - 28, 456], fill="#64748b")
+    # Head (True Chibi Round Head)
+    hy = ground_y - 100 - panting
+    draw.ellipse([rt_x - 25, hy - 25, rt_x + 25, hy + 25], fill="#fed7aa", outline=outline, width=3)
+    
+    # Tilted black peci
+    draw.rounded_rectangle([rt_x - 24, hy - 40, rt_x + 24, hy - 17], radius=4, fill="#1e1b18", outline=outline, width=2)
+    
+    # Comical Wire Glasses & Big Round Eyes
+    draw.ellipse([rt_x - 14, hy - 10, rt_x - 1, hy + 3], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([rt_x + 1, hy - 10, rt_x + 14, hy + 3], fill="#ffffff", outline=outline, width=2)
+    draw.rectangle([rt_x - 15, hy - 11, rt_x, hy + 4], outline="#94a3b8", width=2)
+    draw.rectangle([rt_x, hy - 11, rt_x + 15, hy + 4], outline="#94a3b8", width=2)
+    draw.line([(rt_x - 1, hy - 4), (rt_x + 1, hy - 4)], fill="#94a3b8", width=2)
+    
+    # Pupils & Catchlights
+    draw.ellipse([rt_x - 10, hy - 7, rt_x - 5, hy - 2], fill="#1e1b18")
+    draw.ellipse([rt_x + 5, hy - 7, rt_x + 10, hy - 2], fill="#1e1b18")
+    draw.ellipse([rt_x - 9, hy - 6, rt_x - 7, hy - 4], fill="#ffffff")
+    draw.ellipse([rt_x + 6, hy - 6, rt_x + 8, hy - 4], fill="#ffffff")
+    
+    # Bushy Black Mustache
+    draw.ellipse([rt_x - 18, hy + 2, rt_x + 18, hy + 16], fill="#262626")
+    
+    # Gasping Open Mouth with Tongue
+    draw.chord([rt_x - 8, hy + 10, rt_x + 8, hy + 22], 0, 180, fill="#7f1d1d", outline=outline, width=1)
+    draw.ellipse([rt_x - 4, hy + 15, rt_x + 4, hy + 21], fill="#f43f5e")
+    
+    # Cyan Sweat Drop
+    sw = (t * 35) % 15
+    draw.ellipse([rt_x - 22, hy - 24 + sw, rt_x - 15, hy - 14 + sw], fill="#38bdf8", outline="#0284c7")
+    
+    # Megaphone TOA resting on bench
+    draw.polygon([(rt_x - 36, ground_y - 6), (rt_x - 58, ground_y - 20), (rt_x - 58, ground_y + 4)], fill="#f8fafc", outline=outline, width=2)
+    draw.rectangle([rt_x - 61, ground_y - 22, rt_x - 58, ground_y + 6], fill="#ef4444")
+    draw.rectangle([rt_x - 38, ground_y - 12, rt_x - 30, ground_y - 2], fill="#64748b")
 
-def draw_hansip_resting(draw, hs_x, hs_y, t):
+def draw_hansip_resting(draw, hs_x, ground_y, t):
+    panting = math.sin(t * 7) * 3
     outline = "#3e352d"
-    # Linmas Dark Green Uniform (#166534)
-    draw.rectangle([hs_x - 28, 360, hs_x + 28, 435], fill="#166534", outline="#14532d", width=2)
-    # Yellow shoulder epaulets (#facc15 matching Screenshot 3)
-    draw.rectangle([hs_x - 29, 360, hs_x - 20, 366], fill="#facc15")
-    draw.rectangle([hs_x + 20, 360, hs_x + 29, 366], fill="#facc15")
-    # White belt (#f8fafc) and brass buckle (#facc15)
-    draw.rectangle([hs_x - 30, 385, hs_x + 30, 393], fill="#f8fafc", outline="#cbd5e1", width=1)
-    draw.ellipse([hs_x - 6, 385, hs_x + 6, 393], fill="#facc15")
-    # Linmas Trousers (#14532d) & Black boots (#0f172a)
-    draw.rectangle([hs_x - 28, 435, hs_x + 28, 465], fill="#14532d", outline="#0f172a", width=2)
+    
+    # Legs & Boots
+    draw.rectangle([hs_x - 18, ground_y - 28, hs_x - 6, ground_y - 6], fill="#14532d", outline=outline, width=2)
+    draw.rectangle([hs_x + 6, ground_y - 28, hs_x + 18, ground_y - 6], fill="#14532d", outline=outline, width=2)
+    draw.rectangle([hs_x - 20, ground_y - 8, hs_x - 4, ground_y], fill="#0f172a")
+    draw.rectangle([hs_x + 4, ground_y - 8, hs_x + 20, ground_y], fill="#0f172a")
+    
+    # Linmas Uniform Torso (Rounded Rectangle)
+    draw.rounded_rectangle([hs_x - 22, ground_y - 76 - panting, hs_x + 22, ground_y - 28 - panting], radius=8, fill="#166534", outline=outline, width=3)
+    # Epaulets
+    draw.rectangle([hs_x - 22, ground_y - 76 - panting, hs_x - 14, ground_y - 69 - panting], fill="#facc15")
+    draw.rectangle([hs_x + 14, ground_y - 76 - panting, hs_x + 22, ground_y - 69 - panting], fill="#facc15")
+    # White belt & Brass buckle
+    draw.rectangle([hs_x - 22, ground_y - 48 - panting, hs_x + 22, ground_y - 40 - panting], fill="#f8fafc", outline="#cbd5e1", width=1)
+    draw.rectangle([hs_x - 5, ground_y - 50 - panting, hs_x + 5, ground_y - 38 - panting], fill="#facc15", outline="#ca8a04", width=1)
+    
+    # Arms resting on knees
+    draw.line([(hs_x - 20, ground_y - 65 - panting), (hs_x - 28, ground_y - 48 - panting), (hs_x - 16, ground_y - 42 - panting)], fill="#166534", width=5)
+    draw.line([(hs_x + 20, ground_y - 65 - panting), (hs_x + 28, ground_y - 48 - panting), (hs_x + 16, ground_y - 42 - panting)], fill="#166534", width=5)
 
-    # Head & Linmas Green Cap with Black Visor & Gold Badge (matching Screenshot 3 & game.js)
-    draw.ellipse([hs_x - 20, 315, hs_x + 20, 360], fill="#fed7aa", outline=outline, width=2)
-    draw.rounded_rectangle([hs_x - 22, 300, hs_x + 22, 322], radius=4, fill="#14532d", outline="#0f172a", width=2)
-    draw.rectangle([hs_x - 24, 320, hs_x + 6, 325], fill="#0f172a") # black visor brim
-    draw.ellipse([hs_x - 4, 306, hs_x + 4, 314], fill="#facc15") # golden emblem badge
-    # Cheerful Face with Eyes & Gold Tooth in Mouth
-    draw.ellipse([hs_x - 12, 330, hs_x - 4, 338], fill="#ffffff", outline=outline)
-    draw.ellipse([hs_x - 10, 332, hs_x - 6, 336], fill="#0f172a")
-    draw.ellipse([hs_x + 4, 330, hs_x + 12, 338], fill="#ffffff", outline=outline)
-    draw.ellipse([hs_x + 6, 332, hs_x + 10, 336], fill="#0f172a")
-    draw.chord([hs_x - 10, 342, hs_x + 10, 356], 0, 180, fill="#7f1d1d", outline=outline, width=2)
-    draw.rectangle([hs_x + 2, 343, hs_x + 6, 347], fill="#facc15") # signature gold tooth!
-
-    # Wooden Baton (Pentungan) resting on bench
-    draw.line([(hs_x + 36, 465), (hs_x + 48, 410)], fill="#78350f", width=6)
-    draw.ellipse([hs_x + 46, 408, hs_x + 52, 414], fill="#451a03")
+    # Head (True Chibi Round Head)
+    hy = ground_y - 99 - panting
+    draw.ellipse([hs_x - 25, hy - 25, hs_x + 25, hy + 25], fill="#fed7aa", outline=outline, width=3)
+    
+    # Linmas Peaked Cap
+    draw.rounded_rectangle([hs_x - 23, hy - 38, hs_x + 23, hy - 16], radius=8, fill="#14532d", outline=outline, width=2)
+    draw.ellipse([hs_x - 18, hy - 21, hs_x + 18, hy - 11], fill="#0f172a")
+    draw.ellipse([hs_x - 5, hy - 32, hs_x + 5, hy - 22], fill="#facc15", outline="#ca8a04", width=1)
+    
+    # Big Cartoon Eyes
+    draw.ellipse([hs_x - 14, hy - 9, hs_x - 1, hy + 5], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([hs_x + 1, hy - 9, hs_x + 14, hy + 5], fill="#ffffff", outline=outline, width=2)
+    draw.ellipse([hs_x - 10, hy - 7, hs_x - 5, hy - 2], fill="#1e1b18")
+    draw.ellipse([hs_x + 5, hy - 7, hs_x + 10, hy - 2], fill="#1e1b18")
+    draw.ellipse([hs_x - 9, hy - 6, hs_x - 7, hy - 4], fill="#ffffff")
+    draw.ellipse([hs_x + 6, hy - 6, hs_x + 8, hy - 4], fill="#ffffff")
+    
+    # Rosy Cheeks & Cyan Sweat Drop
+    draw.ellipse([hs_x - 21, hy + 1, hs_x - 13, hy + 9], fill="#fca5a5")
+    draw.ellipse([hs_x + 13, hy + 1, hs_x + 21, hy + 9], fill="#fca5a5")
+    draw.ellipse([hs_x - 20, hy - 20, hs_x - 14, hy - 10], fill="#38bdf8", outline="#0284c7")
+    
+    # Comical Whistle in Mouth (Peluit Perak Kanonikal!)
+    draw.rectangle([hs_x + 4, hy + 8, hs_x + 16, hy + 14], fill="#cbd5e1", outline=outline, width=2)
+    draw.ellipse([hs_x + 14, hy + 6, hs_x + 22, hy + 16], fill="#cbd5e1", outline=outline, width=2)
+    
+    # Wooden Baton on Bench
+    draw.line([(hs_x + 32, ground_y), (hs_x + 46, ground_y - 65)], fill="#78350f", width=6)
+    draw.ellipse([hs_x + 44, ground_y - 69, hs_x + 52, ground_y - 61], fill="#451a03")
 
 # --- 4. Scene 1 Renderer (Pos Ronda Kampung) ---
 def render_scene_1(draw, t):
@@ -608,21 +673,21 @@ def render_scene_1(draw, t):
     draw.line([(tx + 132 + steam_drift, ty - 22), (tx + 135 - steam_drift, ty - 42)], fill="#f1f5f9", width=2)
     draw.line([(tx + 138 + steam_drift, ty - 22), (tx + 141 - steam_drift, ty - 46)], fill="#f1f5f9", width=2)
 
-    # 1. Pemuda Kampung (Left Pillar, Leaning & Catching Breath - matching drawPemuda from game.js & Screenshot 3)
-    pm_x = pr_x + 65
-    draw_pemuda_resting(draw, pm_x, 450, t)
+    # 1. Pemuda Kampung (Left Pillar, Leaning & Catching Breath - matching drawPemuda from game.js)
+    pm_x = pr_x + 75
+    draw_pemuda_resting(draw, pm_x, 468, t)
 
-    # 2. Pak RT (Left Bench, Slumped & Panting - matching drawPakRT from game.js & Screenshot 3)
-    rt_x = pr_x + 190
-    draw_pak_rt_resting(draw, rt_x, 450, t)
+    # 2. Pak RT (Left Bench, Slumped & Panting - matching drawPakRT from game.js)
+    rt_x = pr_x + 205
+    draw_pak_rt_resting(draw, rt_x, 468, t)
 
-    # 3. Hansip (Right Bench, Ngopi - matching drawHansip from game.js & Screenshot 3)
-    hs_x = pr_x + 620
-    draw_hansip_resting(draw, hs_x, 450, t)
+    # 3. Hansip (Right Bench, Ngopi - matching drawHansip from game.js)
+    hs_x = pr_x + 605
+    draw_hansip_resting(draw, hs_x, 468, t)
 
-    # 4. Emak-emak Daster (Right Bench with Sapu Lidi - matching drawEmak from game.js & Screenshot 3)
-    em_x = pr_x + 735
-    draw_emak_resting(draw, em_x, 450, t)
+    # 4. Emak-emak Daster (Right Bench with Sutil - matching drawEmak from game.js)
+    em_x = pr_x + 725
+    draw_emak_resting(draw, em_x, 468, t)
 
     # Pos Ronda Name Sign
     draw.rounded_rectangle([pr_x + pr_w // 2 - 120, pr_y + 20, pr_x + pr_w // 2 + 120, pr_y + 55], radius=6, fill="#0f172a", outline="#facc15", width=2)
