@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.5.0" />
+  <link rel="stylesheet" href="style.css?v=2.6.0" />
 </head>
 <body>
   <div id="game-container">
@@ -171,22 +171,28 @@
       </div>
     </div>
 
-    <!-- Victory Screen Modal (Game Complete - Stage 25) -->
-    <div id="victoryScreen" class="modal-screen hidden">
-      <div class="modal-card win-card">
-        <div class="win-banner">TAMAT! ALHAMDULILLAH 👑</div>
-        <h1 class="game-title win-title">SELURUH 25 STAGE SELESAI!</h1>
-        <p class="story-desc">
-          Pociman berhasil sampai ke makam kramat dan tidur pulas di liang lahatnya dengan aman tanpa gangguan warga kampung!
-        </p>
+    <!-- Skip Cutscene Button for Ending Video -->
+    <button id="skipCutsceneBtn" class="skip-cutscene-btn hidden" type="button">LEWATI VIDEO AKHIR ⏩</button>
 
-        <div class="stats-summary">
+    <!-- Victory Screen Modal (Game Complete - Stage 25 Certificate Payoff) -->
+    <div id="victoryScreen" class="modal-screen hidden">
+      <div class="modal-card win-card cert-card">
+        <div class="win-banner">👑 PIAGAM RESMI KELULUSAN TPU 👑</div>
+        <div class="cert-header">
+          <div class="cert-authority">PEMERINTAH ALAM GAIB &bull; KELURAHAN TPU KRAMAT JATI</div>
+          <h1 class="game-title win-title cert-title">SURAT KETERANGAN BEBAS WARGA</h1>
+          <p class="story-desc cert-desc">
+            Diberikan kepada <strong>Pociman Jawara</strong> atas keberhasilannya menamatkan 25 Stage, lolos dari kepungan warga, kejaran hansip, dan timbukan panci emak!
+          </p>
+        </div>
+
+        <div class="stats-summary cert-stats">
           <div class="summary-item">
-            <span class="summary-label">Total Jarak</span>
+            <span class="summary-label">Total Jarak Lolos</span>
             <span id="winDistance" class="summary-value highlight">0m</span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Stage Dituntaskan</span>
+            <span class="summary-label">Stage Tuntas</span>
             <span id="winStage" class="summary-value highlight">25/25 👑</span>
           </div>
           <div class="summary-item">
@@ -194,17 +200,22 @@
             <span id="winBumps" class="summary-value">0</span>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Predikat</span>
-            <span id="winRank" class="summary-value highlight">Pociman Legendaris ⚡</span>
+            <span class="summary-label">Gelar Juara</span>
+            <span id="winRank" class="summary-value highlight">Pociman Sakti ⚡</span>
           </div>
         </div>
 
         <div class="victory-tribute-card">
-          <p class="tribute-quote">"Terima kasih telah menemani Pociman lolos sampai ke TPU!"</p>
-          <div class="tribute-author">Sebuah karya dari <strong>Anton Maulana</strong> &amp; <strong>Kawan Kita Solusindo</strong></div>
+          <p class="tribute-quote">"Alhamdulillah udah di liang lahat, selamat bobo nyenyak Mas Poci!" &bull; <em>Mbak Kunti</em></p>
+          <div class="tribute-author">Karya: <strong>Anton Maulana</strong> &amp; <strong>Kawan Kita Solusindo</strong></div>
         </div>
 
-        <button id="winPlayAgainBtn" class="btn-play">MAIN LAGI DARI AWAL 🔄</button>
+        <div class="win-actions-grid">
+          <button id="shareWaBtn" class="btn-play btn-share-wa" type="button">📲 BAGIKAN KE WHATSAPP</button>
+          <button id="downloadCertBtn" class="btn-secondary btn-cert" type="button">📜 UNDUH PIAGAM (PNG)</button>
+          <button id="replayEndingBtn" class="btn-secondary" type="button">🎬 TONTON ULANG VIDEO AKHIR</button>
+          <button id="winPlayAgainBtn" class="btn-secondary" type="button">MAIN LAGI DARI STAGE 1 🔄</button>
+        </div>
       </div>
     </div>
 
@@ -299,7 +310,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.5.0"></script>
-  <script src="game.js?v=2.5.0"></script>
+  <script src="audio.js?v=2.6.0"></script>
+  <script src="game.js?v=2.6.0"></script>
 </body>
 </html>

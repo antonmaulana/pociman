@@ -846,6 +846,94 @@ canvas {
   color: #facc15;
 }
 
+/* --- Skip Cutscene Button --- */
+.skip-cutscene-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 60;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid #facc15;
+  color: #facc15;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+  transition: all 0.15s ease;
+}
+
+.skip-cutscene-btn:hover {
+  background: #facc15;
+  color: #0f172a;
+  transform: scale(1.04);
+}
+
+/* --- Victory Certificate Card & Actions --- */
+.cert-card {
+  border: 2px solid #eab308;
+  box-shadow: 0 0 25px rgba(234, 179, 8, 0.35);
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  max-width: 500px;
+}
+
+.cert-authority {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fbbf24;
+  margin-bottom: 2px;
+}
+
+.cert-title {
+  font-size: 20px;
+  color: #fef08a;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+
+.cert-desc {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.win-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  width: 100%;
+}
+
+.btn-share-wa {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1.5px solid #4ade80 !important;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 7px 8px;
+}
+
+.btn-share-wa:hover {
+  background: #15803d !important;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+}
+
+.btn-cert {
+  background: #ca8a04 !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fde047 !important;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 7px 8px;
+}
+
+.btn-cert:hover {
+  background: #a16207 !important;
+}
+
 /* --- Tip Control Cards & Mobile Web Optimization --- */
 .tip-control-card {
   border-left: 3px solid #38bdf8;
@@ -1108,5 +1196,34 @@ canvas {
   }
   .tribute-author {
     font-size: 9px;
+  }
+  .cert-card {
+    max-width: 440px;
+    padding: 6px 12px;
+  }
+  .cert-title {
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .cert-desc {
+    font-size: 9px;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+  .cert-authority {
+    font-size: 8px;
+  }
+  .win-actions-grid {
+    gap: 4px;
+  }
+  .win-actions-grid button {
+    padding: 5px 6px;
+    font-size: 9.5px;
+  }
+  .skip-cutscene-btn {
+    top: 8px;
+    right: 8px;
+    font-size: 9.5px;
+    padding: 4px 8px;
   }
 }

@@ -39,6 +39,10 @@
   const replayStageBtn = document.getElementById('replayStageBtn');
   const resetStage1Btn = document.getElementById('resetStage1Btn');
   const winPlayAgainBtn = document.getElementById('winPlayAgainBtn');
+  const skipCutsceneBtn = document.getElementById('skipCutsceneBtn');
+  const shareWaBtn = document.getElementById('shareWaBtn');
+  const downloadCertBtn = document.getElementById('downloadCertBtn');
+  const replayEndingBtn = document.getElementById('replayEndingBtn');
   const restartBtn = document.getElementById('restartBtn');
   const resumeBtn = document.getElementById('resumeBtn');
   const soundBtn = document.getElementById('soundBtn');
@@ -77,7 +81,8 @@
     VICTORY: 3,
     GAMEOVER: 4,
     STAGECLEAR: 5,
-    BUSTED: 6
+    BUSTED: 6,
+    ENDING_CUTSCENE: 7
   };
   let gameState = STATE.MENU;
 
@@ -86,6 +91,11 @@
     duration: 2.3,
     dustPuffs: [],
     comicPops: []
+  };
+
+  const endingCutscene = {
+    timer: 0,
+    duration: 9.6
   };
 
   let lastTime = 0;
@@ -153,7 +163,7 @@
     }
   };
 
-  // Expanded Indonesian Villager Shouts (Anti-Repetition)
+  // Expanded Indonesian Villager Shouts (36 entries)
   const VILLAGER_SHOUTS = [
     "TANGKEEEP, JANGAN KASIH KENDOR!",
     "HOI BALIKIN AYAM GUA!",
@@ -172,17 +182,28 @@
     "CEPATAN, KEBURU MASUK GAPURA TPU!",
     "BOCIL MINGGIR DULU, BIAR HANSIP MAJU!",
     "AWAS KECOA TERBANG KENA MUKA!",
-    "LEMPAR PANCI EMAS KELUARGA, MAK!",
+    "LEMPAR PANCI GOSONG KELUARGA, MAK!",
     "GELAP BANGET, SENTERNYA MATI LAMPU!",
     "KITA KEPUNG SAMPE BEDUK SUBUH!",
     "POCONG APA KELINCI SIH, LONCAT MULU!",
     "WOI POCONG, TUNGGUIN SIKIT DONG!",
     "KETAWA LU YA, KETANGKAP GUA IKET DI TIANG!",
     "LARI TERUSS SAMPE TALI KAFANNYA PUTUS!",
-    "SERBBUUU! JANGAN KASIH AMPUN!"
+    "SERBBUUU! JANGAN KASIH AMPUN!",
+    "DASTER GUA KETARIK PAGAR NIH!",
+    "HANSIP KRAM KAKI, TUNGGUIN WOI!",
+    "TIMPUK PAKE GAYUNG MERAH, MAK!",
+    "POCI, MINYAK GORENG GUA JANGAN DIEMBAT!",
+    "JANGAN SAMPE LOLOS KE GERBANG KUBURAN!",
+    "SAPU LIDI TERBANGKAN SEKARANG!",
+    "AWAS KUCING OREN KAGET, CABUT COK!",
+    "POCONGNYA PAKE SEPATU RODA KAH?!",
+    "HOI POCONG, BAYAR KAS RONDA DULU!",
+    "TANGKAP BUAT KONTEN TIKTOK KITA!",
+    "SENDAL GUA COPOT SEBELAH, WOI!"
   ];
 
-  // Expanded Pociman Dodge Taunts (25+ entries)
+  // Expanded Pociman Dodge Taunts (32 entries)
   const DODGE_TAUNTS = [
     "WLEEE! 😝",
     "GAK KENA WLEEE! 😜",
@@ -208,10 +229,17 @@
     "LEMPAR BATU SEMBUNYI TANGAN! 🪨",
     "POCIMAN TERLALU CEPAT UNTUK KALIAN! ⚡",
     "AYO SEMANGATTT, DIKIT LAGI KAGA KENA! 😆",
-    "KASIAN DEH GAK DAPET POCONG! 😛"
+    "KASIAN DEH GAK DAPET POCONG! 😛",
+    "GERAKAN AKROBATIK SI POCONG MANIS! 💅",
+    "PANCI GOSONGNYA SAYANG BANGET TUH! 🍳",
+    "KEJAR TERUS SAMPAI ENCOK YA PAK RT! 👴",
+    "SAYA POCONG, BUKAN TARGET DART! 🎯",
+    "LONCAT KANGGURU MODE ON! 🦘",
+    "TIMPUK ANGIN KOK BANGGA! 💨",
+    "MAKASIH HADIAH SENDALNYA YA! 🩴"
   ];
 
-  // Expanded Pociman Short Throw Taunts (15 entries)
+  // Expanded Pociman Short Throw Taunts (20 entries)
   const SHORT_THROW_TAUNTS = [
     "GAK NYAMPEEE! 🤣",
     "TENAGA LOYO NIH YEE! 😆",
@@ -227,7 +255,12 @@
     "ANGINNYA KEBERATAN YA BOS?! 💨",
     "LEMPARANNYA CUMA SAMPAI DEPAN KAKI! 🤣",
     "LEMES BANGET KAYA BELUM GAJIAN! 💸",
-    "LEMASS TANGANNYA, KEBANYAKAN RONDA! 😴"
+    "LEMASS TANGANNYA, KEBANYAKAN RONDA! 😴",
+    "LEMPARNYA PAKE NIAT DONG! 🤭",
+    "ITU NGELEMPAR APA NGEJATUHIN BARANG?! 🤣",
+    "JARAK SATU JENGKAL AJA GAK SAMPE! 🤏",
+    "BELI BALSEM DULU SANA, ENCOK TUH! 🧴",
+    "TANGANNYA LICIN KENA MINYAK GORENG! 🍳"
   ];
 
   function createShuffleBag(items) {
@@ -440,37 +473,7 @@
     ctx.stroke();
   }
 
-  function drawPocimanKnotsAndRopes(ctx, p) {
-    ctx.strokeStyle = '#3e352d';
-    ctx.fillStyle = '#7d7062'; // Rope color
-    ctx.lineWidth = 2.2;
-
-    // A. Neck Rope Tie & bunching wrinkles
-    ctx.beginPath();
-    ctx.roundRect(-8, -4, 16, 4.5, 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = '#998a7c';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(-5, -6); ctx.lineTo(-4, -4);
-    ctx.moveTo(0, -7); ctx.lineTo(0, -4);
-    ctx.moveTo(5, -6); ctx.lineTo(4, -4);
-    ctx.moveTo(-4, 0); ctx.lineTo(-5, 3);
-    ctx.moveTo(4, 0); ctx.lineTo(5, 3);
-    ctx.stroke();
-
-    // B. Waist Rope Tie
-    ctx.strokeStyle = '#3e352d';
-    ctx.fillStyle = '#7d7062';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.roundRect(-8, 17, 16, 4.5, 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // C. Top Crown Knot (Star-like Fabric Rosette)
+  function drawPocimanRosettes(ctx, p) {
     const wiggle = Math.sin(p.animTime * 2) * 4;
     ctx.fillStyle = '#dfd7ce';
     ctx.beginPath();
@@ -482,13 +485,11 @@
     ctx.lineTo(10 + wiggle, -45);
     ctx.lineTo(6, -37);
     ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#7d7062';
     ctx.fillRect(-5, -38, 10, 3.5);
     ctx.strokeRect(-5, -38, 10, 3.5);
 
-    // D. Bottom Tail Star Ruffle (Flared Star Fabric)
     const tailWiggle = p.tauntTimer > 0 ? Math.sin(p.animTime * 20) * 8 : 0;
     ctx.fillStyle = '#dfd7ce';
     ctx.beginPath();
@@ -499,11 +500,36 @@
     ctx.lineTo(3 + tailWiggle, 48);
     ctx.lineTo(8 + tailWiggle, 52);
     ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#7d7062';
     ctx.fillRect(-4, 42, 8, 3);
     ctx.strokeRect(-4, 42, 8, 3);
+  }
+
+  function drawPocimanKnotsAndRopes(ctx, p) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.fillStyle = '#7d7062';
+    ctx.lineWidth = 2.2;
+
+    ctx.beginPath();
+    ctx.roundRect(-8, -4, 16, 4.5, 2);
+    ctx.fill(); ctx.stroke();
+
+    ctx.strokeStyle = '#998a7c'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-5, -6); ctx.lineTo(-4, -4);
+    ctx.moveTo(0, -7); ctx.lineTo(0, -4);
+    ctx.moveTo(5, -6); ctx.lineTo(4, -4);
+    ctx.moveTo(-4, 0); ctx.lineTo(-5, 3);
+    ctx.moveTo(4, 0); ctx.lineTo(5, 3);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#3e352d'; ctx.fillStyle = '#7d7062'; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.roundRect(-8, 17, 16, 4.5, 2);
+    ctx.fill(); ctx.stroke();
+
+    drawPocimanRosettes(ctx, p);
   }
 
   function drawPocimanDiamondFace(ctx, p) {
@@ -702,22 +728,7 @@
     }
   }
 
-  function drawPocimanCrawlingUlat(ctx, p) {
-    const cycle = p.animTime * 14;
-    const hump = Math.abs(Math.sin(cycle)) * 14;
-    const stretch = Math.cos(cycle) * 6;
-
-    ctx.strokeStyle = '#3e352d';
-    ctx.lineWidth = 2.4;
-
-    // 1. Lower Sack (Tail on ground pushing forward)
-    ctx.fillStyle = '#dfd7ce';
-    ctx.beginPath();
-    ctx.ellipse(-26 + stretch * 0.5, 30, 16, 10, 0.1, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-
-    // Bottom Tail Star Ruffle wiggling
-    const tailWiggle = Math.sin(cycle * 1.5) * 6;
+  function drawCrawlTailRuffle(ctx, stretch, tailWiggle) {
     ctx.beginPath();
     ctx.moveTo(-42 + stretch * 0.5, 30);
     ctx.lineTo(-50, 24 + tailWiggle);
@@ -725,19 +736,9 @@
     ctx.lineTo(-52, 36 + tailWiggle);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
+  }
 
-    // 2. Middle Sack (High Arched Torso Hump)
-    ctx.beginPath();
-    ctx.ellipse(-6, 26 - hump, 17, 13, 0.3 * Math.sin(cycle), 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-
-    // 3. Head Sack (Pulling forward on ground)
-    const headX = 18 - stretch * 0.5;
-    ctx.beginPath();
-    ctx.ellipse(headX, 30, 18, 14, -0.2, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-
-    // Crown knot on head wiggling
+  function drawCrawlKnots(ctx, headX, tailWiggle) {
     ctx.beginPath();
     ctx.moveTo(headX + 16, 26);
     ctx.lineTo(headX + 26, 20 + tailWiggle);
@@ -745,12 +746,37 @@
     ctx.lineTo(headX + 27, 34 + tailWiggle);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
+  }
 
+  function drawPocimanCrawlingUlat(ctx, p) {
+    const cycle = p.animTime * 14;
+    const hump = Math.abs(Math.sin(cycle)) * 14;
+    const stretch = Math.cos(cycle) * 6;
+    const tailWiggle = Math.sin(cycle * 1.5) * 6;
+
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2.4;
+    ctx.fillStyle = '#dfd7ce';
+
+    ctx.beginPath();
+    ctx.ellipse(-26 + stretch * 0.5, 30, 16, 10, 0.1, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    drawCrawlTailRuffle(ctx, stretch, tailWiggle);
+
+    ctx.beginPath();
+    ctx.ellipse(-6, 26 - hump, 17, 13, 0.3 * Math.sin(cycle), 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    const headX = 18 - stretch * 0.5;
+    ctx.beginPath();
+    ctx.ellipse(headX, 30, 18, 14, -0.2, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    drawCrawlKnots(ctx, headX, tailWiggle);
     drawCrawlFace(ctx, p, headX, 30);
 
-    if (Math.random() < 0.35) {
-      createDust(p.x - 20, GROUND_Y);
-    }
+    if (Math.random() < 0.35) createDust(p.x - 20, GROUND_Y);
   }
 
   function drawCrawlFace(ctx, p, hx, hy) {
@@ -1132,29 +1158,32 @@
 
 
   function drawSpeechBubble(ctx, x, y, text) {
+    if (!text) return;
     ctx.save();
-    ctx.font = 'bold 12px sans-serif';
+    ctx.font = 'bold 13px sans-serif';
     const textW = ctx.measureText(text).width;
-    const pad = 8;
-    const bx = Math.max(12, Math.min(V_WIDTH - textW - pad * 2 - 12, x - pad));
+    const pad = 10;
+    const bw = textW + pad * 2;
+    const bh = 26;
+    const bx = Math.max(12, Math.min(V_WIDTH - bw - 12, x - pad));
 
     ctx.fillStyle = '#ffffff';
     ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.roundRect(bx, y - 16, textW + pad * 2, 24, 6);
+    ctx.roundRect(bx, y - 16, bw, bh, 6);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(bx + 16, y + 8);
-    ctx.lineTo(bx + 6, y + 16);
-    ctx.lineTo(bx + 24, y + 8);
+    ctx.moveTo(bx + 18, y + 10);
+    ctx.lineTo(bx + 8, y + 18);
+    ctx.lineTo(bx + 28, y + 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = '#dc2626';
-    ctx.fillText(text, bx + pad, y);
+    ctx.fillText(text, bx + pad, y + 2);
     ctx.restore();
   }
 
@@ -1250,9 +1279,8 @@
   ];
 
   function getStageObstaclePool(stg) {
-    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type === 'batu' || o.type === 'kubangan');
-    if (stg === 2) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing' && o.type !== 'pagar');
-    if (stg === 3) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing');
+    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type === 'batu' || o.type === 'kubangan' || o.type === 'ayam');
+    if (stg === 2) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing');
     return OBSTACLE_TYPES;
   }
 
@@ -1328,6 +1356,7 @@
     pauseScreen.classList.add('hidden');
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
+    if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
   }
 
   function showStageBanner(text) {
@@ -1347,8 +1376,8 @@
     cemeteryGate.entered = false;
     cemeteryGate.x = -999;
 
-    throwTimer = stage === 1 ? 5.5 : Math.max(2.6, 4.5 - (stage - 1) * 0.08);
-    obstacleTimer = Math.max(1.8, 2.5 - (stage - 1) * 0.035);
+    throwTimer = stage === 1 ? 3.6 : Math.max(2.4, 4.2 - (stage - 1) * 0.08);
+    obstacleTimer = Math.max(1.6, 2.1 - (stage - 1) * 0.035);
 
     player.reset();
     kuntiPowerup.reset();
@@ -1396,7 +1425,7 @@
         cemeteryGate.entered = true;
         window.soundManager.playGateSlam();
         setTimeout(() => {
-          if (stage >= TOTAL_STAGES) triggerVictory();
+          if (stage >= TOTAL_STAGES) startEndingCutscene();
           else triggerStageClear();
         }, 350);
       }
@@ -1817,9 +1846,27 @@
     window.soundManager.playStageClear();
   }
 
-  function triggerVictory() {
+  function startEndingCutscene() {
     window.soundManager.stopBgm();
+    gameState = STATE.ENDING_CUTSCENE;
+    endingCutscene.timer = 0;
+    hideAllModals();
+    if (skipCutsceneBtn) skipCutsceneBtn.classList.remove('hidden');
+    if (window.soundManager && window.soundManager.playWin) {
+      window.soundManager.playWin();
+    }
+  }
+
+  function updateEndingCutscene(dt) {
+    endingCutscene.timer += dt;
+    if (endingCutscene.timer >= endingCutscene.duration) {
+      showVictoryScreen();
+    }
+  }
+
+  function showVictoryScreen() {
     gameState = STATE.VICTORY;
+    if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
     if (stage >= highestStage) {
       highestStage = TOTAL_STAGES;
       try { localStorage.setItem('pociman_highest_stage', highestStage); } catch (e) {}
@@ -1833,7 +1880,10 @@
     victoryScreen.classList.remove('hidden');
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
-    window.soundManager.playWin();
+  }
+
+  function triggerVictory() {
+    startEndingCutscene();
   }
 
   function triggerBustedSequence() {
@@ -1914,18 +1964,14 @@
     window.soundManager.playCaught();
   }
 
-  // --- Render Loop ---
-  function draw() {
-    ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
-
-    // 1. Night Sky
+  // --- Render Loop & Helpers ---
+  function drawSkyAndHouses(ctx) {
     const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
     skyGrad.addColorStop(0, '#090d16');
     skyGrad.addColorStop(1, '#1e293b');
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
 
-    // 2. Crescent Moon & Stars
     ctx.fillStyle = '#fef08a';
     ctx.beginPath(); ctx.arc(V_WIDTH - 120, 80, 32, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#090d16';
@@ -1936,7 +1982,6 @@
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
     }
 
-    // 3. Houses Parallax
     for (const h of houses) {
       ctx.fillStyle = '#111827';
       ctx.fillRect(h.x, GROUND_Y - h.h, h.w, h.h);
@@ -1945,19 +1990,20 @@
       ctx.lineTo(h.x + h.w / 2, GROUND_Y - h.h - 32);
       ctx.lineTo(h.x + h.w + 10, GROUND_Y - h.h);
       ctx.closePath(); ctx.fill();
-
       if (h.hasLamp) {
         ctx.fillStyle = 'rgba(250, 204, 21, 0.5)';
         ctx.fillRect(h.x + h.w * 0.3, GROUND_Y - h.h + 20, 16, 18);
       }
     }
+  }
 
-    // 4. Banana Trees
+  function drawEnvironment(ctx) {
+    drawSkyAndHouses(ctx);
+
     for (const t of bananaTrees) {
       ctx.save();
       ctx.translate(t.x, GROUND_Y);
-      ctx.strokeStyle = '#064e3b';
-      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#064e3b'; ctx.lineWidth = 10;
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-4, -t.h); ctx.stroke();
       ctx.fillStyle = '#065f46';
       ctx.beginPath();
@@ -1968,53 +2014,34 @@
       ctx.restore();
     }
 
-    // 5. Fireflies
     for (const ff of fireflies) {
       ctx.fillStyle = `rgba(163, 230, 53, ${0.4 + Math.sin(ff.phase) * 0.4})`;
       ctx.beginPath(); ctx.arc(ff.x, ff.y, 2.5, 0, Math.PI * 2); ctx.fill();
     }
 
-    // 6. Ground Dirt Path
     ctx.fillStyle = '#1c1917';
     ctx.fillRect(0, GROUND_Y, V_WIDTH, V_HEIGHT - GROUND_Y);
     ctx.fillStyle = '#292524';
     ctx.fillRect(0, GROUND_Y, V_WIDTH, 8);
+  }
 
-    // 7. Villagers Mob Chase (Scales with stage)
+  function drawEntities(ctx) {
     const wargaX = gameState === STATE.BUSTED ? (player.x - 70) : getWargaX();
     drawVillagersMob(ctx, wargaX, stage);
 
-    // 7.5. Finish Cemetery Gate (TPU)
-    if (cemeteryGate.active) {
-      drawCemeteryGate(ctx, cemeteryGate);
-    }
+    if (cemeteryGate.active) drawCemeteryGate(ctx, cemeteryGate);
+    if (kuntiPowerup.itemActive) drawKuntiPickup(ctx, kuntiPowerup.itemX, kuntiPowerup.itemY, kuntiPowerup.itemBob);
 
-    // 7.8. Kunti Power-up Pickup Item
-    if (kuntiPowerup.itemActive) {
-      drawKuntiPickup(ctx, kuntiPowerup.itemX, kuntiPowerup.itemY, kuntiPowerup.itemBob);
-    }
+    for (const obs of obstacles) drawObstacle(ctx, obs);
+    for (const item of thrownItems) drawThrownItem(ctx, item);
 
-    // 8. Front Obstacles
-    for (const obs of obstacles) {
-      drawObstacle(ctx, obs);
-    }
-
-    // 9. Thrown Items
-    for (const item of thrownItems) {
-      drawThrownItem(ctx, item);
-    }
-
-    // 10. Player (Pociman) or Busted Brawl Cutscene
     if (gameState === STATE.BUSTED) {
       drawBustedCutscene(ctx);
     } else {
       player.draw(ctx);
-      if (kuntiPowerup.active) {
-        drawKuntilanakRescue(ctx, player);
-      }
+      if (kuntiPowerup.active) drawKuntilanakRescue(ctx, player);
     }
 
-    // 11. Particles & Comic Texts
     for (const pt of particles) {
       ctx.save();
       ctx.globalAlpha = pt.alpha;
@@ -2031,6 +2058,16 @@
       ctx.fillText(ct.text, ct.x, ct.y);
       ctx.restore();
     }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
+    if (gameState === STATE.ENDING_CUTSCENE) {
+      drawEndingCutscene(ctx);
+      return;
+    }
+    drawEnvironment(ctx);
+    drawEntities(ctx);
   }
 
   function drawBrawlCloud(ctx, cx, cy) {
@@ -2135,6 +2172,292 @@
     ctx.textBaseline = 'middle';
     ctx.fillText("Sentuh Layar / Spasi untuk Lewati ⏭️", V_WIDTH / 2, 75);
     ctx.restore();
+  }
+
+  function drawEndingCutscene(ctx) {
+    const t = endingCutscene.timer;
+    if (t < 4.8) {
+      drawEndingAct1(ctx, t);
+    } else {
+      drawEndingAct2(ctx, t - 4.8);
+    }
+    drawCutsceneOverlay(ctx, t);
+  }
+
+  function drawCutsceneOverlay(ctx, t) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.beginPath();
+    ctx.roundRect(20, 16, 280, 28, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'left';
+    const actLabel = t < 4.8 ? 'BABAK 1: GERBANG TPU TERTUTUP 🔒' : 'BABAK 2: KOS-KOSAN LIANG LAHAT ☕';
+    ctx.fillText(actLabel, 30, 35);
+
+    const progress = Math.min(1, t / endingCutscene.duration);
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+    ctx.fillRect(0, V_HEIGHT - 6, V_WIDTH, 6);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(0, V_HEIGHT - 6, V_WIDTH * progress, 6);
+    ctx.restore();
+  }
+
+  function drawEndingAct1(ctx, t) {
+    ctx.fillStyle = '#090d16';
+    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(V_WIDTH - 100, 80, 36, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1c1917';
+    ctx.fillRect(0, GROUND_Y, V_WIDTH, V_HEIGHT - GROUND_Y);
+
+    drawNisan(ctx, 620, GROUND_Y);
+    drawNisan(ctx, 740, GROUND_Y);
+    drawNisan(ctx, 860, GROUND_Y);
+
+    ctx.save();
+    ctx.translate(500, GROUND_Y);
+    drawStonePillar(ctx, -20);
+    drawStonePillar(ctx, 20);
+    drawIronGateDoor(ctx, true);
+    ctx.fillStyle = '#334155'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(-45, -145, 90, 26, 5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('GERBANG TPU', 0, -128);
+    ctx.restore();
+
+    const pociX = 660 + Math.sin(t * 3) * 10;
+    drawCutscenePociman(ctx, pociX, GROUND_Y - 80, t);
+    drawSpeechBubble(ctx, pociX - 20, GROUND_Y - 95, "DADAH WARGA! KETEMU TAHUN DEPAN! 👋😝");
+
+    drawAct1Villagers(ctx, t);
+  }
+
+  function drawAct1Villagers(ctx, t) {
+    ctx.save();
+    ctx.translate(220, GROUND_Y - 45);
+    ctx.fillStyle = '#b45309'; ctx.fillRect(-10, 0, 20, 45);
+    ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -10, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(-14, -22, 28, 10);
+    drawSpeechBubble(ctx, 200, GROUND_Y - 70, "ENCOK GUA KAMBUH! 👴💦");
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(330, GROUND_Y - 35);
+    ctx.fillStyle = '#15803d'; ctx.fillRect(-12, 0, 24, 35);
+    ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -8, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(0, -15, 12, Math.PI, 0); ctx.fill();
+    drawSpeechBubble(ctx, 310, GROUND_Y - 55, "KUNCI GERBANG KETINGGALAN! 🔑😭");
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(430, GROUND_Y - 40);
+    ctx.fillStyle = '#db2777'; ctx.fillRect(-11, 0, 22, 40);
+    ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -10, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(0, -18, 9, 0, Math.PI * 2); ctx.fill();
+    drawSpeechBubble(ctx, 400, GROUND_Y - 75, "PANCI GUA GOSONG MAK! 🍳😩");
+    ctx.restore();
+  }
+
+  function drawCutscenePociman(ctx, x, y, t) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(-16, 0, 32, 70, [14, 14, 10, 10]);
+    ctx.fill(); ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(0, -5, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath(); ctx.arc(-6, 20, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, 20, 3.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 27, 5, 0, Math.PI); ctx.stroke();
+
+    const wave = Math.sin(t * 8) * 0.4;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(14, 25); ctx.lineTo(26, 12 + wave * 10); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawEndingAct2(ctx, t) {
+    ctx.fillStyle = '#1c110a';
+    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
+    ctx.fillStyle = '#2e190e';
+    ctx.fillRect(0, 0, V_WIDTH, 45);
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(0, 0, V_WIDTH, 10);
+
+    ctx.fillStyle = '#78350f';
+    ctx.strokeStyle = '#451a03';
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(60, 60, 320, 36);
+    ctx.strokeRect(60, 60, 320, 36);
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🪦 KOS-KOSAN LIANG LAHAT #01 (VIP)', 220, 83);
+
+    const sway = Math.sin(t * 2.5) * 6;
+    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(480 + sway, 110); ctx.stroke();
+
+    const glow = ctx.createRadialGradient(480 + sway, 125, 4, 480 + sway, 125, 90);
+    glow.addColorStop(0, 'rgba(250, 204, 21, 0.45)');
+    glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(480 + sway, 125, 90, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(470 + sway, 110, 20, 24);
+
+    drawAct2Characters(ctx, t);
+  }
+
+  function drawAct2Characters(ctx, t) {
+    ctx.fillStyle = '#b45309'; ctx.fillRect(180, 380, 280, 24);
+    ctx.fillStyle = '#f8fafc'; ctx.fillRect(200, 360, 240, 20);
+
+    ctx.save();
+    ctx.translate(260, 345);
+    ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.roundRect(0, -18, 90, 28, [12, 12, 8, 8]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(14, -14, 24, 7);
+    ctx.fillStyle = '#b45309'; ctx.fillRect(80, -22, 16, 22);
+    ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(88, -26); ctx.lineTo(94, -32); ctx.stroke();
+    ctx.restore();
+
+    const kuntiFloat = Math.sin(t * 3) * 8;
+    ctx.save();
+    ctx.translate(620, 290 + kuntiFloat);
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-24, 85); ctx.lineTo(24, 85); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(-14, -20, 28, 65);
+    ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -6, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#78350f'; ctx.fillRect(-45, 20, 42, 6);
+    ctx.fillStyle = '#eab308'; ctx.fillRect(-38, 14, 28, 6);
+    ctx.restore();
+
+    drawSpeechBubble(ctx, 160, 260, "Alhamdulillah, bobo nyenyak tanpa digebuk warga! 😴✨");
+    drawSpeechBubble(ctx, 480, 210, "Monggo Mas Poci, es teh manis & pisang goreng angetnya~ ☕🍌");
+  }
+
+  function downloadCertificatePng() {
+    const certCanvas = document.createElement('canvas');
+    certCanvas.width = 960;
+    certCanvas.height = 600;
+    const cctx = certCanvas.getContext('2d');
+    renderCertificateCanvas(cctx, 960, 600);
+    const link = document.createElement('a');
+    link.download = 'sertifikat-bebas-warga-pociman-stage25.png';
+    link.href = certCanvas.toDataURL('image/png');
+    link.click();
+    showToast('📜 Piagam berhasil diunduh ke galeri!');
+  }
+
+  function renderCertificateCanvas(ctx, w, h) {
+    const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+    bgGrad.addColorStop(0, '#0f172a');
+    bgGrad.addColorStop(0.5, '#1e293b');
+    bgGrad.addColorStop(1, '#090d16');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(18, 18, w - 36, h - 36);
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(26, 26, w - 52, h - 52);
+
+    ctx.fillStyle = '#facc15';
+    const corners = [[32, 32], [w - 32, 32], [32, h - 32], [w - 32, h - 32]];
+    corners.forEach(([cx, cy]) => {
+      ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+    });
+
+    drawCertTexts(ctx, w, h);
+  }
+
+  function drawCertTexts(ctx, w, h) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fde047';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('PEMERINTAH ALAM GAIB • KELURAHAN TPU KRAMAT JATI', w / 2, 70);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 28px sans-serif';
+    ctx.fillText('SURAT KETERANGAN BEBAS KEJARAN WARGA', w / 2, 115);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('Nomor: 001/SKBW-TPU/STAGE25/2026', w / 2, 142);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Diberikan dengan penuh hormat kepada:', w / 2, 185);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = '900 32px sans-serif';
+    ctx.fillText('POCIMAN JAWARA', w / 2, 230);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '15px sans-serif';
+    ctx.fillText('Atas kelincahan spektakuler menamatkan seluruh 25 Stage tanpa ampun,', w / 2, 275);
+    ctx.fillText('berhasil lolos dari kejaran Hansip, amukan daster emak-emak, dan timbukan sandal jepit!', w / 2, 302);
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(140, 335, w - 280, 75, 8); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#facc15'; ctx.font = 'bold 15px sans-serif';
+    ctx.fillText(`Jarak: ${Math.floor(distance)}m   •   Benjol: ${bumpCount}x   •   Gelar: ${winRankEl ? winRankEl.textContent : 'Pociman Sakti'}`, w / 2, 378);
+
+    drawCertSignatures(ctx, w, h);
+  }
+
+  function drawCertSignatures(ctx, w, h) {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#94a3b8'; ctx.font = '13px sans-serif';
+    ctx.fillText('Mengetahui & Menyetujui:', w / 2, 450);
+
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('Anton Maulana & Tim', 250, 520);
+    ctx.fillStyle = '#64748b'; ctx.font = '12px sans-serif';
+    ctx.fillText('Kawan Kita Solusindo', 250, 540);
+
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(w / 2, 515, 30, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#dc2626'; ctx.font = 'bold 10px sans-serif';
+    ctx.fillText('LULUS RESMI', w / 2, 512);
+    ctx.fillText('TPU GAIB', w / 2, 524);
+
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('Mbak Kuntilanak, S.Pd', w - 250, 520);
+    ctx.fillStyle = '#64748b'; ctx.font = '12px sans-serif';
+    ctx.fillText('Seksi Konsumsi & Evakuasi Udara', w - 250, 540);
+  }
+
+  function shareToWhatsApp() {
+    const distText = Math.floor(distance) + 'm';
+    const rankText = winRankEl ? winRankEl.textContent : 'Pociman Sakti ⚡';
+    const msg = `👑 ALHAMDULILLAH GUE BERHASIL NAMATIN GAME POCIMAN (25/25 STAGE)! 🏆\n\n` +
+      `Lolos dari kepungan warga kampung, kejaran hansip, dan timbukan daster emak!\n` +
+      `📊 Jarak Lolos: ${distText}\n` +
+      `🤕 Benjol: ${bumpCount}x\n` +
+      `🎖️ Gelar: ${rankText}\n\n` +
+      `Cobain gamenya di sini, berani tamatin ga? 👇\n` +
+      `https://pociman.kawankitasolusindo.co.id/`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
   }
 
   function drawCatHead(ctx, hx, hy) {
@@ -2469,6 +2792,8 @@
       update(dt);
     } else if (gameState === STATE.BUSTED) {
       updateBustedCutscene(dt);
+    } else if (gameState === STATE.ENDING_CUTSCENE) {
+      updateEndingCutscene(dt);
     }
     draw();
 
@@ -2479,6 +2804,10 @@
   function handleJumpAction() {
     if (gameState === STATE.BUSTED) {
       triggerGameOver();
+      return;
+    }
+    if (gameState === STATE.ENDING_CUTSCENE) {
+      showVictoryScreen();
       return;
     }
     if (gameState === STATE.PLAYING) {
@@ -2503,7 +2832,7 @@
 
   const gameContainer = document.getElementById('game-container');
   gameContainer.addEventListener('pointerdown', (e) => {
-    if ((gameState !== STATE.PLAYING && gameState !== STATE.BUSTED) || e.target.closest('button') || e.target.closest('.modal-card')) return;
+    if ((gameState !== STATE.PLAYING && gameState !== STATE.BUSTED && gameState !== STATE.ENDING_CUTSCENE) || e.target.closest('button') || e.target.closest('.modal-card')) return;
     e.preventDefault();
     window.soundManager.init();
     handleJumpAction();
@@ -2644,6 +2973,10 @@
   bindBtn(restartBtn, () => startStage(stage));
   bindBtn(resetStage1Btn, () => startStage(1));
   bindBtn(winPlayAgainBtn, () => startStage(1));
+  bindBtn(skipCutsceneBtn, showVictoryScreen);
+  bindBtn(shareWaBtn, shareToWhatsApp);
+  bindBtn(downloadCertBtn, downloadCertificatePng);
+  bindBtn(replayEndingBtn, startEndingCutscene);
   bindBtn(resumeBtn, togglePause);
   bindBtn(pauseBtn, togglePause);
 
