@@ -107,6 +107,7 @@
   let stageTotalTime = 45;
   let escapeGap = 50; // 0% (caught) to 100% (escaped!)
   let bumpCount = 0;
+  let totalBumps = 0;
   let dodgedThrows = 0;
 
   let highestStage = 1;
@@ -118,7 +119,31 @@
   }
 
   function getStageDuration(stg) {
-    return stg <= 5 ? 45 : 60;
+    if (stg <= 3) return 36;
+    if (stg <= 8) return 42;
+    if (stg <= 16) return 48;
+    if (stg <= 24) return 52;
+    return 58;
+  }
+
+  function getStageTitle(stg) {
+    if (stg === 1) return "STAGE 1: AWAS LEMPARAN SENDAL JEPIT! 🩴";
+    if (stg <= 3) return `STAGE ${stg}: AYAM KAMPUNG IKUT PANIK! 🐔`;
+    if (stg <= 6) return `STAGE ${stg}: HANSIP TIUP PELUIT RONDA! 👮`;
+    if (stg <= 9) return `STAGE ${stg}: KUCING OREN MULAI NGEBUT! 🐱💨`;
+    if (stg <= 12) return `STAGE ${stg}: TIMBUKAN PANCI GOSONG EMAK! 🍳`;
+    if (stg <= 15) return `STAGE ${stg}: SAPU LIDI TERBANG BERANTAI! 🧹`;
+    if (stg <= 18) return `STAGE ${stg}: MBAK KUNTI SIAP EVAKUASI! 👻`;
+    if (stg <= 21) return `STAGE ${stg}: BEDUK SUBUH MAKIN DEKAT! 🌙`;
+    if (stg <= 24) return `STAGE ${stg}: SATU KAMPUNG NGEJAR TOTAL! 🏃‍♂️💨`;
+    return "STAGE 25: GAUNTLET MENUJU GERBANG TPU! 👑";
+  }
+
+  function getSkyColors(stg) {
+    if (stg <= 7) return ['#090d16', '#1e293b'];
+    if (stg <= 14) return ['#110924', '#2e1065'];
+    if (stg <= 20) return ['#1b0826', '#4a044e'];
+    return ['#140727', '#7f1d1d'];
   }
 
   // Cemetery Finish Gate (TPU)
@@ -135,6 +160,14 @@
 
   // Mob cycle & Power-up State
   let mobRunCycle = 0;
+
+  const KUNTI_RESCUE_LINES = [
+    "Sini Mas Poci, ku gendong terbang dulu biar gak digebukin warga! Hihihi~",
+    "Pegang pundakku erat-erat ya Mas, jangan liat ke bawah! 👻✨",
+    "Warga kampung emosi amat, untung Mbak Kunti dateng tepat waktu! 💅",
+    "Awas sendal emak di bawah, kita naik ke langit dulu! Hihihi~ ☁️",
+    "Mbak Kunti seksi konsumsi siap antar sampai depan TPU! ☕"
+  ];
 
   const kuntiPowerup = {
     itemActive: false,
@@ -861,7 +894,7 @@
     ctx.fillRect(-80, -220, 360, 270);
 
     // Background crowd layer for high stages
-    if (currentStage >= 25) {
+    if (currentStage >= 6) {
       drawCrowdSilhouette(ctx, currentStage);
     }
 
@@ -871,20 +904,21 @@
     drawPakRT(ctx, 0, 0, mobRunCycle + 2.4);
     drawEmak(ctx, -50, 0, mobRunCycle + 3.6);
 
-    if (currentStage >= 15) {
+    if (currentStage >= 8) {
       drawBocilSarung(ctx, -95, 0, mobRunCycle + 4.8);
     }
 
-    // Comic speech bubble
-    if (shoutTimer > 0 && currentShout) {
-      drawSpeechBubble(ctx, 55, -145, currentShout);
-    }
-
     ctx.restore();
+
+    // Comic speech bubble in absolute coordinates (never clipped on left edge)
+    if (shoutTimer > 0 && currentShout) {
+      drawSpeechBubble(ctx, wargaX + 75, GROUND_Y - 145, currentShout);
+    }
   }
 
   function drawCrowdSilhouette(ctx, stg) {
-    const crowdCount = Math.min(8, Math.floor(stg / 15));
+    const crowdCount = Math.min(8, Math.floor((stg - 5) / 2.4));
+    if (crowdCount <= 0) return;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
     for (let i = 0; i < crowdCount; i++) {
       const cx = -120 - (i * 24);
@@ -1235,8 +1269,16 @@
     { type: 'sapu', name: 'Sapu Lidi', w: 40, h: 14, color: '#ca8a04' }
   ];
 
+  function getStageThrowPool(stg) {
+    if (stg <= 2) return THROW_TYPES.filter(t => t.type === 'sandal');
+    if (stg <= 5) return THROW_TYPES.filter(t => t.type === 'sandal' || t.type === 'gayung');
+    if (stg <= 9) return THROW_TYPES.filter(t => t.type !== 'sapu');
+    return THROW_TYPES;
+  }
+
   function spawnThrownItem(wargaX) {
-    const itemDef = THROW_TYPES[Math.floor(Math.random() * THROW_TYPES.length)];
+    const pool = getStageThrowPool(stage);
+    const itemDef = pool[Math.floor(Math.random() * pool.length)];
     const startX = Math.max(20, wargaX + 70);
     const startY = GROUND_Y - 80;
     const dx = player.x - startX;
@@ -1365,20 +1407,13 @@
     stageBannerTimer = 2.4;
   }
 
-  function startStage(targetStage) {
-    stage = Math.max(1, Math.min(TOTAL_STAGES, targetStage));
-    stageTotalTime = getStageDuration(stage);
-    stageTimer = stageTotalTime;
+  function resetStageState() {
     escapeGap = 50;
     bumpCount = 0;
     dodgedThrows = 0;
     cemeteryGate.active = false;
     cemeteryGate.entered = false;
     cemeteryGate.x = -999;
-
-    throwTimer = stage === 1 ? 3.6 : Math.max(2.4, 4.2 - (stage - 1) * 0.08);
-    obstacleTimer = Math.max(1.6, 2.1 - (stage - 1) * 0.035);
-
     player.reset();
     kuntiPowerup.reset();
     kuntiPowerup.maxSpawnsPerStage = 2;
@@ -1389,6 +1424,16 @@
     warningActive = false;
     shoutTimer = 0;
     currentShout = "";
+  }
+
+  function startStage(targetStage) {
+    stage = Math.max(1, Math.min(TOTAL_STAGES, targetStage));
+    stageTotalTime = getStageDuration(stage);
+    stageTimer = stageTotalTime;
+    throwTimer = stage === 1 ? 3.6 : Math.max(2.4, 4.2 - (stage - 1) * 0.08);
+    obstacleTimer = Math.max(1.6, 2.1 - (stage - 1) * 0.035);
+
+    resetStageState();
 
     initVillageScenery();
     updateHUD();
@@ -1398,7 +1443,12 @@
     gameState = STATE.PLAYING;
     lastTime = performance.now();
 
-    showStageBanner(`⭐ STAGE ${stage}: MENUJU GERBANG TPU!`);
+    if (stage === 1) {
+      distance = 0;
+      totalBumps = 0;
+    }
+
+    showStageBanner(getStageTitle(stage));
     window.soundManager.playStageUp();
     window.soundManager.playBgm();
   }
@@ -1530,6 +1580,7 @@
     kuntiPowerup.active = true;
     kuntiPowerup.timer = kuntiPowerup.duration;
     kuntiPowerup.dialogTimer = 3.6;
+    kuntiPowerup.dialogText = KUNTI_RESCUE_LINES[Math.floor(Math.random() * KUNTI_RESCUE_LINES.length)];
 
     player.tripTimer = 0;
     player.slowTimer = 0;
@@ -1607,6 +1658,7 @@
 
   function handleItemHit(index) {
     bumpCount++;
+    totalBumps++;
     player.bumpLevel = Math.min(3, player.bumpLevel + 1);
     player.hitTimer = 0.8;
     player.slowTimer = 1.0;
@@ -1833,6 +1885,7 @@
     if (stage >= highestStage && stage < TOTAL_STAGES) {
       highestStage = stage + 1;
       try { localStorage.setItem('pociman_highest_stage', highestStage); } catch (e) {}
+      updateStartScreenUI();
     }
 
     stageClearTitleEl.textContent = `STAGE ${stage} SELESAI!`;
@@ -1870,12 +1923,13 @@
     if (stage >= highestStage) {
       highestStage = TOTAL_STAGES;
       try { localStorage.setItem('pociman_highest_stage', highestStage); } catch (e) {}
+      updateStartScreenUI();
     }
 
     winDistanceEl.textContent = `${Math.floor(distance)}m`;
     winStageEl.textContent = `${TOTAL_STAGES}/${TOTAL_STAGES} TAMAT! 👑`;
-    winBumpsEl.textContent = bumpCount;
-    winRankEl.textContent = bumpCount === 0 ? "Pociman Sakti Tanpa Cacat 👑" : (bumpCount <= 3 ? "Pociman Lincah ⚡" : "Pociman Benjol Tangguh 🤕");
+    winBumpsEl.textContent = totalBumps;
+    winRankEl.textContent = totalBumps === 0 ? "Pociman Sakti Tanpa Cacat 👑" : (totalBumps <= 12 ? "Pociman Lincah ⚡" : "Pociman Benjol Tangguh 🤕");
 
     victoryScreen.classList.remove('hidden');
     throwWarningEl.classList.add('hidden');
@@ -1948,13 +2002,17 @@
     gameState = STATE.GAMEOVER;
     finalStageEl.textContent = `Stage ${stage} / ${TOTAL_STAGES}`;
     finalDistanceEl.textContent = `${Math.floor(distance)}m`;
-    finalBumpsEl.textContent = bumpCount;
+    finalBumpsEl.textContent = totalBumps;
 
     const reasons = [
-      `Pociman tertangkap rombongan warga di Stage ${stage}! Sekarang diajak selfie Pak RT...`,
-      "Kehabisan napas dan digendong Hansip ke kantor balai desa!",
-      "Tersandung sarung sendiri dan dikerubuti emak-emak dasteran!",
-      "Kena lempar sandal jepit tepat di jidat hingga pingsan!"
+      `Pociman tertangkap di Stage ${stage}! Sekarang diajak bikin TikTok bareng Pak RT... 📱`,
+      "Kehabisan napas dan digendong Hansip ke pos ronda balai desa! 👮‍♂️",
+      "Tersandung daster emak-emak dan diinterogasi sambil disodorin gayung merah! 🪣",
+      "Kena timbukan panci gosong tepat di jidat hingga benjol tiga tingkat! 🍳🤕",
+      "Kafan Pociman nyangkut di pagar bambu, pasrah digerebek warga ronda! 🎋",
+      "Dikejar kucing oren kampung sampai nyungsep di selokan depan TPU! 🐱💨",
+      "Tali pocong atas lepas, warga malah antre minta nomor undian kupon! 🎫",
+      "Nafas ngos-ngosan, diajak ngopi tubruk & makan pisang goreng sama warga! ☕"
     ];
     deathReasonEl.textContent = reasons[Math.floor(Math.random() * reasons.length)];
 
@@ -1966,9 +2024,10 @@
 
   // --- Render Loop & Helpers ---
   function drawSkyAndHouses(ctx) {
+    const colors = getSkyColors(stage);
     const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-    skyGrad.addColorStop(0, '#090d16');
-    skyGrad.addColorStop(1, '#1e293b');
+    skyGrad.addColorStop(0, colors[0]);
+    skyGrad.addColorStop(1, colors[1]);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
 
@@ -2244,24 +2303,24 @@
     ctx.fillStyle = '#b45309'; ctx.fillRect(-10, 0, 20, 45);
     ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -10, 12, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#1e293b'; ctx.fillRect(-14, -22, 28, 10);
-    drawSpeechBubble(ctx, 200, GROUND_Y - 70, "ENCOK GUA KAMBUH! 👴💦");
     ctx.restore();
+    drawSpeechBubble(ctx, 220, GROUND_Y - 75, "ENCOK GUA KAMBUH! 👴💦");
 
     ctx.save();
     ctx.translate(330, GROUND_Y - 35);
     ctx.fillStyle = '#15803d'; ctx.fillRect(-12, 0, 24, 35);
     ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -8, 11, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(0, -15, 12, Math.PI, 0); ctx.fill();
-    drawSpeechBubble(ctx, 310, GROUND_Y - 55, "KUNCI GERBANG KETINGGALAN! 🔑😭");
     ctx.restore();
+    drawSpeechBubble(ctx, 330, GROUND_Y - 60, "KUNCI GERBANG KETINGGALAN! 🔑😭");
 
     ctx.save();
     ctx.translate(430, GROUND_Y - 40);
     ctx.fillStyle = '#db2777'; ctx.fillRect(-11, 0, 22, 40);
     ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -10, 11, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(0, -18, 9, 0, Math.PI * 2); ctx.fill();
-    drawSpeechBubble(ctx, 400, GROUND_Y - 75, "PANCI GUA GOSONG MAK! 🍳😩");
     ctx.restore();
+    drawSpeechBubble(ctx, 430, GROUND_Y - 80, "PANCI GUA GOSONG MAK! 🍳😩");
   }
 
   function drawCutscenePociman(ctx, x, y, t) {
@@ -2419,7 +2478,7 @@
     ctx.beginPath(); ctx.roundRect(140, 335, w - 280, 75, 8); ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#facc15'; ctx.font = 'bold 15px sans-serif';
-    ctx.fillText(`Jarak: ${Math.floor(distance)}m   •   Benjol: ${bumpCount}x   •   Gelar: ${winRankEl ? winRankEl.textContent : 'Pociman Sakti'}`, w / 2, 378);
+    ctx.fillText(`Jarak: ${Math.floor(distance)}m   •   Total Benjol: ${totalBumps}x   •   Gelar: ${winRankEl ? winRankEl.textContent : 'Pociman Sakti'}`, w / 2, 378);
 
     drawCertSignatures(ctx, w, h);
   }
@@ -2452,7 +2511,7 @@
     const msg = `👑 ALHAMDULILLAH GUE BERHASIL NAMATIN GAME POCIMAN (25/25 STAGE)! 🏆\n\n` +
       `Lolos dari kepungan warga kampung, kejaran hansip, dan timbukan daster emak!\n` +
       `📊 Jarak Lolos: ${distText}\n` +
-      `🤕 Benjol: ${bumpCount}x\n` +
+      `🤕 Total Benjol: ${totalBumps}x\n` +
       `🎖️ Gelar: ${rankText}\n\n` +
       `Cobain gamenya di sini, berani tamatin ga? 👇\n` +
       `https://pociman.kawankitasolusindo.co.id/`;
@@ -3037,6 +3096,15 @@
     });
   }
 
+  function updateStartScreenUI() {
+    if (!startBtn) return;
+    if (highestStage > 1 && highestStage <= TOTAL_STAGES) {
+      startBtn.textContent = `LANJUTKAN (STAGE ${highestStage}) 🏃💨`;
+    } else {
+      startBtn.textContent = 'KABUR SEKARANG! 🏃💨';
+    }
+  }
+
   // Init
   if (!isFsSupported) {
     if (startFullscreenBtn) startFullscreenBtn.textContent = '📱 Layar Otomatis Pas';
@@ -3044,6 +3112,7 @@
   }
   initMusicSelector();
   initVillageScenery();
+  updateStartScreenUI();
   fitGameToScreen();
   updateHUD();
   requestAnimationFrame(gameLoop);
