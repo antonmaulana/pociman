@@ -917,12 +917,7 @@
     ctx.fillStyle = torchGlow;
     ctx.fillRect(-80, -220, 360, 270);
 
-    // Background crowd layer for high stages
-    if (currentStage >= 6) {
-      drawCrowdSilhouette(ctx, currentStage);
-    }
-
-    // Main Foreground Characters (Humanized & Running Mob with Hansip front & center)
+    // 4 Adult Villagers (Hansip, Pemuda, Pak RT, Emak)
     drawHansip(ctx, 45, 0, mobRunCycle);
     drawPemuda(ctx, 90, 0, mobRunCycle + 1.2);
     drawPakRT(ctx, 0, 0, mobRunCycle + 2.4);
@@ -933,26 +928,6 @@
     // Comic speech bubble in absolute coordinates (never clipped on left edge)
     if (shoutTimer > 0 && currentShout) {
       drawSpeechBubble(ctx, wargaX + 75, GROUND_Y - 145, currentShout);
-    }
-  }
-
-  function drawCrowdSilhouette(ctx, stg) {
-    const crowdCount = Math.min(8, Math.floor((stg - 5) / 2.4));
-    if (crowdCount <= 0) return;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-    for (let i = 0; i < crowdCount; i++) {
-      const cx = -120 - (i * 24);
-      ctx.beginPath();
-      ctx.arc(cx, -70, 9, 0, Math.PI * 2);
-      ctx.fillRect(cx - 7, -61, 14, 30);
-      ctx.fill();
-      // Distant torch
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(cx + 8, -82, 4, 18);
-      ctx.beginPath();
-      ctx.arc(cx + 10, -84, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
     }
   }
 
