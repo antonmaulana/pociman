@@ -136,6 +136,7 @@
     duration: 4.5,
     spawnedThisStage: 0,
     maxSpawnsPerStage: 2,
+    checkTimer: 5.0,
     dialogTimer: 0,
     dialogText: "Sini Mas Poci, ku gendong terbang dulu biar gak digebukin warga! Hihihi~",
 
@@ -147,6 +148,7 @@
       this.active = false;
       this.timer = 0;
       this.spawnedThisStage = 0;
+      this.checkTimer = 5.0 + Math.random() * 3.0;
       this.dialogTimer = 0;
     }
   };
@@ -1256,7 +1258,7 @@
 
   function spawnObstacle() {
     const lastObs = obstacles[obstacles.length - 1];
-    if (lastObs && lastObs.x > V_WIDTH - 200) return;
+    if (lastObs && lastObs.x > V_WIDTH - 220) return;
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
@@ -1345,12 +1347,12 @@
     cemeteryGate.entered = false;
     cemeteryGate.x = -999;
 
-    throwTimer = stage === 1 ? 999 : Math.max(2.8, 4.8 - (stage - 1) * 0.1);
-    obstacleTimer = Math.max(1.8, 2.7 - (stage - 1) * 0.04);
+    throwTimer = stage === 1 ? 5.5 : Math.max(2.6, 4.5 - (stage - 1) * 0.08);
+    obstacleTimer = Math.max(1.8, 2.5 - (stage - 1) * 0.035);
 
     player.reset();
     kuntiPowerup.reset();
-    kuntiPowerup.maxSpawnsPerStage = stage >= 9 ? 2 : 1;
+    kuntiPowerup.maxSpawnsPerStage = 2;
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -1373,7 +1375,7 @@
   }
 
   function updateSpeedAndDistance(dt) {
-    const baseSpeed = 315 + Math.min(115, (stage - 1) * 4.8);
+    const baseSpeed = 330 + Math.min(120, (stage - 1) * 5.0);
     let currentSpeed = baseSpeed;
     if (player.tripTimer > 0) currentSpeed = baseSpeed * 0.5;
     else if (player.slowTimer > 0) currentSpeed = baseSpeed * 0.6;
@@ -1407,14 +1409,14 @@
 
   function updateEscapeGap(dt) {
     if (player.tripTimer > 0) {
-      const tripDrain = (12 + stage * 0.28) * dt;
+      const tripDrain = (13 + stage * 0.28) * dt;
       escapeGap = Math.max(0, escapeGap - tripDrain);
     } else if (player.slowTimer > 0) {
-      const slowDrain = (8 + stage * 0.20) * dt;
+      const slowDrain = (9 + stage * 0.22) * dt;
       escapeGap = Math.max(0, escapeGap - slowDrain);
     } else {
-      const catchupBonus = escapeGap < 35 ? 2.5 * dt : 0;
-      escapeGap = Math.min(100, escapeGap + (6.0 * dt) + catchupBonus);
+      const catchupBonus = escapeGap < 30 ? 1.8 * dt : 0;
+      escapeGap = Math.min(100, escapeGap + (3.8 * dt) + catchupBonus);
     }
     if (escapeGap <= 0) {
       triggerBustedSequence();
@@ -1520,22 +1522,30 @@
     player.vy = 60;
   }
 
-  function updatePowerupMechanics(dt) {
+  function trySporadicKuntiSpawn(dt) {
     const progress = 1 - (stageTimer / stageTotalTime);
-    const canSpawn = progress > 0.22 && progress < 0.80 &&
+    kuntiPowerup.checkTimer -= dt;
+    if (kuntiPowerup.checkTimer > 0) return;
+    kuntiPowerup.checkTimer = 4.5 + Math.random() * 2.5;
+
+    const canRoll = progress > 0.15 && progress < 0.82 &&
       kuntiPowerup.spawnedThisStage < kuntiPowerup.maxSpawnsPerStage &&
       !kuntiPowerup.itemActive && !kuntiPowerup.active;
 
-    if (canSpawn) {
-      const milestone = kuntiPowerup.spawnedThisStage === 0 ? 0.28 : 0.62;
-      if (progress >= milestone) {
-        kuntiPowerup.itemActive = true;
-        kuntiPowerup.itemX = V_WIDTH + 50;
-        kuntiPowerup.itemY = GROUND_Y - 95;
-        kuntiPowerup.spawnedThisStage++;
-        addComicText("✨ LENTERA MBAK KUNTI! ✨", V_WIDTH - 150, GROUND_Y - 130, '#c084fc');
-      }
+    if (!canRoll) return;
+    const rollChance = escapeGap < 35 ? 0.50 : 0.28;
+    if (Math.random() < rollChance) {
+      kuntiPowerup.itemActive = true;
+      kuntiPowerup.itemX = V_WIDTH + 50;
+      kuntiPowerup.itemY = GROUND_Y - 95;
+      kuntiPowerup.spawnedThisStage++;
+      kuntiPowerup.checkTimer = 14.0 + Math.random() * 6.0;
+      addComicText("✨ MBAK KUNTI MUNCUL! ✨", V_WIDTH - 150, GROUND_Y - 130, '#c084fc');
     }
+  }
+
+  function updatePowerupMechanics(dt) {
+    trySporadicKuntiSpawn(dt);
 
     if (kuntiPowerup.itemActive) {
       kuntiPowerup.itemX -= gameSpeed * dt;
@@ -1543,30 +1553,26 @@
       kuntiPowerup.itemY = GROUND_Y - 95 + Math.sin(kuntiPowerup.itemBob) * 14;
 
       const pBox = { x: kuntiPowerup.itemX - 16, y: kuntiPowerup.itemY - 16, w: 32, h: 32 };
-      if (checkRectOverlap(player, pBox)) {
-        activateKuntiPowerup();
-      }
+      if (checkRectOverlap(player, pBox)) activateKuntiPowerup();
       if (kuntiPowerup.itemX < -60) kuntiPowerup.itemActive = false;
     }
 
     if (kuntiPowerup.active) {
       kuntiPowerup.timer -= dt;
       if (kuntiPowerup.dialogTimer > 0) kuntiPowerup.dialogTimer -= dt;
-      if (kuntiPowerup.timer <= 0) {
-        deactivateKuntiPowerup();
-      }
+      if (kuntiPowerup.timer <= 0) deactivateKuntiPowerup();
     }
   }
 
   function triggerBarrageThrows(wargaX) {
     spawnThrownItem(wargaX);
-    const doubleChance = stage >= 6 ? Math.min(0.45, 0.15 + (stage - 6) * 0.02) : 0;
+    const doubleChance = stage >= 4 ? Math.min(0.42, 0.15 + (stage - 4) * 0.02) : 0;
     if (Math.random() < doubleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 420);
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 400);
     }
-    const tripleChance = stage >= 15 ? Math.min(0.25, (stage - 15) * 0.025) : 0;
+    const tripleChance = stage >= 12 ? Math.min(0.24, (stage - 12) * 0.022) : 0;
     if (Math.random() < tripleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 870);
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 820);
     }
   }
 
@@ -1578,7 +1584,7 @@
     player.tauntTimer = 0;
     player.invulnerableTime = 1.6;
 
-    const penalty = Math.min(14, 8 + stage * 0.25);
+    const penalty = Math.min(15, 8 + stage * 0.28);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     window.soundManager.playBonk();
@@ -1589,7 +1595,6 @@
   }
 
   function updateThrowTimer(dt, wargaX) {
-    if (stage === 1) return;
     throwTimer -= dt;
     if (throwTimer <= 1.0 && !warningActive) {
       warningActive = true;
@@ -1601,7 +1606,8 @@
       triggerBarrageThrows(wargaX);
       warningActive = false;
       throwWarningEl.classList.add('hidden');
-      throwTimer = Math.max(2.2, 4.6 - (stage - 1) * 0.10 + Math.random() * 0.5);
+      const baseCooldown = stage === 1 ? 5.2 : 4.4 - (stage - 1) * 0.095;
+      throwTimer = Math.max(2.1, baseCooldown + Math.random() * 0.5);
     }
   }
 
@@ -1643,7 +1649,7 @@
     player.tauntTimer = 0;
     player.invulnerableTime = 1.6;
 
-    const penalty = Math.min(18, 10 + stage * 0.3);
+    const penalty = Math.min(19, 11 + stage * 0.32);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
@@ -1681,7 +1687,7 @@
     obstacleTimer -= dt;
     if (obstacleTimer <= 0) {
       spawnObstacle();
-      obstacleTimer = Math.max(1.4, 2.5 - (stage - 1) * 0.045 + Math.random() * 0.5);
+      obstacleTimer = Math.max(1.3, 2.3 - (stage - 1) * 0.04 + Math.random() * 0.45);
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -1699,6 +1705,11 @@
 
       if (!kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
+      }
+
+      if (!obs.passed && obs.x < player.x - 20) {
+        obs.passed = true;
+        escapeGap = Math.min(100, escapeGap + 0.6);
       }
 
       if (obs.x < -80 || obs.x > V_WIDTH + 200) obstacles.splice(i, 1);
