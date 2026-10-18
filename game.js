@@ -196,6 +196,25 @@
     }
   };
 
+  const kuntiSkyCameo = {
+    active: false,
+    x: -120,
+    y: 58,
+    speed: 120,
+    timer: 14,
+    animTime: 0,
+    hasGiggled: false,
+    reset() {
+      this.active = false;
+      this.x = -120;
+      this.y = 58;
+      this.speed = 120;
+      this.timer = 14 + Math.random() * 10;
+      this.animTime = 0;
+      this.hasGiggled = false;
+    }
+  };
+
   // Expanded Indonesian Villager Shouts (36 entries)
   const VILLAGER_SHOUTS = [
     "TANGKEEEP, JANGAN KASIH KENDOR!",
@@ -1557,6 +1576,7 @@
     player.reset();
     kuntiPowerup.reset();
     kuntiPowerup.maxSpawnsPerStage = getStageKuntiQuota(stage);
+    kuntiSkyCameo.reset();
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -2220,6 +2240,35 @@
       ff.phase += dt * 3;
       if (ff.x < -20) ff.x = V_WIDTH + 20;
     }
+
+    updateKuntiSkyCameo(dt);
+  }
+
+  function updateKuntiSkyCameo(dt) {
+    if (gameState !== STATE.PLAYING) return;
+    kuntiSkyCameo.animTime += dt;
+    if (!kuntiSkyCameo.active) {
+      kuntiSkyCameo.timer -= dt;
+      if (kuntiSkyCameo.timer <= 0) {
+        kuntiSkyCameo.active = true;
+        kuntiSkyCameo.x = -80;
+        kuntiSkyCameo.y = 48 + Math.random() * 26;
+        kuntiSkyCameo.speed = 110 + Math.random() * 35;
+        kuntiSkyCameo.hasGiggled = false;
+        kuntiSkyCameo.timer = 28 + Math.random() * 18;
+      }
+    } else {
+      kuntiSkyCameo.x += kuntiSkyCameo.speed * dt;
+      if (!kuntiSkyCameo.hasGiggled && kuntiSkyCameo.x > V_WIDTH * 0.35 && !kuntiPowerup.active) {
+        kuntiSkyCameo.hasGiggled = true;
+        if (window.soundManager && Math.random() < 0.6) {
+          window.soundManager.playKuntiLaugh();
+        }
+      }
+      if (kuntiSkyCameo.x > V_WIDTH + 100) {
+        kuntiSkyCameo.active = false;
+      }
+    }
   }
 
   function checkRectOverlap(r1, r2) {
@@ -2459,6 +2508,8 @@
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
     }
 
+    drawKuntiSkyCameo(ctx);
+
     for (const h of houses) {
       ctx.fillStyle = '#111827';
       ctx.fillRect(h.x, GROUND_Y - h.h, h.w, h.h);
@@ -2472,6 +2523,58 @@
         ctx.fillRect(h.x + h.w * 0.3, GROUND_Y - h.h + 20, 16, 18);
       }
     }
+  }
+
+  function drawKuntiSkyCameo(ctx) {
+    if (!kuntiSkyCameo.active) return;
+    const x = kuntiSkyCameo.x;
+    const y = kuntiSkyCameo.y + Math.sin(kuntiSkyCameo.animTime * 3) * 6;
+    ctx.save();
+    ctx.translate(x, y);
+
+    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, 36);
+    aura.addColorStop(0, 'rgba(216, 180, 254, 0.6)');
+    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.25)');
+    aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
+    ctx.fillStyle = aura;
+    ctx.fillRect(-36, -36, 72, 72);
+
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.6;
+
+    const wave = Math.sin(kuntiSkyCameo.animTime * 6) * 5;
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.moveTo(10, -4); ctx.lineTo(-10, -4);
+    ctx.quadraticCurveTo(-24 + wave, 12, -28 + wave, 18);
+    ctx.lineTo(14, 12);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c084fc'; ctx.fillRect(-24 + wave, 15, 34, 2.5);
+
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.arc(6, -10, 8, 0, Math.PI * 2);
+    ctx.quadraticCurveTo(-18 + wave, 0, -22 + wave, 16);
+    ctx.lineTo(0, 4);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath(); ctx.arc(6, -9, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath(); ctx.arc(7.5, -9, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath(); ctx.arc(6, -6, 2, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = 'rgba(251, 146, 60, 0.85)';
+    ctx.fillRect(14, -6, 7, 9);
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(17, -10); ctx.lineTo(17, -4); ctx.stroke();
+
+    ctx.fillStyle = '#facc15';
+    const spX = -18 + Math.sin(kuntiSkyCameo.animTime * 5) * 8;
+    ctx.fillText("✦", spX, -6);
+
+    ctx.restore();
   }
 
   function drawEnvironment(ctx) {
