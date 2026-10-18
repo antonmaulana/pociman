@@ -35,6 +35,10 @@
   const startBtn = document.getElementById('startBtn');
   const creditsBtn = document.getElementById('creditsBtn');
   const closeCreditsBtn = document.getElementById('closeCreditsBtn');
+  const tabGuideBtn = document.getElementById('tabGuideBtn');
+  const tabCreditsBtn = document.getElementById('tabCreditsBtn');
+  const guideTabContent = document.getElementById('guideTabContent');
+  const creditsTabContent = document.getElementById('creditsTabContent');
 
   const nextStageBtn = document.getElementById('nextStageBtn');
   const replayStageBtn = document.getElementById('replayStageBtn');
@@ -3444,8 +3448,24 @@
   bindBtn(closeHonorBtn, () => wallOfHonorModal.classList.add('hidden'));
   bindBtn(refreshHonorBtn, fetchWallOfHonor);
   bindBtn(submitHonorBtn, submitWallOfHonor);
-  bindBtn(creditsBtn, () => creditsScreen.classList.remove('hidden'));
+  function openGuideModal() {
+    switchGuideTab('guide');
+    creditsScreen.classList.remove('hidden');
+  }
+
+  function switchGuideTab(tab) {
+    if (!tabGuideBtn || !tabCreditsBtn || !guideTabContent || !creditsTabContent) return;
+    const isGuide = tab === 'guide';
+    tabGuideBtn.classList.toggle('active', isGuide);
+    tabCreditsBtn.classList.toggle('active', !isGuide);
+    guideTabContent.classList.toggle('hidden', !isGuide);
+    creditsTabContent.classList.toggle('hidden', isGuide);
+  }
+
+  bindBtn(creditsBtn, openGuideModal);
   bindBtn(closeCreditsBtn, () => creditsScreen.classList.add('hidden'));
+  bindBtn(tabGuideBtn, () => switchGuideTab('guide'));
+  bindBtn(tabCreditsBtn, () => switchGuideTab('credits'));
 
   bindBtn(nextStageBtn, () => startStage(Math.min(TOTAL_STAGES, stage + 1)));
   bindBtn(replayStageBtn, () => startStage(stage));
