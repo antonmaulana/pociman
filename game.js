@@ -1322,7 +1322,7 @@
     { type: 'batu', name: 'Batu Kali', w: 34, h: 24, yOffset: 24, color: '#475569' },
     { type: 'pagar', name: 'Pagar Bambu', w: 42, h: 48, yOffset: 48, color: '#ca8a04' },
     { type: 'kubangan', name: 'Kubangan Lumpur', w: 54, h: 18, yOffset: 16, color: '#78350f' },
-    { type: 'ayam', name: 'Ayam Kaget', w: 32, h: 28, yOffset: 28, color: '#ea580c' },
+    { type: 'ayam', name: 'Ayam Ngamuk', w: 36, h: 32, yOffset: 32, color: '#f59e0b' },
     { type: 'kucing', name: 'Kucing Oren', w: 38, h: 24, yOffset: 24, color: '#f97316' }
   ];
 
@@ -1337,10 +1337,11 @@
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
+    const isAyam = obsDef.type === 'ayam';
     const catRoll = Math.random();
     const catState = isCat
       ? (catRoll < 0.55 ? 'walking_left' : (catRoll < 0.80 ? 'idle' : 'walking_right'))
-      : 'idle';
+      : (isAyam ? 'ground' : 'idle');
 
     obstacles.push({
       x: V_WIDTH + 30,
@@ -1362,7 +1363,9 @@
       furiousTimer: 0,
       runSpeed: 0,
       walkSpeed: 38,
-      animTime: 0
+      animTime: 0,
+      targetFlyY: GROUND_Y - 78,
+      panicked: false
     });
   }
 
@@ -1429,6 +1432,25 @@
         alpha: 0.9,
         life: 0.3,
         color: '#f8fafc'
+      });
+    }
+  }
+
+  function createFeathers(x, y, count = 6) {
+    const colors = ['#fef08a', '#fed7aa', '#f97316', '#ffffff'];
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: x + (Math.random() - 0.5) * 16,
+        y: y + (Math.random() - 0.5) * 14,
+        vx: -50 - Math.random() * 80,
+        vy: -40 - Math.random() * 60,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 8,
+        radius: 2.8 + Math.random() * 2.2,
+        alpha: 1,
+        life: 0.8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        isFeather: true
       });
     }
   }
@@ -1982,11 +2004,69 @@
     escapeGap = Math.min(100, escapeGap + 1.2);
   }
 
+  function updateAyamMechanics(obs, dt) {
+    if (obs.state === 'ground') {
+      const dist = obs.x - player.x;
+      if (dist < 135 && dist > -30) {
+        obs.state = 'flying';
+        obs.panicked = true;
+        addComicText("PETOK PETOK PETOK! 🐔💨", obs.x, obs.y - 25, '#fbbf24');
+        if (window.soundManager && window.soundManager.playAyamPetok) {
+          window.soundManager.playAyamPetok();
+        }
+        if (window.soundManager && window.soundManager.playAyamFlap) {
+          window.soundManager.playAyamFlap();
+        }
+        createFeathers(obs.x + 12, obs.y + 12, 6);
+      }
+    } else if (obs.state === 'flying') {
+      obs.y += (obs.targetFlyY - obs.y) * Math.min(1, dt * 7.5);
+      if (Math.random() < 0.12) {
+        createFeathers(obs.x + 10, obs.y + 10, 1);
+      }
+    } else if (obs.state === 'fleeing') {
+      obs.y += (GROUND_Y - 42 - obs.y) * Math.min(1, dt * 5);
+      if (Math.random() < 0.18) {
+        createFeathers(obs.x + 8, obs.y + 8, 1);
+      }
+    }
+  }
+
+  function getAyamVelocity(obs) {
+    if (obs.state === 'ground') return -gameSpeed - 20;
+    if (obs.state === 'flying') return -gameSpeed - 120;
+    if (obs.state === 'fleeing') return -gameSpeed - 240;
+    return -gameSpeed;
+  }
+
+  function handleAyamHit(obs) {
+    obs.hit = true;
+    obs.state = 'fleeing';
+    player.scratchTimer = 0.65;
+    player.slowTimer = 0;
+    player.hitTimer = 0.65;
+    player.invulnerableTime = 1.3;
+    const penalty = Math.min(12, 7 + stage * 0.55);
+    escapeGap = Math.max(0, escapeGap - penalty);
+    if (window.soundManager && window.soundManager.playAyamPetok) {
+      window.soundManager.playAyamPetok();
+    }
+    addComicText("KOPYOK SAYAP! PETOOK! 🐔💢", player.x + 10, player.y - 30, '#ef4444');
+    createFeathers(player.x + 15, player.y + 20, 10);
+    createDust(player.x, GROUND_Y);
+    updateHUD();
+  }
+
   function handleObstaclePassed(obs) {
     obs.passed = true;
-    escapeGap = Math.min(100, escapeGap + 0.6);
     if (obs.type === 'kucing' && !obs.hit) {
+      escapeGap = Math.min(100, escapeGap + 1.2);
       addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
+    } else if (obs.type === 'ayam' && !obs.hit) {
+      escapeGap = Math.min(100, escapeGap + 1.2);
+      addComicText("HUP! LOMPAT AYAM! 🐔✨", player.x + 10, player.y - 28, '#38bdf8');
+    } else {
+      escapeGap = Math.min(100, escapeGap + 0.6);
     }
   }
 
@@ -2001,8 +2081,11 @@
       const obs = obstacles[i];
       obs.animTime = (obs.animTime || 0) + dt;
       if (obs.type === 'kucing') updateCatMechanics(obs, dt);
+      if (obs.type === 'ayam') updateAyamMechanics(obs, dt);
 
-      const vx = obs.type === 'kucing' ? getCatVelocity(obs) : -gameSpeed;
+      const vx = obs.type === 'kucing'
+        ? getCatVelocity(obs)
+        : (obs.type === 'ayam' ? getAyamVelocity(obs) : -gameSpeed);
       obs.x += vx * dt;
 
       if (obs.type === 'kucing' && !obs.scratched) {
@@ -2018,6 +2101,10 @@
           }
         } else if (!obs.hit && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
           handleObstacleHit(obs);
+        }
+      } else if (obs.type === 'ayam') {
+        if (!obs.hit && obs.state !== 'fleeing' && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
+          handleAyamHit(obs);
         }
       } else if (!obs.hit && !obs.scratched && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
@@ -2036,10 +2123,14 @@
   function updateParticlesAndScenery(dt) {
     for (let i = particles.length - 1; i >= 0; i--) {
       const pt = particles[i];
+      if (pt.isFeather) {
+        pt.vy += 85 * dt;
+        pt.rot = (pt.rot || 0) + (pt.rotSpeed || 2) * dt;
+      }
       pt.x += (pt.vx - gameSpeed * 0.3) * dt;
       pt.y += pt.vy * dt;
       pt.life -= dt;
-      pt.alpha = Math.max(0, pt.life * 2);
+      pt.alpha = Math.max(0, pt.life * 1.5);
       if (pt.life <= 0) particles.splice(i, 1);
     }
 
@@ -2366,7 +2457,15 @@
       ctx.save();
       ctx.globalAlpha = pt.alpha;
       ctx.fillStyle = pt.color;
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
+      if (pt.isFeather) {
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(pt.rot || 0);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, pt.radius * 2.2, pt.radius, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2); ctx.fill();
+      }
       ctx.restore();
     }
 
@@ -2990,6 +3089,111 @@
     ctx.beginPath(); ctx.ellipse(0, -24, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
   }
 
+  function drawAyamBody(ctx, obs, isFlying, anim) {
+    const legPhase = isFlying ? Math.sin(anim * 24) * 4 : Math.sin(anim * 8) * 1.5;
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(16, 22); ctx.lineTo(14 + legPhase, 30);
+    ctx.moveTo(22, 22); ctx.lineTo(24 - legPhase, 30);
+    ctx.stroke();
+
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.moveTo(26, 16);
+    ctx.quadraticCurveTo(36, 12, 34, 4);
+    ctx.quadraticCurveTo(28, 8, 25, 14);
+    ctx.moveTo(28, 18);
+    ctx.quadraticCurveTo(38, 18, 36, 10);
+    ctx.quadraticCurveTo(30, 14, 26, 18);
+    ctx.fill();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.ellipse(19, 18, 12, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.ellipse(19, 21, 10, 5, 0, 0, Math.PI);
+    ctx.fill();
+
+    const wingAngle = isFlying ? Math.sin(anim * 32) * 0.55 : Math.sin(anim * 7) * 0.12;
+    ctx.save();
+    ctx.translate(19, 16);
+    ctx.rotate(wingAngle);
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8, 5, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath();
+    ctx.ellipse(2, 1, 6, 3, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawAyamHead(ctx, obs, isFlying, anim) {
+    const bob = isFlying ? Math.sin(anim * 26) * 2 : Math.sin(anim * 6) * 1.2;
+    const hx = 10, hy = 11 + bob;
+
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(hx, hy, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(hx - 2, hy - 7, 2.8, 0, Math.PI * 2);
+    ctx.arc(hx + 1.5, hy - 8, 3.2, 0, Math.PI * 2);
+    ctx.arc(hx + 5, hy - 6, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(hx - 5, hy - 2);
+    ctx.lineTo(hx - 12, hy + 1);
+    ctx.lineTo(hx - 5, hy + 3.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(hx - 4, hy + 5.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(hx - 2, hy - 1, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#0f172a';
+    const pupilR = isFlying ? 1.2 : 2;
+    ctx.beginPath();
+    ctx.arc(hx - 2.5, hy - 1, pupilR, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (isFlying) {
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(hx + 8, hy - 7, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawAyamObstacle(ctx, obs) {
+    const isFlying = obs.state === 'flying' || obs.state === 'fleeing';
+    const anim = obs.animTime || 0;
+    ctx.save();
+    if (obs.facing === 1) {
+      ctx.translate(obs.w, 0);
+      ctx.scale(-1, 1);
+    }
+    drawAyamBody(ctx, obs, isFlying, anim);
+    drawAyamHead(ctx, obs, isFlying, anim);
+    ctx.restore();
+  }
+
   function drawObstacle(ctx, obs) {
     ctx.save();
     ctx.translate(obs.x, obs.y);
@@ -3018,11 +3222,7 @@
       ctx.ellipse(obs.w / 2, obs.h / 2, obs.w / 2, obs.h / 2, 0, 0, Math.PI * 2);
       ctx.fill();
     } else if (obs.type === 'ayam') {
-      ctx.fillStyle = obs.color;
-      ctx.beginPath(); ctx.arc(obs.w / 2, obs.h / 2, 10, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(obs.w / 2 + 8, obs.h / 2 - 6, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(obs.w / 2 + 6, obs.h / 2 - 14, 5, 5);
-      ctx.fillStyle = '#facc15'; ctx.fillRect(obs.w / 2 + 13, obs.h / 2 - 6, 4, 3);
+      drawAyamObstacle(ctx, obs);
     }
     ctx.restore();
   }

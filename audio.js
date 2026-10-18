@@ -435,6 +435,53 @@ class SoundManager {
     osc.stop(now + 0.16);
   }
 
+  playAyamPetok() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const clucks = [
+      { t: 0, f1: 850, f2: 440, d: 0.08 },
+      { t: 0.09, f1: 1020, f2: 520, d: 0.08 },
+      { t: 0.18, f1: 1280, f2: 600, d: 0.12 }
+    ];
+    clucks.forEach(c => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const st = now + c.t;
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(c.f1, st);
+      osc.frequency.exponentialRampToValueAtTime(c.f2, st + c.d);
+      gain.gain.setValueAtTime(0.3, st);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + c.d);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(st);
+      osc.stop(st + c.d);
+    });
+  }
+
+  playAyamFlap() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + i * 0.06;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(240, t);
+      osc.frequency.exponentialRampToValueAtTime(90, t + 0.05);
+      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.05);
+    }
+  }
+
   playKuntiRescue() {
     if (this.isMuted) return;
     this.init();
