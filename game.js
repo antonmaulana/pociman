@@ -116,7 +116,7 @@
   };
 
   let lastTime = 0;
-  let gameSpeed = 340;
+  let gameSpeed = 350;
   let distance = 0;
   let stage = 1;
   let stageBannerTimer = 0;
@@ -154,9 +154,9 @@
   };
 
   // Timers
-  let throwTimer = 3.5;
+  let throwTimer = 3.2;
   let warningActive = false;
-  let obstacleTimer = 2.0;
+  let obstacleTimer = 1.8;
 
   // Mob cycle & Power-up State
   let mobRunCycle = 0;
@@ -1399,7 +1399,7 @@
 
   function spawnObstacle() {
     const lastObs = obstacles[obstacles.length - 1];
-    const minGap = stage === 1 ? 260 : Math.max(180, 240 - stage * 5);
+    const minGap = stage === 1 ? 230 : Math.max(160, 220 - stage * 6);
     if (lastObs && lastObs.x > V_WIDTH - minGap) return;
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
@@ -1409,29 +1409,23 @@
     const catState = isCat
       ? (catRoll < 0.55 ? 'walking_left' : (catRoll < 0.80 ? 'idle' : 'walking_right'))
       : (isAyam ? 'ground' : 'idle');
+    const isHigh = isAyam && (Math.random() < Math.min(0.55, 0.35 + (stage - 1) * 0.03));
 
     obstacles.push({
       x: V_WIDTH + 30,
       y: GROUND_Y - obsDef.yOffset,
       w: obsDef.w,
-      h: obsDef.h,
+      h: isHigh ? 36 : obsDef.h,
       type: obsDef.type,
-      name: obsDef.name,
+      name: isHigh ? 'Ayam Terbang Tinggi' : obsDef.name,
       color: obsDef.color,
       state: catState,
       facing: catState === 'walking_right' ? 1 : -1,
-      spooked: false,
-      meowed: false,
-      hit: false,
-      scratched: false,
-      revengeDodged: false,
-      closeReacted: false,
+      spooked: false, meowed: false, hit: false, scratched: false, revengeDodged: false, closeReacted: false,
       aiTimer: 1.5 + Math.random() * 1.5,
-      furiousTimer: 0,
-      runSpeed: 0,
-      walkSpeed: 38,
-      animTime: 0,
-      targetFlyY: GROUND_Y - 78,
+      furiousTimer: 0, runSpeed: 0, walkSpeed: 38, animTime: 0,
+      targetFlyY: isHigh ? GROUND_Y - 132 : GROUND_Y - 78,
+      isHighFly: isHigh,
       panicked: false
     });
   }
@@ -1581,8 +1575,8 @@
     stage = Math.max(1, Math.min(TOTAL_STAGES, targetStage));
     stageTotalTime = getStageDuration(stage);
     stageTimer = stageTotalTime;
-    throwTimer = stage === 1 ? 3.6 : Math.max(2.0, 3.8 - (stage - 1) * 0.18);
-    obstacleTimer = Math.max(1.2, 2.2 - (stage - 1) * 0.09);
+    throwTimer = stage === 1 ? 3.4 : Math.max(1.8, 3.4 - (stage - 1) * 0.18);
+    obstacleTimer = Math.max(1.0, 1.8 - (stage - 1) * 0.085);
 
     resetStageState();
 
@@ -1608,7 +1602,7 @@
   function updateSpeedAndDistance(dt) {
     const progress = 1 - (stageTimer / stageTotalTime);
     const rushBonus = progress > 0.75 ? 16 : (progress > 0.35 ? 8 : 0);
-    const baseSpeed = 330 + (stage - 1) * 14.5 + rushBonus;
+    const baseSpeed = 350 + (stage - 1) * 16.5 + rushBonus;
     let currentSpeed = baseSpeed;
     if (player.tripTimer > 0) {
       currentSpeed = baseSpeed * 0.45;
@@ -1647,17 +1641,18 @@
 
   function updateEscapeGap(dt) {
     if (player.tripTimer > 0) {
-      const tripDrain = (13 + stage * 0.72) * dt;
+      const tripDrain = (13.5 + stage * 0.75) * dt;
       escapeGap = Math.max(0, escapeGap - tripDrain);
     } else if (player.scratchTimer > 0) {
-      const scratchDrain = (9 + stage * 0.52) * dt;
+      const scratchDrain = (9.5 + stage * 0.55) * dt;
       escapeGap = Math.max(0, escapeGap - scratchDrain);
     } else if (player.slowTimer > 0) {
-      const throwDrain = (5.5 + stage * 0.35) * dt;
+      const throwDrain = (6.0 + stage * 0.38) * dt;
       escapeGap = Math.max(0, escapeGap - throwDrain);
     } else {
       const catchupBonus = escapeGap < 30 ? 1.8 * dt : 0;
-      escapeGap = Math.min(100, escapeGap + (3.8 * dt) + catchupBonus);
+      const passiveRecovery = Math.max(1.8, 3.0 - (stage - 1) * 0.12);
+      escapeGap = Math.min(100, escapeGap + (passiveRecovery * dt) + catchupBonus);
     }
     if (escapeGap <= 0) {
       triggerBustedSequence();
@@ -1888,8 +1883,8 @@
       throwWarningEl.classList.add('hidden');
       const progress = 1 - (stageTimer / stageTotalTime);
       const phaseSpeedup = progress > 0.70 ? 0.45 : (progress > 0.35 ? 0.25 : 0);
-      const baseCooldown = stage === 1 ? 3.9 : Math.max(1.7, 3.8 - (stage - 1) * 0.23 - phaseSpeedup);
-      throwTimer = Math.max(1.4, baseCooldown + Math.random() * 0.35);
+      const baseCooldown = stage === 1 ? 3.4 : Math.max(1.4, 3.3 - (stage - 1) * 0.22 - phaseSpeedup);
+      throwTimer = Math.max(1.25, baseCooldown + Math.random() * 0.35);
     }
   }
 
@@ -2075,28 +2070,23 @@
   function updateAyamMechanics(obs, dt) {
     if (obs.state === 'ground') {
       const dist = obs.x - player.x;
-      if (dist < 135 && dist > -30) {
+      const trigDist = obs.isHighFly ? 175 : 135;
+      if (dist < trigDist && dist > -30) {
         obs.state = 'flying';
         obs.panicked = true;
-        addComicText("PETOK PETOK PETOK! 🐔💨", obs.x, obs.y - 25, '#fbbf24');
-        if (window.soundManager && window.soundManager.playAyamPetok) {
-          window.soundManager.playAyamPetok();
-        }
-        if (window.soundManager && window.soundManager.playAyamFlap) {
-          window.soundManager.playAyamFlap();
-        }
-        createFeathers(obs.x + 12, obs.y + 12, 6);
+        const msg = obs.isHighFly ? "TERBANG TINGGI! LOMPAT 2X! 🐔🚀" : "PETOK PETOK PETOK! 🐔💨";
+        addComicText(msg, obs.x, obs.y - 25, obs.isHighFly ? '#ef4444' : '#fbbf24');
+        if (window.soundManager && window.soundManager.playAyamPetok) window.soundManager.playAyamPetok();
+        if (window.soundManager && window.soundManager.playAyamFlap) window.soundManager.playAyamFlap();
+        createFeathers(obs.x + 12, obs.y + 12, obs.isHighFly ? 10 : 6);
       }
     } else if (obs.state === 'flying') {
-      obs.y += (obs.targetFlyY - obs.y) * Math.min(1, dt * 7.5);
-      if (Math.random() < 0.12) {
-        createFeathers(obs.x + 10, obs.y + 10, 1);
-      }
+      const speed = obs.isHighFly ? 8.8 : 7.5;
+      obs.y += (obs.targetFlyY - obs.y) * Math.min(1, dt * speed);
+      if (Math.random() < (obs.isHighFly ? 0.22 : 0.12)) createFeathers(obs.x + 10, obs.y + 10, 1);
     } else if (obs.state === 'fleeing') {
       obs.y += (GROUND_Y - 42 - obs.y) * Math.min(1, dt * 5);
-      if (Math.random() < 0.18) {
-        createFeathers(obs.x + 8, obs.y + 8, 1);
-      }
+      if (Math.random() < 0.18) createFeathers(obs.x + 8, obs.y + 8, 1);
     }
   }
 
@@ -2114,13 +2104,12 @@
     player.slowTimer = 0;
     player.hitTimer = 0.65;
     player.invulnerableTime = 1.3;
-    const penalty = Math.min(12, 7 + stage * 0.55);
+    const penalty = Math.min(14, 8 + stage * 0.6);
     escapeGap = Math.max(0, escapeGap - penalty);
-    if (window.soundManager && window.soundManager.playAyamPetok) {
-      window.soundManager.playAyamPetok();
-    }
-    addComicText("KOPYOK SAYAP! PETOOK! 🐔💢", player.x + 10, player.y - 30, '#ef4444');
-    createFeathers(player.x + 15, player.y + 20, 10);
+    if (window.soundManager && window.soundManager.playAyamPetok) window.soundManager.playAyamPetok();
+    const hitMsg = obs.isHighFly ? "KURANG TINGGI! WAJIB DOUBLE JUMP! 🐔💥" : "KOPYOK SAYAP! PETOOK! 🐔💢";
+    addComicText(hitMsg, player.x + 10, player.y - 30, '#ef4444');
+    createFeathers(player.x + 15, player.y + 20, obs.isHighFly ? 14 : 10);
     createDust(player.x, GROUND_Y);
     updateHUD();
   }
@@ -2131,10 +2120,35 @@
       escapeGap = Math.min(100, escapeGap + 1.2);
       addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
     } else if (obs.type === 'ayam' && !obs.hit) {
-      escapeGap = Math.min(100, escapeGap + 1.2);
-      addComicText("HUP! LOMPAT AYAM! 🐔✨", player.x + 10, player.y - 28, '#38bdf8');
+      if (obs.isHighFly) {
+        escapeGap = Math.min(100, escapeGap + 2.2);
+        addComicText("DOUBLE JUMP SUKSES! 🐔✨", player.x + 10, player.y - 32, '#a855f7');
+      } else {
+        escapeGap = Math.min(100, escapeGap + 1.2);
+        addComicText("HUP! LOMPAT AYAM! 🐔✨", player.x + 10, player.y - 28, '#38bdf8');
+      }
     } else {
       escapeGap = Math.min(100, escapeGap + 0.6);
+    }
+  }
+
+  function checkObstacleCollision(obs) {
+    if (kuntiPowerup.active || player.invulnerableTime > 0 || player.tripTimer > 0) return;
+    if (obs.type === 'kucing' && !obs.scratched) {
+      if (obs.state === 'furious_charge' && !obs.revengeDodged) {
+        if (checkRectOverlap(player, obs)) handleCatFuriousAttack(obs);
+        else if (obs.x > player.x + player.w + 12) handleCatFuriousDodged(obs);
+      } else if (obs.fromThrow) {
+        if (checkRectOverlap(player, obs)) handleCatFuriousAttack(obs);
+      } else if (!obs.hit && checkRectOverlap(player, obs)) {
+        handleObstacleHit(obs);
+      }
+    } else if (obs.type === 'ayam') {
+      if (!obs.hit && obs.state !== 'fleeing' && checkRectOverlap(player, obs)) {
+        handleAyamHit(obs);
+      }
+    } else if (!obs.hit && !obs.scratched && checkRectOverlap(player, obs)) {
+      handleObstacleHit(obs);
     }
   }
 
@@ -2142,7 +2156,7 @@
     obstacleTimer -= dt;
     if (obstacleTimer <= 0) {
       spawnObstacle();
-      obstacleTimer = Math.max(1.1, 2.0 - (stage - 1) * 0.08 + Math.random() * 0.35);
+      obstacleTimer = Math.max(0.95, 1.8 - (stage - 1) * 0.085 + Math.random() * 0.3);
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -2151,32 +2165,10 @@
       if (obs.type === 'kucing') updateCatMechanics(obs, dt);
       if (obs.type === 'ayam') updateAyamMechanics(obs, dt);
 
-      const vx = obs.type === 'kucing'
-        ? getCatVelocity(obs)
-        : (obs.type === 'ayam' ? getAyamVelocity(obs) : -gameSpeed);
+      const vx = obs.type === 'kucing' ? getCatVelocity(obs) : (obs.type === 'ayam' ? getAyamVelocity(obs) : -gameSpeed);
       obs.x += vx * dt;
 
-      if (obs.type === 'kucing' && !obs.scratched) {
-        if (obs.state === 'furious_charge' && !obs.revengeDodged) {
-          if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
-            handleCatFuriousAttack(obs);
-          } else if (obs.x > player.x + player.w + 12) {
-            handleCatFuriousDodged(obs);
-          }
-        } else if (obs.fromThrow) {
-          if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
-            handleCatFuriousAttack(obs);
-          }
-        } else if (!obs.hit && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
-          handleObstacleHit(obs);
-        }
-      } else if (obs.type === 'ayam') {
-        if (!obs.hit && obs.state !== 'fleeing' && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
-          handleAyamHit(obs);
-        }
-      } else if (!obs.hit && !obs.scratched && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
-        handleObstacleHit(obs);
-      }
+      checkObstacleCollision(obs);
 
       if (obs.fromThrow && !obs.passed && obs.x > player.x + player.w + 12) {
         handleObstaclePassed(obs);
@@ -3354,46 +3346,35 @@
     const hx = 10, hy = 11 + bob;
 
     ctx.fillStyle = '#fef08a';
-    ctx.beginPath();
-    ctx.arc(hx, hy, 7, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill();
 
+    // Chicken red comb (taller fiery comb if high flyer)
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
     ctx.arc(hx - 2, hy - 7, 2.8, 0, Math.PI * 2);
     ctx.arc(hx + 1.5, hy - 8, 3.2, 0, Math.PI * 2);
     ctx.arc(hx + 5, hy - 6, 2.5, 0, Math.PI * 2);
+    if (obs.isHighFly) {
+      ctx.arc(hx + 0.5, hy - 11.5, 3.5, 0, Math.PI * 2);
+      ctx.arc(hx + 4, hy - 10, 3.2, 0, Math.PI * 2);
+    }
     ctx.fill();
 
+    // Beak & wattle
     ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(hx - 5, hy - 2);
-    ctx.lineTo(hx - 12, hy + 1);
-    ctx.lineTo(hx - 5, hy + 3.5);
-    ctx.closePath();
-    ctx.fill();
-
+    ctx.beginPath(); ctx.moveTo(hx - 5, hy - 2); ctx.lineTo(hx - 12, hy + 1); ctx.lineTo(hx - 5, hy + 3.5); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#ef4444';
-    ctx.beginPath();
-    ctx.arc(hx - 4, hy + 5.5, 2.5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - 4, hy + 5.5, 2.5, 0, Math.PI * 2); ctx.fill();
 
+    // Eyes & sweat drop
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(hx - 2, hy - 1, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-
+    ctx.beginPath(); ctx.arc(hx - 2, hy - 1, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#0f172a';
-    const pupilR = isFlying ? 1.2 : 2;
-    ctx.beginPath();
-    ctx.arc(hx - 2.5, hy - 1, pupilR, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - 2.5, hy - 1, isFlying ? 1.2 : 2, 0, Math.PI * 2); ctx.fill();
 
     if (isFlying) {
-      ctx.fillStyle = '#38bdf8';
-      ctx.beginPath();
-      ctx.arc(hx + 8, hy - 7, 2, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = obs.isHighFly ? '#f43f5e' : '#38bdf8';
+      ctx.beginPath(); ctx.arc(hx + 8, hy - 7, obs.isHighFly ? 2.8 : 2, 0, Math.PI * 2); ctx.fill();
     }
   }
 
