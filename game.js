@@ -1211,24 +1211,24 @@
     const dx = player.x - startX;
 
     let vx, vy, rotSpeed;
-    const isPowerLob = Math.random() < Math.min(0.40, 0.10 + (stage - 1) * 0.015);
-    const isShortThrow = !isPowerLob && Math.random() < 0.22;
+    const isPowerLob = Math.random() < Math.min(0.32, 0.08 + (stage - 1) * 0.012);
+    const isShortThrow = !isPowerLob && Math.random() < 0.25;
 
     if (isPowerLob) {
-      vy = -380 - Math.random() * 120;
-      const t = 1.05 + Math.random() * 0.25;
-      vx = (dx + 90 + Math.random() * 90) / t;
-      rotSpeed = 14 + Math.random() * 14;
+      vy = -370 - Math.random() * 90;
+      const t = 1.15 + Math.random() * 0.25;
+      vx = (dx + 80 + Math.random() * 70) / t;
+      rotSpeed = 12 + Math.random() * 12;
     } else if (isShortThrow) {
-      vy = -160 - Math.random() * 70;
-      const t = Math.max(0.75, dx / 400);
-      vx = (dx - 90 - Math.random() * 50) / t;
+      vy = -160 - Math.random() * 60;
+      const t = Math.max(0.8, dx / 380);
+      vx = (dx - 90 - Math.random() * 40) / t;
       rotSpeed = 6 + Math.random() * 8;
     } else {
-      vy = -210 - Math.random() * 130;
-      const t = Math.max(0.8, dx / (380 + stage * 2));
-      vx = dx / t + (Math.random() - 0.5) * 40;
-      rotSpeed = 8 + Math.random() * 12;
+      vy = -200 - Math.random() * 100;
+      const t = Math.max(0.88, dx / (370 + stage * 1.8));
+      vx = dx / t + (Math.random() - 0.5) * 35;
+      rotSpeed = 8 + Math.random() * 10;
     }
 
     thrownItems.push({
@@ -1247,12 +1247,20 @@
     { type: 'kucing', name: 'Kucing Oren', w: 38, h: 24, yOffset: 24, color: '#f97316' }
   ];
 
+  function getStageObstaclePool(stg) {
+    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type === 'batu' || o.type === 'kubangan');
+    if (stg === 2) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing' && o.type !== 'pagar');
+    if (stg === 3) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing');
+    return OBSTACLE_TYPES;
+  }
+
   function spawnObstacle() {
     const lastObs = obstacles[obstacles.length - 1];
-    if (lastObs && lastObs.x > V_WIDTH - 85) return;
-    const obsDef = OBSTACLE_TYPES[Math.floor(Math.random() * OBSTACLE_TYPES.length)];
+    if (lastObs && lastObs.x > V_WIDTH - 200) return;
+    const pool = getStageObstaclePool(stage);
+    const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
-    const isWalkingCat = isCat && Math.random() < 0.65;
+    const isWalkingCat = isCat && Math.random() < 0.55;
     obstacles.push({
       x: V_WIDTH + 30,
       y: GROUND_Y - obsDef.yOffset,
@@ -1264,13 +1272,11 @@
       state: isCat ? (isWalkingCat ? 'walking' : 'idle') : 'idle',
       spooked: false,
       runSpeed: 0,
-      walkSpeed: isCat ? -(35 + Math.random() * 25) : 0,
+      walkSpeed: isCat ? -(28 + Math.random() * 20) : 0,
       animTime: 0
     });
     if (isCat) {
-      if (window.soundManager && window.soundManager.playCatMeow) {
-        window.soundManager.playCatMeow();
-      }
+      if (window.soundManager && window.soundManager.playCatMeow) window.soundManager.playCatMeow();
       addComicText("Meoong~ 🐾", V_WIDTH + 15, GROUND_Y - 45, '#fb923c');
     }
   }
@@ -1339,8 +1345,12 @@
     cemeteryGate.entered = false;
     cemeteryGate.x = -999;
 
+    throwTimer = stage === 1 ? 999 : Math.max(2.8, 4.8 - (stage - 1) * 0.1);
+    obstacleTimer = Math.max(1.8, 2.7 - (stage - 1) * 0.04);
+
     player.reset();
     kuntiPowerup.reset();
+    kuntiPowerup.maxSpawnsPerStage = stage >= 9 ? 2 : 1;
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -1362,31 +1372,24 @@
     window.soundManager.playBgm();
   }
 
-  // --- Main Update Loop ---
-  function update(dt) {
-    if (gameState !== STATE.PLAYING) return;
-
-    // Speed calculation with slow penalties
-    const baseSpeed = 330 + (stage - 1) * 7;
+  function updateSpeedAndDistance(dt) {
+    const baseSpeed = 315 + Math.min(115, (stage - 1) * 4.8);
     let currentSpeed = baseSpeed;
-    if (player.tripTimer > 0) {
-      currentSpeed = baseSpeed * 0.5;
-    } else if (player.slowTimer > 0) {
-      currentSpeed = baseSpeed * 0.6;
-    }
+    if (player.tripTimer > 0) currentSpeed = baseSpeed * 0.5;
+    else if (player.slowTimer > 0) currentSpeed = baseSpeed * 0.6;
     gameSpeed = currentSpeed;
     distance += (currentSpeed * dt) / 10;
+  }
 
-    // Stage countdown & Cemetery gate trigger
+  function updateCemeteryGate(dt) {
     stageTimer = Math.max(0, stageTimer - dt);
     if (stageTimer <= 4.2 && !cemeteryGate.active) {
       cemeteryGate.active = true;
       cemeteryGate.x = V_WIDTH + 80;
       cemeteryGate.entered = false;
     }
-
     if (cemeteryGate.active) {
-      cemeteryGate.x -= currentSpeed * dt;
+      cemeteryGate.x -= gameSpeed * dt;
       if (player.x >= cemeteryGate.x - 25 && !cemeteryGate.entered) {
         cemeteryGate.entered = true;
         window.soundManager.playGateSlam();
@@ -1396,48 +1399,64 @@
         }, 350);
       }
     }
-
     if (stageBannerTimer > 0) {
       stageBannerTimer -= dt;
       if (stageBannerTimer <= 0) stageBannerEl.classList.add('hidden');
     }
+  }
 
-    // Warga distance gap dynamics
+  function updateEscapeGap(dt) {
     if (player.tripTimer > 0) {
-      escapeGap = Math.max(0, escapeGap - (26 + stage * 0.4) * dt);
+      const tripDrain = (12 + stage * 0.28) * dt;
+      escapeGap = Math.max(0, escapeGap - tripDrain);
     } else if (player.slowTimer > 0) {
-      escapeGap = Math.max(0, escapeGap - (18 + stage * 0.3) * dt);
+      const slowDrain = (8 + stage * 0.20) * dt;
+      escapeGap = Math.max(0, escapeGap - slowDrain);
     } else {
-      escapeGap = Math.min(100, escapeGap + 4.5 * dt);
+      const catchupBonus = escapeGap < 35 ? 2.5 * dt : 0;
+      escapeGap = Math.min(100, escapeGap + (6.0 * dt) + catchupBonus);
     }
-
     if (escapeGap <= 0) {
       triggerBustedSequence();
-      return;
+      return true;
     }
+    return false;
+  }
 
-    const wargaX = getWargaX();
-    mobRunCycle = (mobRunCycle + dt * 13) % (Math.PI * 2);
-
+  function updateShoutTimer(dt) {
     shoutTimer -= dt;
     if (shoutTimer <= 0 && escapeGap < 75) {
       currentShout = getNextVillagerShout();
-      shoutTimer = Math.max(1.5, 3.5 - stage * 0.02);
+      shoutTimer = Math.max(1.8, 3.8 - stage * 0.04);
     }
+  }
+
+  function updateKuntiFlight(dt) {
+    player.isGrounded = false;
+    player.vy = 0;
+    const targetY = GROUND_Y - 170 + Math.sin(player.animTime * 3.5) * 8;
+    player.y += (targetY - player.y) * Math.min(1, dt * 7);
+    player.tripTimer = 0;
+    player.slowTimer = 0;
+    player.hitTimer = 0;
+    if (Math.random() < 0.35) {
+      createKuntiSparkles(player.x - 10 + Math.random() * 40, player.y + 40, 1);
+    }
+  }
+
+  // --- Main Update Loop ---
+  function update(dt) {
+    if (gameState !== STATE.PLAYING) return;
+    updateSpeedAndDistance(dt);
+    updateCemeteryGate(dt);
+    if (updateEscapeGap(dt)) return;
+
+    const wargaX = getWargaX();
+    mobRunCycle = (mobRunCycle + dt * 13) % (Math.PI * 2);
+    updateShoutTimer(dt);
 
     player.update(dt);
-    if (kuntiPowerup.active) {
-      player.isGrounded = false;
-      player.vy = 0;
-      const targetY = GROUND_Y - 170 + Math.sin(player.animTime * 3.5) * 8;
-      player.y += (targetY - player.y) * Math.min(1, dt * 7);
-      player.tripTimer = 0;
-      player.slowTimer = 0;
-      player.hitTimer = 0;
-      if (Math.random() < 0.35) {
-        createKuntiSparkles(player.x - 10 + Math.random() * 40, player.y + 40, 1);
-      }
-    }
+    if (kuntiPowerup.active) updateKuntiFlight(dt);
 
     updatePowerupMechanics(dt);
     updateThrownMechanics(dt, wargaX);
@@ -1452,6 +1471,8 @@
     player.tauntTimer = 1.6;
     player.tauntText = isShort ? getNextShortTaunt() : getNextDodgeTaunt();
     player.tauntIsShort = isShort;
+    const bonus = isShort ? 1.2 : 1.8;
+    escapeGap = Math.min(100, escapeGap + bonus);
     if (window.soundManager && window.soundManager.playTaunt) {
       window.soundManager.playTaunt();
     }
@@ -1539,28 +1560,25 @@
 
   function triggerBarrageThrows(wargaX) {
     spawnThrownItem(wargaX);
-    const doubleChance = Math.min(0.75, 0.20 + (stage - 1) * 0.035);
+    const doubleChance = stage >= 6 ? Math.min(0.45, 0.15 + (stage - 6) * 0.02) : 0;
     if (Math.random() < doubleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 260);
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 420);
     }
-    const tripleChance = Math.min(0.60, (stage - 8) * 0.04);
-    if (stage >= 10 && Math.random() < tripleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 520);
-    }
-    if (stage >= 18 && Math.random() < 0.40) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 780);
+    const tripleChance = stage >= 15 ? Math.min(0.25, (stage - 15) * 0.025) : 0;
+    if (Math.random() < tripleChance) {
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 870);
     }
   }
 
   function handleItemHit(index) {
     bumpCount++;
     player.bumpLevel = Math.min(3, player.bumpLevel + 1);
-    player.hitTimer = 0.9;
-    player.slowTimer = 1.2;
+    player.hitTimer = 0.8;
+    player.slowTimer = 1.0;
     player.tauntTimer = 0;
-    player.invulnerableTime = 1.3;
+    player.invulnerableTime = 1.6;
 
-    const penalty = Math.min(24, 15 + stage * 0.3);
+    const penalty = Math.min(14, 8 + stage * 0.25);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     window.soundManager.playBonk();
@@ -1571,8 +1589,9 @@
   }
 
   function updateThrowTimer(dt, wargaX) {
+    if (stage === 1) return;
     throwTimer -= dt;
-    if (throwTimer <= 0.8 && !warningActive) {
+    if (throwTimer <= 1.0 && !warningActive) {
       warningActive = true;
       throwWarningEl.classList.remove('hidden');
       window.soundManager.playWarning();
@@ -1582,7 +1601,7 @@
       triggerBarrageThrows(wargaX);
       warningActive = false;
       throwWarningEl.classList.add('hidden');
-      throwTimer = Math.max(1.1, 3.6 - (stage - 1) * 0.09 + Math.random() * 0.5);
+      throwTimer = Math.max(2.2, 4.6 - (stage - 1) * 0.10 + Math.random() * 0.5);
     }
   }
 
@@ -1619,18 +1638,18 @@
   }
 
   function handleObstacleHit(obs) {
-    player.tripTimer = 1.0;
+    player.tripTimer = 0.9;
     player.slowTimer = 0;
     player.tauntTimer = 0;
-    player.invulnerableTime = 1.5;
+    player.invulnerableTime = 1.6;
 
-    const penalty = Math.min(28, 18 + stage * 0.35);
+    const penalty = Math.min(18, 10 + stage * 0.3);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
       obs.state = 'running';
       obs.spooked = true;
-      obs.runSpeed = 290 + Math.random() * 50;
+      obs.runSpeed = 260 + Math.random() * 40;
       if (window.soundManager && window.soundManager.playCatScreech) {
         window.soundManager.playCatScreech();
       }
@@ -1662,7 +1681,7 @@
     obstacleTimer -= dt;
     if (obstacleTimer <= 0) {
       spawnObstacle();
-      obstacleTimer = Math.max(0.9, 1.85 - (stage * 0.025) + Math.random() * 0.65);
+      obstacleTimer = Math.max(1.4, 2.5 - (stage - 1) * 0.045 + Math.random() * 0.5);
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
