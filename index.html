@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.8.1" />
+  <link rel="stylesheet" href="style.css?v=2.9.0" />
 </head>
 <body>
   <div id="game-container">
@@ -28,7 +28,7 @@
         <div class="stat-badge stage-badge">
           <span class="icon">⭐</span>
           <span class="label">STAGE</span>
-          <span id="stageVal">1</span><span class="stage-max">/25</span>
+          <span id="stageVal">1</span><span class="stage-max">/10</span>
         </div>
         <div class="stat-badge bump-badge">
           <span class="icon">🤕</span>
@@ -187,7 +187,7 @@
     <!-- Skip Cutscene Button for Ending Video -->
     <button id="skipCutsceneBtn" class="skip-cutscene-btn hidden" type="button">LEWATI VIDEO AKHIR ⏩</button>
 
-    <!-- Victory Screen Modal (Game Complete - Stage 25 Certificate Payoff) -->
+    <!-- Victory Screen Modal (Game Complete - Stage 10 Certificate Payoff) -->
     <div id="victoryScreen" class="modal-screen hidden">
       <div class="modal-card win-card cert-card">
         <div class="win-banner">👑 PIAGAM RESMI KELULUSAN TPU 👑</div>
@@ -195,7 +195,7 @@
           <div class="cert-authority">PEMERINTAH ALAM GAIB &bull; KELURAHAN TPU KRAMAT JATI</div>
           <h1 class="game-title win-title cert-title">SURAT KETERANGAN BEBAS WARGA</h1>
           <p class="story-desc cert-desc">
-            Diberikan kepada <strong>Pociman Jawara</strong> atas keberhasilannya menamatkan 25 Stage, lolos dari kepungan warga, kejaran hansip, dan timbukan panci emak!
+            Diberikan kepada <strong>Pociman Jawara</strong> atas keberhasilannya menamatkan 10 Stage, lolos dari kepungan warga, kejaran hansip, dan timbukan panci emak!
           </p>
         </div>
 
@@ -206,7 +206,7 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">Stage Tuntas</span>
-            <span id="winStage" class="summary-value highlight">25/25 👑</span>
+            <span id="winStage" class="summary-value highlight">10/10 👑</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Total Benjol</span>
@@ -330,7 +330,7 @@
         <div class="win-banner">🏆 DINDING KEHORMATAN (WALL OF HONOR) 🏆</div>
         <h2 class="game-title honor-title">JAWARA PENAMAT POCIMAN</h2>
         <p class="story-desc">
-          Daftar pahlawan pocong sakti yang sukses menamatkan seluruh 25 Stage tanpa tertangkap!
+          Daftar pahlawan pocong sakti yang sukses menamatkan seluruh 10 Stage tanpa tertangkap!
         </p>
 
         <div id="honorListContainer" class="honor-list-container">
@@ -358,7 +358,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.8.1"></script>
-  <script src="game.js?v=2.8.1"></script>
+  <script src="audio.js?v=2.9.0"></script>
+  <script src="game.js?v=2.9.0"></script>
 </body>
 </html>

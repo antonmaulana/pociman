@@ -84,7 +84,7 @@
   const GRAVITY = 1580;
   const JUMP_FORCE = -630;
   const DOUBLE_JUMP_FORCE = -540;
-  const TOTAL_STAGES = 25;
+  const TOTAL_STAGES = 10;
 
   // --- Game State ---
   const STATE = {
@@ -116,8 +116,8 @@
   let distance = 0;
   let stage = 1;
   let stageBannerTimer = 0;
-  let stageTimer = 45;
-  let stageTotalTime = 45;
+  let stageTimer = 35;
+  let stageTotalTime = 35;
   let escapeGap = 50; // 0% (caught) to 100% (escaped!)
   let bumpCount = 0;
   let totalBumps = 0;
@@ -132,13 +132,17 @@
   }
 
   function getStageDuration(stg) {
-    return stg <= 5 ? 45 : 60;
+    if (stg === 1) return 35;
+    if (stg === 2) return 40;
+    if (stg <= 5) return 45;
+    if (stg <= 8) return 48;
+    return 52;
   }
 
   function getSkyColors(stg) {
-    if (stg <= 7) return ['#090d16', '#1e293b'];
-    if (stg <= 14) return ['#110924', '#2e1065'];
-    if (stg <= 20) return ['#1b0826', '#4a044e'];
+    if (stg <= 3) return ['#090d16', '#1e293b'];
+    if (stg <= 6) return ['#110924', '#2e1065'];
+    if (stg <= 8) return ['#1b0826', '#4a044e'];
     return ['#140727', '#7f1d1d'];
   }
 
@@ -1320,7 +1324,11 @@
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
-    const isWalkingCat = isCat && Math.random() < 0.6;
+    const catRoll = Math.random();
+    const catState = isCat
+      ? (catRoll < 0.55 ? 'walking_left' : (catRoll < 0.80 ? 'idle' : 'walking_right'))
+      : 'idle';
+
     obstacles.push({
       x: V_WIDTH + 30,
       y: GROUND_Y - obsDef.yOffset,
@@ -1329,12 +1337,17 @@
       type: obsDef.type,
       name: obsDef.name,
       color: obsDef.color,
-      state: isCat ? (isWalkingCat ? 'walking' : 'idle') : 'idle',
+      state: catState,
+      facing: catState === 'walking_right' ? 1 : -1,
       spooked: false,
       meowed: false,
       hit: false,
+      scratched: false,
+      revengeDodged: false,
+      aiTimer: 1.5 + Math.random() * 1.5,
+      furiousTimer: 0,
       runSpeed: 0,
-      walkSpeed: isCat ? -35 : 0,
+      walkSpeed: 38,
       animTime: 0
     });
   }
@@ -1399,9 +1412,9 @@
 
   function getStageKuntiQuota(stg) {
     if (stg < 3) return 0;
-    const stageEligible = Math.random() < (stg >= 9 ? 0.48 : 0.40);
+    const stageEligible = Math.random() < (stg >= 6 ? 0.48 : 0.40);
     if (!stageEligible) return 0;
-    if (stg >= 12 && Math.random() < 0.30) return 2;
+    if (stg >= 7 && Math.random() < 0.30) return 2;
     return 1;
   }
 
@@ -1428,8 +1441,8 @@
     stage = Math.max(1, Math.min(TOTAL_STAGES, targetStage));
     stageTotalTime = getStageDuration(stage);
     stageTimer = stageTotalTime;
-    throwTimer = stage === 1 ? 3.6 : Math.max(2.4, 4.2 - (stage - 1) * 0.08);
-    obstacleTimer = Math.max(1.6, 2.1 - (stage - 1) * 0.035);
+    throwTimer = stage === 1 ? 3.6 : Math.max(2.0, 3.8 - (stage - 1) * 0.18);
+    obstacleTimer = Math.max(1.2, 2.2 - (stage - 1) * 0.09);
 
     resetStageState();
 
@@ -1453,7 +1466,7 @@
   }
 
   function updateSpeedAndDistance(dt) {
-    const baseSpeed = 330 + Math.min(120, (stage - 1) * 5.0);
+    const baseSpeed = 330 + Math.min(115, (stage - 1) * 12.0);
     let currentSpeed = baseSpeed;
     if (player.tripTimer > 0) currentSpeed = baseSpeed * 0.5;
     else if (player.slowTimer > 0) currentSpeed = baseSpeed * 0.6;
@@ -1727,23 +1740,24 @@
   }
 
   function handleObstacleHit(obs) {
-    player.tripTimer = 0.9;
+    player.tripTimer = 0.8;
     player.slowTimer = 0;
     player.tauntTimer = 0;
-    player.invulnerableTime = 1.6;
+    player.invulnerableTime = 1.4;
 
-    const penalty = Math.min(19, 11 + stage * 0.32);
+    const penalty = Math.min(18, 10 + stage * 0.75);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
       obs.hit = true;
-      obs.state = 'running';
-      obs.spooked = true;
-      obs.runSpeed = 280;
-      if (window.soundManager && window.soundManager.playCatScreech) {
+      obs.state = 'furious_prep';
+      obs.furiousTimer = 0.65;
+      if (window.soundManager && window.soundManager.playCatHiss) {
+        window.soundManager.playCatHiss();
+      } else if (window.soundManager && window.soundManager.playCatScreech) {
         window.soundManager.playCatScreech();
       }
-      addComicText("TERINJAK! KABUR NGEBUT! 🙀💨", player.x, player.y - 25, '#f97316');
+      addComicText("BULU BERDIRI! KUCING NGAMUK! 😾⚡", obs.x, obs.y - 25, '#f97316');
       createDust(obs.x + 8, GROUND_Y);
     } else {
       window.soundManager.playTrip();
@@ -1754,6 +1768,43 @@
     updateHUD();
   }
 
+  function updateCatAI(obs, dt) {
+    if (obs.state === 'furious_prep') {
+      obs.furiousTimer -= dt;
+      if (obs.furiousTimer <= 0) {
+        obs.state = 'furious_charge';
+        if (window.soundManager && window.soundManager.playCatScreech) {
+          window.soundManager.playCatScreech();
+        }
+        addComicText("SERANG BALIK! 😾💨", obs.x, obs.y - 22, '#ef4444');
+      }
+      return;
+    }
+    if (obs.state === 'furious_charge') return;
+
+    if (obs.x > player.x + 85) {
+      obs.aiTimer -= dt;
+      if (obs.aiTimer <= 0) {
+        const roll = Math.random();
+        if (roll < 0.45) {
+          obs.state = 'walking_left';
+          obs.facing = -1;
+        } else if (roll < 0.70) {
+          obs.state = 'walking_right';
+          obs.facing = 1;
+        } else if (roll < 0.88) {
+          obs.state = 'idle';
+          obs.facing = -1;
+        } else {
+          obs.state = 'sprint_left';
+          obs.facing = -1;
+          addComicText("ZOOMIES! 🐾💨", obs.x, obs.y - 18, '#fb923c');
+        }
+        obs.aiTimer = 1.6 + Math.random() * 2.2;
+      }
+    }
+  }
+
   function updateCatMechanics(obs, dt) {
     if (!obs.meowed && obs.x <= V_WIDTH - 15) {
       obs.meowed = true;
@@ -1762,40 +1813,69 @@
       }
       addComicText("Meoong~ 🐾", obs.x, obs.y - 18, '#fb923c');
     }
-    if (obs.state === 'running' && Math.random() < 0.35) {
+    updateCatAI(obs, dt);
+    const isRunning = obs.state === 'furious_charge' || obs.state === 'sprint_left' || obs.state === 'sprint_right';
+    if (isRunning && Math.random() < 0.35) {
       createDust(obs.x + 4, GROUND_Y);
     }
+  }
+
+  function getCatVelocity(obs) {
+    if (obs.state === 'furious_prep') return -gameSpeed;
+    if (obs.state === 'furious_charge') {
+      if (player.x + 10 < obs.x) { obs.facing = -1; return -gameSpeed - 260; }
+      obs.facing = 1; return 280;
+    }
+    if (obs.state === 'walking_left') return -gameSpeed - obs.walkSpeed;
+    if (obs.state === 'walking_right') return -gameSpeed + obs.walkSpeed;
+    if (obs.state === 'sprint_left') return -gameSpeed - 200;
+    if (obs.state === 'sprint_right') return 260;
+    return -gameSpeed;
   }
 
   function updateObstacleMechanics(dt) {
     obstacleTimer -= dt;
     if (obstacleTimer <= 0) {
       spawnObstacle();
-      obstacleTimer = Math.max(1.3, 2.3 - (stage - 1) * 0.04 + Math.random() * 0.45);
+      obstacleTimer = Math.max(1.2, 2.2 - (stage - 1) * 0.09 + Math.random() * 0.4);
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const obs = obstacles[i];
       obs.animTime = (obs.animTime || 0) + dt;
-
       if (obs.type === 'kucing') updateCatMechanics(obs, dt);
 
-      let vx = -gameSpeed;
-      if (obs.type === 'kucing') {
-        if (obs.state === 'running') vx = obs.runSpeed;
-        else if (obs.state === 'walking') vx = obs.walkSpeed - gameSpeed;
-      }
+      const vx = obs.type === 'kucing' ? getCatVelocity(obs) : -gameSpeed;
       obs.x += vx * dt;
 
-      if (!kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
+      if (obs.type === 'kucing' && obs.state === 'furious_charge' && !obs.scratched) {
+        if (!kuntiPowerup.active && player.invulnerableTime <= 0 && checkRectOverlap(player, obs)) {
+          obs.scratched = true;
+          player.slowTimer = 0.8;
+          player.invulnerableTime = 1.4;
+          escapeGap = Math.max(0, escapeGap - 8);
+          if (window.soundManager && window.soundManager.playCatScratch) {
+            window.soundManager.playCatScratch();
+          }
+          addComicText("CRET! DICAKAR KUCING! 🙀🩸", player.x + 10, player.y - 30, '#ef4444');
+          createDust(player.x, GROUND_Y);
+          updateHUD();
+        }
+      } else if (!kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
       }
 
       if (!obs.passed && obs.x < player.x - 20) {
         obs.passed = true;
         escapeGap = Math.min(100, escapeGap + 0.6);
-        if (obs.type === 'kucing' && !obs.hit) {
-          addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
+        if (obs.type === 'kucing') {
+          if (obs.state === 'furious_charge' && !obs.scratched && !obs.revengeDodged) {
+            obs.revengeDodged = true;
+            addComicText("HUP! LOLOS CAKARAN! 🐾💨", player.x + 10, player.y - 30, '#38bdf8');
+            escapeGap = Math.min(100, escapeGap + 1.2);
+          } else if (!obs.hit) {
+            addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
+          }
         }
       }
 
@@ -2445,7 +2525,7 @@
     const cctx = certCanvas.getContext('2d');
     renderCertificateCanvas(cctx, 960, 600);
     const link = document.createElement('a');
-    link.download = 'sertifikat-bebas-warga-pociman-stage25.png';
+    link.download = 'sertifikat-bebas-warga-pociman.png';
     link.href = certCanvas.toDataURL('image/png');
     link.click();
     showToast('📜 Piagam berhasil diunduh ke galeri!');
@@ -2487,7 +2567,7 @@
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '13px sans-serif';
-    ctx.fillText('Nomor: 001/SKBW-TPU/STAGE25/2026', w / 2, 142);
+    ctx.fillText('Nomor: 001/SKBW-TPU/STAGE10/2026', w / 2, 142);
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = '16px sans-serif';
@@ -2499,7 +2579,7 @@
 
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '15px sans-serif';
-    ctx.fillText('Atas kelincahan spektakuler menamatkan seluruh 25 Stage tanpa ampun,', w / 2, 275);
+    ctx.fillText('Atas kelincahan spektakuler menamatkan seluruh 10 Stage tanpa ampun,', w / 2, 275);
     ctx.fillText('berhasil lolos dari kejaran Hansip, amukan daster emak-emak, dan timbukan sandal jepit!', w / 2, 302);
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
@@ -2538,7 +2618,7 @@
   function shareToWhatsApp() {
     const distText = Math.floor(distance) + 'm';
     const rankText = winRankEl ? winRankEl.textContent : 'Pociman Sakti ⚡';
-    const msg = `👑 ALHAMDULILLAH GUE BERHASIL NAMATIN GAME POCIMAN (25/25 STAGE)! 🏆\n\n` +
+    const msg = `👑 ALHAMDULILLAH GUE BERHASIL NAMATIN GAME POCIMAN (10/10 STAGE)! 🏆\n\n` +
       `Lolos dari kepungan warga kampung, kejaran hansip, dan timbukan daster emak!\n` +
       `📊 Jarak Lolos: ${distText}\n` +
       `🤕 Total Benjol: ${totalBumps}x\n` +
@@ -2549,35 +2629,59 @@
     window.open(url, '_blank');
   }
 
-  function drawCatHead(ctx, hx, hy) {
-    ctx.fillStyle = '#f97316';
+  function drawCatHead(ctx, hx, hy, isAngry) {
+    ctx.fillStyle = isAngry ? '#ea580c' : '#f97316';
     ctx.beginPath(); ctx.arc(hx, hy, 8.5, 0, Math.PI * 2); ctx.fill();
 
-    ctx.fillStyle = '#ea580c';
+    ctx.fillStyle = isAngry ? '#b91c1c' : '#ea580c';
     ctx.beginPath();
-    ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx - 2, hy - 14); ctx.lineTo(hx + 2, hy - 6);
-    ctx.moveTo(hx + 1, hy - 6); ctx.lineTo(hx + 6, hy - 13); ctx.lineTo(hx + 8, hy - 5);
+    if (isAngry) {
+      ctx.moveTo(hx - 7, hy - 4); ctx.lineTo(hx - 14, hy - 8); ctx.lineTo(hx - 2, hy - 7);
+      ctx.moveTo(hx, hy - 7); ctx.lineTo(hx + 8, hy - 14); ctx.lineTo(hx + 7, hy - 4);
+    } else {
+      ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx - 2, hy - 14); ctx.lineTo(hx + 2, hy - 6);
+      ctx.moveTo(hx + 1, hy - 6); ctx.lineTo(hx + 6, hy - 13); ctx.lineTo(hx + 8, hy - 5);
+    }
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.ellipse(hx + 4, hy + 3, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#facc15';
+    ctx.fillStyle = isAngry ? '#ef4444' : '#facc15';
     ctx.beginPath(); ctx.arc(hx + 3, hy - 1, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(hx + 3.5, hy - 2.5, 1.2, 3);
     ctx.fillStyle = '#f43f5e';
     ctx.fillRect(hx + 6.5, hy + 2, 2, 1.5);
+
+    if (isAngry) {
+      ctx.strokeStyle = '#7f1d1d'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(hx + 1, hy - 5); ctx.lineTo(hx + 6, hy - 3);
+      ctx.stroke();
+    }
   }
 
-  function drawCatBody(ctx, obs, isRunning, legPhase, tailWiggle) {
+  function drawCatBody(ctx, obs, isAngry, isRunning, legPhase, tailWiggle, anim) {
     ctx.fillStyle = '#ea580c';
     ctx.fillRect(6 + legPhase, obs.h - 6, 5, 6);
     ctx.fillRect(obs.w - 12 - legPhase, obs.h - 6, 5, 6);
 
-    ctx.fillStyle = '#f97316';
+    ctx.fillStyle = isAngry ? '#ea580c' : '#f97316';
     ctx.beginPath();
     ctx.ellipse(obs.w * 0.45, obs.h * 0.55, obs.w * 0.38, obs.h * 0.32, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    if (isAngry) {
+      ctx.fillStyle = '#c2410c';
+      for (let s = 0; s < 5; s++) {
+        const sx = obs.w * 0.20 + s * (obs.w * 0.12);
+        ctx.beginPath();
+        ctx.moveTo(sx - 3, obs.h * 0.28);
+        ctx.lineTo(sx, obs.h * 0.05 + (s % 2) * 4);
+        ctx.lineTo(sx + 3, obs.h * 0.28);
+        ctx.fill();
+      }
+    }
 
     ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 1.8;
     ctx.beginPath();
@@ -2585,9 +2689,15 @@
     ctx.moveTo(obs.w * 0.50, obs.h * 0.28); ctx.lineTo(obs.w * 0.50, obs.h * 0.58);
     ctx.stroke();
 
-    ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 3;
+    ctx.strokeStyle = isAngry ? '#b91c1c' : '#ea580c';
+    ctx.lineWidth = isAngry ? 3.5 : 3;
     ctx.beginPath();
-    if (isRunning) {
+    if (isAngry) {
+      const rageVibe = Math.sin(anim * 40) * 3;
+      ctx.moveTo(6, obs.h * 0.5);
+      ctx.lineTo(5 + rageVibe, -12);
+      ctx.lineTo(7 + rageVibe, -15);
+    } else if (isRunning) {
       ctx.moveTo(6, obs.h * 0.5);
       ctx.quadraticCurveTo(-4, obs.h * 0.1, -2 + tailWiggle, -6);
     } else {
@@ -2598,20 +2708,21 @@
   }
 
   function drawCatObstacle(ctx, obs) {
-    const isRunning = obs.state === 'running';
-    const isWalking = obs.state === 'walking';
+    const isAngry = obs.state === 'furious_prep' || obs.state === 'furious_charge';
+    const isRunning = obs.state === 'furious_charge' || obs.state === 'sprint_left' || obs.state === 'sprint_right';
+    const isWalking = obs.state === 'walking_left' || obs.state === 'walking_right';
     const anim = obs.animTime || 0;
-    const legPhase = isRunning ? Math.sin(anim * 26) * 5 : (isWalking ? Math.sin(anim * 9) * 3 : 0);
-    const tailWiggle = isRunning ? Math.sin(anim * 22) * 7 : Math.sin(anim * 5) * 3;
+    const legPhase = isRunning ? Math.sin(anim * 26) * 5 : (isWalking ? Math.sin(anim * 10) * 3 : 0);
+    const tailWiggle = isRunning ? Math.sin(anim * 22) * 7 : Math.sin(anim * 6) * 3;
 
     ctx.save();
-    if (!isRunning) {
+    if (obs.facing === -1) {
       ctx.translate(obs.w, 0);
       ctx.scale(-1, 1);
     }
 
-    drawCatBody(ctx, obs, isRunning, legPhase, tailWiggle);
-    drawCatHead(ctx, obs.w * 0.75, obs.h * 0.4);
+    drawCatBody(ctx, obs, isAngry, isRunning, legPhase, tailWiggle, anim);
+    drawCatHead(ctx, obs.w * 0.75, obs.h * 0.4, isAngry);
     ctx.restore();
   }
 
