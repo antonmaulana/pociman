@@ -896,7 +896,7 @@
 
 
   function getWargaX() {
-    const wargaMinX = -75;
+    const wargaMinX = 85;
     const wargaMaxX = player.x - 90;
     const gapRatio = (100 - escapeGap) / 100;
     return wargaMinX + gapRatio * (wargaMaxX - wargaMinX);
@@ -927,10 +927,6 @@
     drawPemuda(ctx, 90, 0, mobRunCycle + 1.2);
     drawPakRT(ctx, 0, 0, mobRunCycle + 2.4);
     drawEmak(ctx, -50, 0, mobRunCycle + 3.6);
-
-    if (currentStage >= 8) {
-      drawBocilSarung(ctx, -95, 0, mobRunCycle + 4.8);
-    }
 
     ctx.restore();
 
@@ -1266,37 +1262,6 @@
     ctx.restore();
   }
 
-  function drawBocilSarung(ctx, x, y, runPhase) {
-    const bob = Math.abs(Math.sin(runPhase * 3)) * 2.5;
-    ctx.save();
-    ctx.translate(x, y - bob);
-    ctx.strokeStyle = '#3e352d';
-    ctx.lineWidth = 2;
-
-    // Running little stubby legs (isBocil = true)
-    drawRunningHumanLegs(ctx, runPhase * 1.4, '#fed7aa', '#0f172a', true, true);
-
-    // Little child ninja sarung body bundle
-    ctx.fillStyle = '#0284c7';
-    ctx.beginPath(); ctx.ellipse(0, -18, 13, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-    // Round head with ninja sarung hood
-    ctx.beginPath(); ctx.arc(0, -38, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.roundRect(-10, -41, 20, 10, 4); ctx.fill(); ctx.stroke();
-
-    // Big excited child eyes
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -36, 4, 0, Math.PI * 2); ctx.arc(5, -36, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
-    ctx.beginPath(); ctx.arc(-4, -36, 2, 0, Math.PI * 2); ctx.arc(6, -36, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-4.6, -37, 1, 0, Math.PI * 2); ctx.arc(5.4, -37, 1, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#f472b6';
-    ctx.beginPath(); ctx.arc(-8, -33, 2, 0, Math.PI * 2); ctx.arc(8, -33, 2, 0, Math.PI * 2); ctx.fill();
-
-    ctx.restore();
-  }
 
   function drawSpeechBubble(ctx, x, y, text) {
     if (!text) return;
