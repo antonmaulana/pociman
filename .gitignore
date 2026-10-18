@@ -2,3 +2,6 @@
 Thumbs.db
 cookies.txt
 *.log
+scripts/raw_voices/
+scripts/*.wav
+

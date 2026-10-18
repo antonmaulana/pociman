@@ -407,6 +407,43 @@ canvas {
   background: #0369a1;
 }
 
+.start-secondary-btn-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.btn-honor-toggle, .btn-reset-stage {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.btn-honor-toggle {
+  border-color: #facc15;
+  color: #facc15;
+}
+
+.btn-honor-toggle:hover {
+  background: #facc15;
+  color: #0f172a;
+}
+
+.btn-reset-stage:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
 /* Floating Non-Blocking Portrait Notice (Fixed above viewport) */
 .portrait-notice {
   display: none;
@@ -882,6 +919,32 @@ canvas {
   transform: scale(1.04);
 }
 
+/* --- Ending Video Overlay Container --- */
+.ending-video-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 55;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ending-video-container.hidden {
+  display: none !important;
+}
+
+.ending-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000000;
+}
+
 /* --- Victory Certificate Card & Actions --- */
 .cert-card {
   border: 2px solid #eab308;
@@ -944,6 +1007,206 @@ canvas {
 
 .btn-cert:hover {
   background: #a16207 !important;
+}
+
+/* --- Wall of Honor Submission Box on Victory Screen --- */
+.honor-submission-box {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1.5px solid #eab308;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  text-align: left;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
+}
+
+.honor-box-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.honor-trophy-icon {
+  font-size: 24px;
+}
+
+.honor-box-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: 0.5px;
+}
+
+.honor-box-sub {
+  font-size: 10px;
+  color: #cbd5e1;
+}
+
+.honor-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.honor-input {
+  flex: 1;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.honor-input:focus {
+  border-color: #facc15;
+}
+
+.btn-submit-honor {
+  background: #f59e0b;
+  color: #0f172a;
+  border: none;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-submit-honor:hover {
+  background: #facc15;
+}
+
+.btn-honor-view {
+  background: #facc15 !important;
+  color: #0f172a !important;
+  font-weight: 900;
+  grid-column: span 2;
+}
+
+.btn-honor-view:hover {
+  background: #fef08a !important;
+}
+
+.honor-feedback {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+
+.honor-feedback.success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid #22c55e;
+}
+
+.honor-feedback.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+
+/* --- Wall of Honor Modal --- */
+.honor-modal-card {
+  max-width: 520px;
+  border: 2px solid #facc15;
+  background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.35);
+}
+
+.honor-title {
+  color: #fde047;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.honor-list-container {
+  max-height: 250px;
+  overflow-y: auto;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.honor-list-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.honor-list-container::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+.honor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: transform 0.15s ease;
+}
+
+.honor-item:hover {
+  border-color: rgba(250, 204, 21, 0.5);
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.honor-item.highlight-user {
+  border-color: #facc15;
+  background: rgba(234, 179, 8, 0.18);
+}
+
+.honor-rank-badge {
+  font-size: 15px;
+  font-weight: 900;
+  color: #facc15;
+  min-width: 32px;
+}
+
+.honor-item-main {
+  flex: 1;
+  text-align: left;
+  margin: 0 10px;
+}
+
+.honor-item-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.honor-item-title {
+  font-size: 10px;
+  color: #fbbf24;
+}
+
+.honor-item-stats {
+  text-align: right;
+  font-size: 10px;
+  color: #cbd5e1;
+}
+
+.honor-item-date {
+  font-size: 9px;
+  color: #64748b;
+}
+
+.honor-loading, .honor-empty {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 /* --- Tip Control Cards & Mobile Web Optimization --- */

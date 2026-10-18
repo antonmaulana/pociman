@@ -41,6 +41,18 @@
   const resetStage1Btn = document.getElementById('resetStage1Btn');
   const winPlayAgainBtn = document.getElementById('winPlayAgainBtn');
   const skipCutsceneBtn = document.getElementById('skipCutsceneBtn');
+  const endingVideoContainer = document.getElementById('endingVideoContainer');
+  const endingVideo = document.getElementById('endingVideo');
+  const startResetStageBtn = document.getElementById('startResetStageBtn');
+  const startWallOfHonorBtn = document.getElementById('startWallOfHonorBtn');
+  const wallOfHonorModal = document.getElementById('wallOfHonorModal');
+  const honorListContainer = document.getElementById('honorListContainer');
+  const refreshHonorBtn = document.getElementById('refreshHonorBtn');
+  const closeHonorBtn = document.getElementById('closeHonorBtn');
+  const honorPlayerName = document.getElementById('honorPlayerName');
+  const submitHonorBtn = document.getElementById('submitHonorBtn');
+  const honorFeedback = document.getElementById('honorFeedback');
+  const viewHonorBtn = document.getElementById('viewHonorBtn');
   const shareWaBtn = document.getElementById('shareWaBtn');
   const downloadCertBtn = document.getElementById('downloadCertBtn');
   const replayEndingBtn = document.getElementById('replayEndingBtn');
@@ -1376,6 +1388,9 @@
     stageBannerEl.classList.add('hidden');
     if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
     if (hudEl) hudEl.classList.add('hidden');
+    if (endingVideoContainer) endingVideoContainer.classList.add('hidden');
+    if (endingVideo) { endingVideo.pause(); }
+    if (wallOfHonorModal) wallOfHonorModal.classList.add('hidden');
   }
 
   function showStageBanner(text) {
@@ -1393,7 +1408,7 @@
     cemeteryGate.x = -999;
     player.reset();
     kuntiPowerup.reset();
-    kuntiPowerup.maxSpawnsPerStage = 2;
+    kuntiPowerup.maxSpawnsPerStage = stage < 3 ? 0 : (stage <= 5 ? 1 : 2);
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -1581,6 +1596,7 @@
   }
 
   function trySporadicKuntiSpawn(dt) {
+    if (stage < 3) return;
     const progress = 1 - (stageTimer / stageTotalTime);
     kuntiPowerup.checkTimer -= dt;
     if (kuntiPowerup.checkTimer > 0) return;
@@ -1881,25 +1897,37 @@
   function startEndingCutscene() {
     window.soundManager.stopBgm();
     gameState = STATE.ENDING_CUTSCENE;
-    endingCutscene.timer = 0;
     hideAllModals();
     if (skipCutsceneBtn) skipCutsceneBtn.classList.remove('hidden');
-    if (window.soundManager && window.soundManager.playWin) {
-      window.soundManager.playWin();
+    if (endingVideoContainer) endingVideoContainer.classList.remove('hidden');
+
+    if (endingVideo) {
+      endingVideo.currentTime = 0;
+      endingVideo.onended = () => showVictoryScreen();
+      endingVideo.onerror = () => showVictoryScreen();
+      const p = endingVideo.play();
+      if (p && p.catch) {
+        p.catch(() => {
+          endingVideo.muted = true;
+          endingVideo.play().catch(() => showVictoryScreen());
+        });
+      }
+    } else {
+      showVictoryScreen();
     }
   }
 
   function updateEndingCutscene(dt) {
-    endingCutscene.timer += dt;
-    if (endingCutscene.timer >= endingCutscene.duration) {
-      showVictoryScreen();
-    }
+    // Video player handles animation
   }
 
   function showVictoryScreen() {
     gameState = STATE.VICTORY;
     if (hudEl) hudEl.classList.add('hidden');
     if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
+    if (endingVideoContainer) endingVideoContainer.classList.add('hidden');
+    if (endingVideo) endingVideo.pause();
+
     if (stage >= highestStage) {
       highestStage = TOTAL_STAGES;
       try { localStorage.setItem('pociman_highest_stage', highestStage); } catch (e) {}
@@ -1914,6 +1942,15 @@
     victoryScreen.classList.remove('hidden');
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
+
+    if (honorFeedback) honorFeedback.classList.add('hidden');
+    if (submitHonorBtn) {
+      submitHonorBtn.disabled = false;
+      submitHonorBtn.textContent = 'KIRIM NAMA 🏆';
+    }
+    if (window.soundManager && window.soundManager.playWin) {
+      window.soundManager.playWin();
+    }
   }
 
   function triggerVictory() {
@@ -2104,7 +2141,6 @@
   function draw() {
     ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
     if (gameState === STATE.ENDING_CUTSCENE) {
-      drawEndingCutscene(ctx);
       return;
     }
     drawEnvironment(ctx);
@@ -3003,9 +3039,144 @@
     setTimeout(fitGameToScreen, 150);
   }
 
+  function handleStartResetStage() {
+    if (highestStage <= 1) {
+      showToast('Progress kamu sudah di Stage 1');
+      return;
+    }
+    highestStage = 1;
+    try { localStorage.setItem('pociman_highest_stage', 1); } catch (e) {}
+    updateStartScreenUI();
+    showToast('🔄 Progress stage berhasil direset ke Stage 1!');
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag] || tag));
+  }
+
+  function renderWallOfHonor(list) {
+    if (!honorListContainer) return;
+    if (!Array.isArray(list) || list.length === 0) {
+      honorListContainer.innerHTML = '<div class="honor-empty">Belum ada jawara. Jadilah yang pertama! 🏆</div>';
+      return;
+    }
+    let html = '';
+    list.slice(0, 50).forEach((entry, idx) => {
+      const rankNum = idx + 1;
+      const medal = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : (rankNum === 3 ? '🥉' : `#${rankNum}`));
+      html += `
+        <div class="honor-item">
+          <div class="honor-rank-badge">${medal}</div>
+          <div class="honor-item-main">
+            <div class="honor-item-name">${escapeHtml(entry.name)}</div>
+            <div class="honor-item-title">${escapeHtml(entry.rank)}</div>
+          </div>
+          <div class="honor-item-stats">
+            <div>Benjol: <strong>${entry.bumps || 0}x</strong></div>
+            <div class="honor-item-date">${escapeHtml(entry.date || '')}</div>
+          </div>
+        </div>`;
+    });
+    honorListContainer.innerHTML = html;
+  }
+
+  async function fetchWallOfHonor() {
+    if (!honorListContainer) return;
+    honorListContainer.innerHTML = '<div class="honor-loading">Memuat daftar jawara... ⏳</div>';
+    try {
+      const res = await fetch('/api/honor');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      try { localStorage.setItem('pociman_cached_honor', JSON.stringify(data)); } catch (e) {}
+      renderWallOfHonor(data);
+    } catch (err) {
+      let cached = [];
+      try {
+        const c = localStorage.getItem('pociman_cached_honor');
+        if (c) cached = JSON.parse(c);
+      } catch (e) {}
+      renderWallOfHonor(cached);
+    }
+  }
+
+  function showHonorFeedback(msg, type) {
+    if (!honorFeedback) return;
+    honorFeedback.textContent = msg;
+    honorFeedback.className = 'honor-feedback ' + type;
+    honorFeedback.classList.remove('hidden');
+  }
+
+  function saveHonorLocally(payload) {
+    try {
+      let cached = [];
+      const c = localStorage.getItem('pociman_cached_honor');
+      if (c) cached = JSON.parse(c);
+      const now = new Date();
+      payload.date = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ', ' +
+        String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      cached.unshift(payload);
+      localStorage.setItem('pociman_cached_honor', JSON.stringify(cached));
+      renderWallOfHonor(cached);
+    } catch (e) {}
+  }
+
+  async function submitWallOfHonor() {
+    if (!honorPlayerName || !submitHonorBtn) return;
+    const name = honorPlayerName.value.trim();
+    if (!name || name.length < 2) {
+      showHonorFeedback('Ketik nama minimal 2 karakter!', 'error');
+      return;
+    }
+    submitHonorBtn.disabled = true;
+    submitHonorBtn.textContent = 'MENGIRIM... ⏳';
+
+    const payload = {
+      name: name,
+      bumps: totalBumps,
+      distance: Math.floor(distance),
+      rank: winRankEl ? winRankEl.textContent : 'Pociman Sakti ⚡'
+    };
+
+    try {
+      const res = await fetch('/api/honor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        showHonorFeedback('Selamat! Namamu berhasil masuk Wall of Honor! 🏆', 'success');
+        submitHonorBtn.textContent = 'TERDAFTAR ✓';
+        if (data.list) renderWallOfHonor(data.list);
+        setTimeout(openWallOfHonorModal, 1100);
+      } else {
+        throw new Error(data.error || 'Gagal menyimpan');
+      }
+    } catch (err) {
+      saveHonorLocally(payload);
+      showHonorFeedback('Tersimpan di Wall of Honor lokal! 🏆', 'success');
+      submitHonorBtn.textContent = 'TERDAFTAR LOKAL ✓';
+      setTimeout(openWallOfHonorModal, 1100);
+    }
+  }
+
+  function openWallOfHonorModal() {
+    if (!wallOfHonorModal) return;
+    wallOfHonorModal.classList.remove('hidden');
+    fetchWallOfHonor();
+  }
+
   bindBtn(startBtn, () => startStage(highestStage));
   bindBtn(startFullscreenBtn, toggleFullscreen);
   bindBtn(fullscreenBtn, toggleFullscreen);
+  bindBtn(startResetStageBtn, handleStartResetStage);
+  bindBtn(startWallOfHonorBtn, openWallOfHonorModal);
+  bindBtn(viewHonorBtn, openWallOfHonorModal);
+  bindBtn(closeHonorBtn, () => wallOfHonorModal.classList.add('hidden'));
+  bindBtn(refreshHonorBtn, fetchWallOfHonor);
+  bindBtn(submitHonorBtn, submitWallOfHonor);
   bindBtn(creditsBtn, () => creditsScreen.classList.remove('hidden'));
   bindBtn(closeCreditsBtn, () => creditsScreen.classList.add('hidden'));
 
@@ -3082,8 +3253,10 @@
     if (!startBtn) return;
     if (highestStage > 1 && highestStage <= TOTAL_STAGES) {
       startBtn.textContent = `LANJUTKAN (STAGE ${highestStage}) 🏃💨`;
+      if (startResetStageBtn) startResetStageBtn.style.display = 'block';
     } else {
       startBtn.textContent = 'KABUR SEKARANG! 🏃💨';
+      if (startResetStageBtn) startResetStageBtn.style.display = 'none';
     }
   }
 

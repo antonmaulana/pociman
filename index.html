@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.7.2" />
+  <link rel="stylesheet" href="style.css?v=2.8.0" />
 </head>
 <body>
   <div id="game-container">
@@ -129,6 +129,11 @@
           <button id="startFullscreenBtn" class="btn-fullscreen-toggle" type="button">⛶ Layar Penuh</button>
         </div>
 
+        <div class="start-secondary-btn-group">
+          <button id="startWallOfHonorBtn" class="btn-honor-toggle" type="button">🏆 Wall of Honor</button>
+          <button id="startResetStageBtn" class="btn-reset-stage" type="button">🔄 Ulang Dari Stage 1</button>
+        </div>
+
         <div class="creator-credits-footer">
           <div class="credits-by">
             Karya: <strong>Anton Maulana</strong> &bull; <span>Kawan Kita Solusindo</span>
@@ -171,6 +176,14 @@
       </div>
     </div>
 
+    <!-- Ending Cutscene Short Video Player -->
+    <div id="endingVideoContainer" class="ending-video-container hidden">
+      <video id="endingVideo" class="ending-video" playsinline preload="auto">
+        <source src="ending.mp4" type="video/mp4" />
+        <source src="ending.webm" type="video/webm" />
+      </video>
+    </div>
+
     <!-- Skip Cutscene Button for Ending Video -->
     <button id="skipCutsceneBtn" class="skip-cutscene-btn hidden" type="button">LEWATI VIDEO AKHIR ⏩</button>
 
@@ -205,13 +218,30 @@
           </div>
         </div>
 
+        <!-- Wall of Honor Player Submission Box -->
+        <div class="honor-submission-box">
+          <div class="honor-box-header">
+            <span class="honor-trophy-icon">🏆</span>
+            <div>
+              <div class="honor-box-title">CATAT NAMAMU DI WALL OF HONOR!</div>
+              <div class="honor-box-sub">Buktikan prestasimu agar tercatat abadi dan bisa dilihat oleh pemain lain!</div>
+            </div>
+          </div>
+          <div class="honor-input-group">
+            <input id="honorPlayerName" type="text" maxlength="25" placeholder="Ketik namamu / julukan..." class="honor-input" />
+            <button id="submitHonorBtn" class="btn-play btn-submit-honor" type="button">KIRIM NAMA 🏆</button>
+          </div>
+          <div id="honorFeedback" class="honor-feedback hidden"></div>
+        </div>
+
         <div class="victory-tribute-card">
           <p class="tribute-quote">"Alhamdulillah udah di liang lahat, selamat bobo nyenyak Mas Poci!" &bull; <em>Mbak Kunti</em></p>
           <div class="tribute-author">Karya: <strong>Anton Maulana</strong> &amp; <strong>Kawan Kita Solusindo</strong></div>
         </div>
 
         <div class="win-actions-grid">
-          <button id="shareWaBtn" class="btn-play btn-share-wa" type="button">📲 BAGIKAN KE WHATSAPP</button>
+          <button id="viewHonorBtn" class="btn-play btn-honor-view" type="button">🏆 LIHAT WALL OF HONOR</button>
+          <button id="shareWaBtn" class="btn-secondary btn-share-wa" type="button">📲 BAGIKAN KE WHATSAPP</button>
           <button id="downloadCertBtn" class="btn-secondary btn-cert" type="button">📜 UNDUH PIAGAM (PNG)</button>
           <button id="replayEndingBtn" class="btn-secondary" type="button">🎬 TONTON ULANG VIDEO AKHIR</button>
           <button id="winPlayAgainBtn" class="btn-secondary" type="button">MAIN LAGI DARI STAGE 1 🔄</button>
@@ -294,7 +324,25 @@
       </div>
     </div>
 
+    <!-- Wall of Honor Leaderboard Modal -->
+    <div id="wallOfHonorModal" class="modal-screen hidden">
+      <div class="modal-card honor-modal-card">
+        <div class="win-banner">🏆 DINDING KEHORMATAN (WALL OF HONOR) 🏆</div>
+        <h2 class="game-title honor-title">JAWARA PENAMAT POCIMAN</h2>
+        <p class="story-desc">
+          Daftar pahlawan pocong sakti yang sukses menamatkan seluruh 25 Stage tanpa tertangkap!
+        </p>
 
+        <div id="honorListContainer" class="honor-list-container">
+          <div class="honor-loading">Memuat daftar jawara... ⏳</div>
+        </div>
+
+        <div class="btn-group">
+          <button id="refreshHonorBtn" class="btn-secondary" type="button">REFRESH 🔄</button>
+          <button id="closeHonorBtn" class="btn-play" type="button">TUTUP ✖️</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Mobile Touch Control Helper -->
     <div id="touchHelper" class="touch-helper hidden">
@@ -310,7 +358,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.7.2"></script>
-  <script src="game.js?v=2.7.2"></script>
+  <script src="audio.js?v=2.8.0"></script>
+  <script src="game.js?v=2.8.0"></script>
 </body>
 </html>
