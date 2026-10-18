@@ -119,24 +119,7 @@
   }
 
   function getStageDuration(stg) {
-    if (stg <= 3) return 36;
-    if (stg <= 8) return 42;
-    if (stg <= 16) return 48;
-    if (stg <= 24) return 52;
-    return 58;
-  }
-
-  function getStageTitle(stg) {
-    if (stg === 1) return "STAGE 1: AWAS LEMPARAN SENDAL JEPIT! 🩴";
-    if (stg <= 3) return `STAGE ${stg}: AYAM KAMPUNG IKUT PANIK! 🐔`;
-    if (stg <= 6) return `STAGE ${stg}: HANSIP TIUP PELUIT RONDA! 👮`;
-    if (stg <= 9) return `STAGE ${stg}: KUCING OREN MULAI NGEBUT! 🐱💨`;
-    if (stg <= 12) return `STAGE ${stg}: TIMBUKAN PANCI GOSONG EMAK! 🍳`;
-    if (stg <= 15) return `STAGE ${stg}: SAPU LIDI TERBANG BERANTAI! 🧹`;
-    if (stg <= 18) return `STAGE ${stg}: MBAK KUNTI SIAP EVAKUASI! 👻`;
-    if (stg <= 21) return `STAGE ${stg}: BEDUK SUBUH MAKIN DEKAT! 🌙`;
-    if (stg <= 24) return `STAGE ${stg}: SATU KAMPUNG NGEJAR TOTAL! 🏃‍♂️💨`;
-    return "STAGE 25: GAUNTLET MENUJU GERBANG TPU! 👑";
+    return stg <= 5 ? 45 : 60;
   }
 
   function getSkyColors(stg) {
@@ -1269,16 +1252,8 @@
     { type: 'sapu', name: 'Sapu Lidi', w: 40, h: 14, color: '#ca8a04' }
   ];
 
-  function getStageThrowPool(stg) {
-    if (stg <= 2) return THROW_TYPES.filter(t => t.type === 'sandal');
-    if (stg <= 5) return THROW_TYPES.filter(t => t.type === 'sandal' || t.type === 'gayung');
-    if (stg <= 9) return THROW_TYPES.filter(t => t.type !== 'sapu');
-    return THROW_TYPES;
-  }
-
   function spawnThrownItem(wargaX) {
-    const pool = getStageThrowPool(stage);
-    const itemDef = pool[Math.floor(Math.random() * pool.length)];
+    const itemDef = THROW_TYPES[Math.floor(Math.random() * THROW_TYPES.length)];
     const startX = Math.max(20, wargaX + 70);
     const startY = GROUND_Y - 80;
     const dx = player.x - startX;
@@ -1448,7 +1423,7 @@
       totalBumps = 0;
     }
 
-    showStageBanner(getStageTitle(stage));
+    showStageBanner(`⭐ STAGE ${stage}: MENUJU GERBANG TPU!`);
     window.soundManager.playStageUp();
     window.soundManager.playBgm();
   }
