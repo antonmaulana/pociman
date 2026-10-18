@@ -349,6 +349,7 @@
 
     tripTimer: 0,
     hitTimer: 0,
+    scratchTimer: 0,
     slowTimer: 0,
     bumpLevel: 0,
     invulnerableTime: 0,
@@ -367,6 +368,7 @@
       this.animTime = 0;
       this.tripTimer = 0;
       this.hitTimer = 0;
+      this.scratchTimer = 0;
       this.slowTimer = 0;
       this.bumpLevel = 0;
       this.invulnerableTime = 0;
@@ -401,6 +403,7 @@
       if (this.invulnerableTime > 0) this.invulnerableTime -= dt;
       if (this.tripTimer > 0) this.tripTimer -= dt;
       if (this.hitTimer > 0) this.hitTimer -= dt;
+      if (this.scratchTimer > 0) this.scratchTimer -= dt;
       if (this.slowTimer > 0) this.slowTimer -= dt;
       if (this.tauntTimer > 0) this.tauntTimer -= dt;
 
@@ -438,8 +441,10 @@
         ctx.rotate(this.spinAngle);
       } else if (this.tauntTimer > 0) {
         ctx.rotate(0.06);
+      } else if (this.scratchTimer > 0) {
+        ctx.rotate(Math.sin(this.animTime * 18) * 0.16);
       } else if (this.slowTimer > 0) {
-        ctx.rotate(Math.sin(this.animTime * 12) * 0.14);
+        ctx.rotate(Math.sin(this.animTime * 10) * 0.10);
       } else if (this.isGrounded) {
         ctx.rotate(Math.sin(this.hopTime) * 0.08);
       }
@@ -1515,8 +1520,13 @@
     const rushBonus = progress > 0.75 ? 16 : (progress > 0.35 ? 8 : 0);
     const baseSpeed = 330 + (stage - 1) * 14.5 + rushBonus;
     let currentSpeed = baseSpeed;
-    if (player.tripTimer > 0) currentSpeed = baseSpeed * 0.5;
-    else if (player.slowTimer > 0) currentSpeed = baseSpeed * 0.6;
+    if (player.tripTimer > 0) {
+      currentSpeed = baseSpeed * 0.45;
+    } else if (player.scratchTimer > 0) {
+      currentSpeed = baseSpeed * 0.62;
+    } else if (player.slowTimer > 0) {
+      currentSpeed = baseSpeed * 0.78;
+    }
     gameSpeed = currentSpeed;
     distance += (currentSpeed * dt) / 10;
   }
@@ -1549,9 +1559,12 @@
     if (player.tripTimer > 0) {
       const tripDrain = (13 + stage * 0.72) * dt;
       escapeGap = Math.max(0, escapeGap - tripDrain);
+    } else if (player.scratchTimer > 0) {
+      const scratchDrain = (9 + stage * 0.52) * dt;
+      escapeGap = Math.max(0, escapeGap - scratchDrain);
     } else if (player.slowTimer > 0) {
-      const slowDrain = (9 + stage * 0.52) * dt;
-      escapeGap = Math.max(0, escapeGap - slowDrain);
+      const throwDrain = (5.5 + stage * 0.35) * dt;
+      escapeGap = Math.max(0, escapeGap - throwDrain);
     } else {
       const catchupBonus = escapeGap < 30 ? 1.8 * dt : 0;
       escapeGap = Math.min(100, escapeGap + (3.8 * dt) + catchupBonus);
@@ -1577,6 +1590,7 @@
     const targetY = GROUND_Y - 170 + Math.sin(player.animTime * 3.5) * 8;
     player.y += (targetY - player.y) * Math.min(1, dt * 7);
     player.tripTimer = 0;
+    player.scratchTimer = 0;
     player.slowTimer = 0;
     player.hitTimer = 0;
     if (Math.random() < 0.35) {
@@ -1642,6 +1656,7 @@
     kuntiPowerup.dialogText = KUNTI_RESCUE_LINES[Math.floor(Math.random() * KUNTI_RESCUE_LINES.length)];
 
     player.tripTimer = 0;
+    player.scratchTimer = 0;
     player.slowTimer = 0;
     player.hitTimer = 0;
     player.tauntTimer = 0;
@@ -1721,14 +1736,14 @@
   }
 
   function getItemHitMessage(item) {
-    if (!item) return "POYONGAN! -40% SPEED! 🤕";
+    if (!item) return "POYONGAN! -22% SPEED! 🤕";
     if (item.type === 'celana_dalam') return "KECELUP CD PINK! 🩲😵";
     if (item.type === 'bh_merah') return "KETAMPAR BH RENDA! 👙😳";
     if (item.type === 'ember') return "KEMBALIKAN EMBERKU! 🪣💥";
     if (item.type === 'sapu') return "DISAPU BERSIH! 🧹💢";
     if (item.type === 'botol') return "PECAH KECAP! 🍾🤕";
     if (item.type === 'kucing_terbang') return "DICAKAR KUCING TERBANG! 🙀⚡";
-    return "POYONGAN! -40% SPEED! 🤕";
+    return "POYONGAN! -22% SPEED! 🤕";
   }
 
   function handleItemHit(index) {
@@ -1736,15 +1751,15 @@
     bumpCount++;
     totalBumps++;
     player.bumpLevel = Math.min(3, player.bumpLevel + 1);
-    player.hitTimer = 0.8;
-    player.slowTimer = 1.0;
     player.tauntTimer = 0;
-    player.invulnerableTime = 1.5;
-
-    const penalty = Math.min(16, 7 + stage * 0.8);
-    escapeGap = Math.max(0, escapeGap - penalty);
 
     if (item && item.type === 'kucing_terbang') {
+      player.scratchTimer = 0.75;
+      player.slowTimer = 0;
+      player.hitTimer = 0.75;
+      player.invulnerableTime = 1.4;
+      const penalty = Math.min(14, 8 + stage * 0.6);
+      escapeGap = Math.max(0, escapeGap - penalty);
       if (window.soundManager && window.soundManager.playCatScratch) {
         window.soundManager.playCatScratch();
       }
@@ -1754,6 +1769,12 @@
       spawnLandedCat(player.x - 20, true);
       addComicText("CRET! DICAKAR KUCING TERBANG! 🙀🩸", player.x + 10, player.y - 30, '#ef4444');
     } else {
+      player.slowTimer = 0.55;
+      player.scratchTimer = 0;
+      player.hitTimer = 0.55;
+      player.invulnerableTime = 1.2;
+      const penalty = Math.min(9, 4.5 + stage * 0.45);
+      escapeGap = Math.max(0, escapeGap - penalty);
       window.soundManager.playBonk();
       const hitMsg = getItemHitMessage(item);
       addComicText(hitMsg, player.x, player.y - 25, '#ef4444');
@@ -1818,12 +1839,13 @@
   }
 
   function handleObstacleHit(obs) {
-    player.tripTimer = 0.8;
+    player.tripTimer = 0.85;
+    player.scratchTimer = 0;
     player.slowTimer = 0;
     player.tauntTimer = 0;
     player.invulnerableTime = 1.4;
 
-    const penalty = Math.min(18, 10 + stage * 0.75);
+    const penalty = Math.min(18.5, 11 + stage * 0.75);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
@@ -1937,9 +1959,12 @@
     obs.scratched = true;
     obs.state = 'sprint_left';
     obs.facing = -1;
-    player.slowTimer = 0.8;
+    player.scratchTimer = 0.75;
+    player.slowTimer = 0;
+    player.hitTimer = 0.6;
     player.invulnerableTime = 1.4;
-    escapeGap = Math.max(0, escapeGap - 8);
+    const penalty = Math.min(14, 8 + stage * 0.6);
+    escapeGap = Math.max(0, escapeGap - penalty);
     if (window.soundManager && window.soundManager.playCatScratch) {
       window.soundManager.playCatScratch();
     }
