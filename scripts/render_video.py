@@ -172,111 +172,154 @@ def draw_speech_bubble(draw, x, y, title, text, tail_pos="bottom"):
     draw.text((rx, ry + (b_title[3] - b_title[1]) + 6), text, font=FONT_BUBBLE, fill="#0f172a")
 
 def draw_pociman(draw, cx, cy, t, is_dancing=True):
-    # Bobbing & Hip sway
-    sway = math.sin(t * 12) * 16 if is_dancing else 0
-    bob = abs(math.sin(t * 12)) * 10 if is_dancing else 0
+    # Bobbing & Hip sway (Koplo dance)
+    sway = math.sin(t * 12) * 18 if is_dancing else 0
+    bob = abs(math.sin(t * 12)) * 12 if is_dancing else 0
     py = cy - bob
 
-    # Body (White rounded capsule)
-    bw, bh = 64, 120
-    draw.rounded_rectangle([cx - bw // 2 + sway, py - bh // 2, cx + bw // 2 + sway, py + bh // 2], radius=28, fill="#f8fafc", outline="#3e352d", width=3)
-    # Shading on right side
-    draw.arc([cx - bw // 2 + sway + 8, py - bh // 2 + 6, cx + bw // 2 + sway - 4, py + bh // 2 - 6], 0, 180, fill="#cbd5e1", width=3)
+    outline_color = "#3e352d"
+    shroud_color = "#dfd7ce"  # Canonical warm cream shroud matching game.js
+    shadow_color = "#c5baa8"
+    twine_color = "#7d7062"   # Canonical rope twine brown matching game.js
+    rope_accent = "#998a7c"
 
-    # Head top tie knot (Kuncir)
-    wiggle = math.sin(t * 14) * 8
+    # --- THREE-SACKS CANONICAL BODY (matching drawPocimanThreeSacks from game.js) ---
+    # 1. Lower Sack (Tapering teardrop pouch down to tail)
     draw.polygon([
-        (cx - 10 + sway, py - bh // 2),
-        (cx - 16 + sway + wiggle, py - bh // 2 - 24),
-        (cx + sway + wiggle, py - bh // 2 - 32),
-        (cx + 16 + sway + wiggle, py - bh // 2 - 24),
-        (cx + 10 + sway, py - bh // 2)
-    ], fill="#f8fafc", outline="#3e352d")
-    # Brown twine knot
-    draw.rectangle([cx - 8 + sway, py - bh // 2 - 6, cx + 8 + sway, py - bh // 2], fill="#78350f", outline="#3e352d", width=2)
+        (cx - 24 + sway, py + 16),
+        (cx - 28 + sway, py + 36),
+        (cx - 14 + sway, py + 56),
+        (cx + sway, py + 62),
+        (cx + 14 + sway, py + 56),
+        (cx + 28 + sway, py + 36),
+        (cx + 24 + sway, py + 16)
+    ], fill=shroud_color, outline=outline_color)
+    draw.arc([cx - 18 + sway, py + 24, cx + 22 + sway, py + 58], 0, 120, fill=shadow_color, width=3)
 
-    # Bottom tail knot
-    tail_wiggle = math.sin(t * 14 + 1) * 8
+    # 2. Middle Sack (Dumpling Torso Pouch)
+    draw.ellipse([cx - 30 + sway, py - 16, cx + 30 + sway, py + 24], fill=shroud_color, outline=outline_color, width=3)
+    draw.arc([cx - 20 + sway, py - 10, cx + 24 + sway, py + 18], 10, 110, fill=shadow_color, width=3)
+
+    # 3. Top Sack (Bulbous Head Sphere)
+    draw.ellipse([cx - 26 + sway, py - 66, cx + 26 + sway, py - 18], fill=shroud_color, outline=outline_color, width=3)
+    draw.arc([cx - 16 + sway, py - 60, cx + 20 + sway, py - 24], 20, 120, fill=shadow_color, width=3)
+
+    # --- KNOTS & ROPES (matching drawPocimanKnotsAndRopes) ---
+    # Neck Rope Knot
+    draw.rounded_rectangle([cx - 14 + sway, py - 22, cx + 14 + sway, py - 14], radius=3, fill=twine_color, outline=outline_color, width=2)
+    draw.line([(cx - 6 + sway, py - 22), (cx - 6 + sway, py - 14)], fill=rope_accent, width=2)
+    draw.line([(cx + 6 + sway, py - 22), (cx + 6 + sway, py - 14)], fill=rope_accent, width=2)
+
+    # Waist Rope Knot
+    draw.rounded_rectangle([cx - 14 + sway, py + 14, cx + 14 + sway, py + 22], radius=3, fill=twine_color, outline=outline_color, width=2)
+    draw.line([(cx - 6 + sway, py + 14), (cx - 6 + sway, py + 22)], fill=rope_accent, width=2)
+    draw.line([(cx + 6 + sway, py + 14), (cx + 6 + sway, py + 22)], fill=rope_accent, width=2)
+
+    # Top Rosette Tie (Kuncir Kepala 3-Spikes from game.js)
+    top_w = math.sin(t * 14) * 8
     draw.polygon([
-        (cx - 8 + sway, py + bh // 2),
-        (cx - 14 + sway + tail_wiggle, py + bh // 2 + 20),
-        (cx + sway + tail_wiggle, py + bh // 2 + 26),
-        (cx + 14 + sway + tail_wiggle, py + bh // 2 + 20),
-        (cx + 8 + sway, py + bh // 2)
-    ], fill="#f8fafc", outline="#3e352d")
-    draw.rectangle([cx - 8 + sway, py + bh // 2, cx + 8 + sway, py + bh // 2 + 6], fill="#78350f", outline="#3e352d", width=2)
+        (cx - 10 + sway, py - 64),
+        (cx - 16 + sway + top_w, py - 82),
+        (cx - 6 + sway + top_w, py - 76),
+        (cx + sway + top_w, py - 88),
+        (cx + 6 + sway + top_w, py - 76),
+        (cx + 16 + sway + top_w, py - 82),
+        (cx + 10 + sway, py - 64)
+    ], fill=shroud_color, outline=outline_color)
+    draw.rounded_rectangle([cx - 8 + sway, py - 68, cx + 8 + sway, py - 62], radius=2, fill=twine_color, outline=outline_color, width=2)
 
-    # Mid body rosette knot
-    draw.rounded_rectangle([cx - 14 + sway, py + 8, cx + 14 + sway, py + 18], radius=4, fill="#78350f", outline="#3e352d", width=2)
+    # Bottom Tail Fringe (Kuncir Bawah from game.js)
+    tail_w = math.sin(t * 14 + 1.2) * 8
+    draw.polygon([
+        (cx + sway, py + 62),
+        (cx - 12 + sway + tail_w, py + 80),
+        (cx - 4 + sway + tail_w, py + 74),
+        (cx + sway + tail_w, py + 86),
+        (cx + 4 + sway + tail_w, py + 74),
+        (cx + 12 + sway + tail_w, py + 80)
+    ], fill=shroud_color, outline=outline_color)
+    draw.rounded_rectangle([cx - 7 + sway, py + 60, cx + 7 + sway, py + 66], radius=2, fill=twine_color, outline=outline_color, width=2)
 
-    # Expressive Cartoon Googly Eyes
-    eye_y = py - 20
-    # Left eye
-    draw.ellipse([cx - 18 + sway, eye_y - 12, cx - 2 + sway, eye_y + 12], fill="#ffffff", outline="#3e352d", width=2)
-    draw.ellipse([cx - 12 + sway, eye_y - 6, cx - 4 + sway, eye_y + 6], fill="#0f172a")
-    draw.ellipse([cx - 10 + sway, eye_y - 4, cx - 7 + sway, eye_y], fill="#ffffff") # highlight
-    # Right eye
-    draw.ellipse([cx + 2 + sway, eye_y - 12, cx + 18 + sway, eye_y + 12], fill="#ffffff", outline="#3e352d", width=2)
-    draw.ellipse([cx + 6 + sway, eye_y - 6, cx + 14 + sway, eye_y + 6], fill="#0f172a")
-    draw.ellipse([cx + 8 + sway, eye_y - 4, cx + 11 + sway, eye_y], fill="#ffffff")
+    # --- THE ICONIC DIAMOND FACE CUTOUT (matching drawPocimanDiamondFace: #758392) ---
+    df_cy = py - 42
+    draw.polygon([
+        (cx + sway, df_cy - 20),     # Top peak
+        (cx + 17 + sway, df_cy),     # Right corner
+        (cx + sway, df_cy + 19),     # Bottom point
+        (cx - 17 + sway, df_cy)      # Left corner
+    ], fill="#758392", outline=outline_color)
 
-    # Big Joyful Open Mouth
-    draw.chord([cx - 10 + sway, eye_y + 14, cx + 10 + sway, eye_y + 32], 0, 180, fill="#dc2626", outline="#3e352d", width=2)
-    draw.ellipse([cx - 4 + sway, eye_y + 24, cx + 4 + sway, eye_y + 30], fill="#f43f5e") # tongue
+    # --- EXPRESSIVE JOYFUL FACE (matching drawFaceKuntiJoy from game.js) ---
+    eye_y = df_cy - 3
+    # Smiling curved eyes (arches inside diamond face)
+    draw.arc([cx - 12 + sway, eye_y - 6, cx - 2 + sway, eye_y + 4], 190, 350, fill="#1e1b18", width=3)
+    draw.arc([cx + 2 + sway, eye_y - 6, cx + 12 + sway, eye_y + 4], 190, 350, fill="#1e1b18", width=3)
 
-    # Waving arm
+    # Rosy pink blush cheeks
+    draw.ellipse([cx - 13 + sway, eye_y + 5, cx - 6 + sway, eye_y + 12], fill="#f43f5e")
+    draw.ellipse([cx + 6 + sway, eye_y + 5, cx + 13 + sway, eye_y + 12], fill="#f43f5e")
+
+    # Happy open smiling mouth with pink tongue
+    draw.chord([cx - 7 + sway, eye_y + 4, cx + 7 + sway, eye_y + 16], 0, 180, fill="#f43f5e", outline=outline_color, width=2)
+    draw.ellipse([cx - 3 + sway, eye_y + 10, cx + 3 + sway, eye_y + 15], fill="#fca5a5")
+
+    # Waving dancing arm in shroud cloth
     arm_wave = math.sin(t * 18) * 20
-    draw.line([(cx - 26 + sway, py - 4), (cx - 52 + sway, py - 35 + arm_wave)], fill="#f8fafc", width=12)
-    draw.ellipse([cx - 58 + sway, py - 42 + arm_wave, cx - 46 + sway, py - 28 + arm_wave], fill="#f8fafc", outline="#3e352d", width=2)
+    draw.line([(cx - 24 + sway, py - 8), (cx - 52 + sway, py - 42 + arm_wave)], fill=shroud_color, width=12)
+    draw.ellipse([cx - 58 + sway, py - 48 + arm_wave, cx - 44 + sway, py - 34 + arm_wave], fill=shroud_color, outline=outline_color, width=2)
 
 def draw_kuntilanak(draw, cx, cy, t):
-    float_y = cy + math.sin(t * 5) * 14
-    sway = math.sin(t * 10) * 12
+    float_y = cy + math.sin(t * 4.5) * 14
+    sway = math.sin(t * 9) * 14
 
-    # Aura sparkles
-    for i in range(4):
-        sa = t * 4 + i * (math.pi / 2)
-        sx = cx + math.cos(sa) * 55
-        sy = float_y + math.sin(sa) * 45
-        draw.ellipse([sx - 4, sy - 4, sx + 4, sy + 4], fill="#fef08a")
+    # Radiant lilac aura glow & sparkles (matching drawKuntilanakRescue from game.js)
+    draw.ellipse([cx - 65, float_y - 65, cx + 65, float_y + 65], fill="#3b0764")
+    draw.ellipse([cx - 52, float_y - 52, cx + 52, float_y + 52], fill="#581c87")
+    for i in range(5):
+        sa = t * 3.5 + i * (math.pi * 2 / 5)
+        sx = cx + math.cos(sa) * 58
+        sy = float_y + math.sin(sa) * 48
+        draw.ellipse([sx - 4, sy - 4, sx + 4, sy + 4], fill="#d8b4fe")
+        draw.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill="#fef08a")
 
-    # Long Jet-Black Hair (flowing in wind)
-    hair_flow = math.sin(t * 8) * 15
+    # Cascading Jet-Black Hair (matching drawKuntiHeadAndHair from game.js: #0f172a, outline #334155)
+    hair_sway = math.sin(t * 5) * 10
     draw.polygon([
-        (cx - 24, float_y - 30),
-        (cx - 36 + hair_flow, float_y + 80),
-        (cx - 10 + hair_flow, float_y + 95),
-        (cx + 10 + hair_flow, float_y + 95),
-        (cx + 36 + hair_flow, float_y + 80),
-        (cx + 24, float_y - 30)
-    ], fill="#090d16")
+        (cx - 10, float_y - 45),
+        (cx - 38 + hair_sway, float_y + 10),
+        (cx - 32 + hair_sway, float_y + 85),
+        (cx - 10 + hair_sway, float_y + 70),
+        (cx + 8, float_y - 20)
+    ], fill="#0f172a", outline="#334155")
 
-    # Flowing White Dress
+    # Flowing White Dress with Lilac outline (matching drawKuntiDress from game.js: #f8fafc, outline #c084fc)
+    wave1 = math.sin(t * 6) * 8
+    wave2 = math.cos(t * 7) * 8
     draw.polygon([
-        (cx - 18, float_y - 20),
-        (cx - 38 + sway, float_y + 75),
-        (cx + 38 + sway, float_y + 75),
-        (cx + 18, float_y - 20)
-    ], fill="#f8fafc", outline="#cbd5e1", width=2)
+        (cx - 14, float_y - 24),
+        (cx + 14, float_y - 24),
+        (cx + 34 + wave1, float_y + 35),
+        (cx + 30 + wave1, float_y + 80),
+        (cx - 30 + wave2, float_y + 80),
+        (cx - 34 + wave2, float_y + 35),
+        (cx - 14, float_y - 24)
+    ], fill="#f8fafc", outline="#c084fc")
 
-    # Red Waist Ribbon Sash
-    draw.rectangle([cx - 20, float_y + 12, cx + 20, float_y + 18], fill="#dc2626")
-    draw.polygon([(cx - 4, float_y + 18), (cx - 12 + sway, float_y + 40), (cx + 4, float_y + 18)], fill="#dc2626")
+    # Dancing pale arms (matching game.js: #fed7aa, outline #c084fc)
+    arm_sway = math.sin(t * 10) * 10
+    draw.rounded_rectangle([cx + 10, float_y - 6 + arm_sway, cx + 42, float_y + 3 + arm_sway], radius=4, fill="#fed7aa", outline="#c084fc", width=2)
 
-    # Cute Pale Face
-    draw.ellipse([cx - 18, float_y - 45, cx + 18, float_y - 12], fill="#fef2f2", outline="#3e352d", width=2)
-    # Red flower in hair
-    draw.ellipse([cx + 12, float_y - 42, cx + 24, float_y - 30], fill="#ef4444")
-    draw.ellipse([cx + 16, float_y - 38, cx + 20, float_y - 34], fill="#facc15")
+    # Cute Pale Warm Face (matching drawKuntiHeadAndHair: #fef3c7, outline #475569)
+    draw.ellipse([cx - 15, float_y - 48, cx + 15, float_y - 18], fill="#fef3c7", outline="#475569", width=2)
 
-    # Eyes (Playful winking face)
-    draw.ellipse([cx - 12, float_y - 32, cx - 4, float_y - 22], fill="#0f172a") # open eye
-    draw.ellipse([cx - 10, float_y - 30, cx - 7, float_y - 27], fill="#ffffff")
-    draw.arc([cx + 4, float_y - 32, cx + 14, float_y - 24], 0, 180, fill="#0f172a", width=2) # winking arc
+    # Arched happy smiling eyes
+    draw.arc([cx - 10, float_y - 40, cx - 2, float_y - 30], 190, 350, fill="#1e293b", width=2)
+    draw.arc([cx + 2, float_y - 40, cx + 10, float_y - 30], 190, 350, fill="#1e293b", width=2)
+
     # Rosy Cheeks & Red Lips
-    draw.ellipse([cx - 14, float_y - 22, cx - 8, float_y - 17], fill="#fca5a5")
-    draw.ellipse([cx + 8, float_y - 22, cx + 14, float_y - 17], fill="#fca5a5")
-    draw.chord([cx - 6, float_y - 22, cx + 6, float_y - 12], 0, 180, fill="#ef4444")
+    draw.ellipse([cx - 12, float_y - 30, cx - 5, float_y - 24], fill="#f43f5e")
+    draw.ellipse([cx + 5, float_y - 30, cx + 12, float_y - 24], fill="#f43f5e")
+    draw.ellipse([cx - 4, float_y - 25, cx + 4, float_y - 20], fill="#dc2626")
 
 # --- 3. Scene 1 Renderer (Pos Ronda Kampung) ---
 def render_scene_1(draw, t):
@@ -349,38 +392,49 @@ def render_scene_1(draw, t):
     draw.line([(tx + 132 + steam_drift, ty - 22), (tx + 135 - steam_drift, ty - 42)], fill="#f1f5f9", width=2)
     draw.line([(tx + 138 + steam_drift, ty - 22), (tx + 141 - steam_drift, ty - 46)], fill="#f1f5f9", width=2)
 
-    # Pak RT (Left Bench, Slumped & Panting)
+    # Pak RT (Left Bench, Slumped & Panting - matching drawPakRT from game.js)
     rt_x = pr_x + 160
     rt_panting = math.sin(t * 8) * 6
-    # Body (Batik)
+    # Body (Batik #92400e with gold pattern dots #f59e0b)
     draw.rectangle([rt_x - 30, 360 - rt_panting, rt_x + 30, 435], fill="#92400e", outline="#451a03", width=2)
-    # Sarung
-    draw.rectangle([rt_x - 35, 420, rt_x + 35, 465], fill="#15803d", outline="#064e3b", width=2)
-    # Head & Peci
-    draw.ellipse([rt_x - 20, 315 - rt_panting, rt_x + 20, 360 - rt_panting], fill="#fbcfe8", outline="#3e352d", width=2)
-    draw.rectangle([rt_x - 22, 300 - rt_panting, rt_x + 22, 325 - rt_panting], fill="#0f172a") # Peci
-    # Mustaches & Tired Face
-    draw.chord([rt_x - 14, 340 - rt_panting, rt_x + 14, 355 - rt_panting], 0, 180, fill="#0f172a") # thick mustache
+    for bx, by in [(rt_x - 16, 375 - rt_panting), (rt_x + 16, 375 - rt_panting), (rt_x, 395 - rt_panting), (rt_x - 16, 415 - rt_panting), (rt_x + 16, 415 - rt_panting)]:
+        draw.ellipse([bx - 4, by - 4, bx + 4, by + 4], fill="#f59e0b")
+    # Sarung / Trousers (#1e293b matching game.js)
+    draw.rectangle([rt_x - 34, 425, rt_x + 34, 465], fill="#1e293b", outline="#0f172a", width=2)
+    # Head & Peci (Skin #fed7aa, Peci #1e1b18 matching drawPakRTHead)
+    draw.ellipse([rt_x - 20, 315 - rt_panting, rt_x + 20, 360 - rt_panting], fill="#fed7aa", outline="#3e352d", width=2)
+    draw.rounded_rectangle([rt_x - 22, 300 - rt_panting, rt_x + 22, 324 - rt_panting], radius=4, fill="#1e1b18", outline="#0f172a", width=2)
+    # Big Bushy Black Mustache (#262626) & Tired Panting Face (#7f1d1d)
+    draw.ellipse([rt_x - 14, 342 - rt_panting, rt_x + 14, 354 - rt_panting], fill="#262626")
     draw.line([(rt_x - 15, 332 - rt_panting), (rt_x - 5, 336 - rt_panting)], fill="#0f172a", width=2) # tired eyes
     draw.line([(rt_x + 5, 336 - rt_panting), (rt_x + 15, 332 - rt_panting)], fill="#0f172a", width=2)
+    draw.chord([rt_x - 7, 350 - rt_panting, rt_x + 7, 359 - rt_panting], 0, 180, fill="#7f1d1d")
     # Sweat drops popping off head
     sw_drop = (t * 40) % 25
     draw.ellipse([rt_x + 26, 315 + sw_drop, rt_x + 34, 326 + sw_drop], fill="#38bdf8")
 
-    # Hansip (Right Bench, Ngopi)
+    # Hansip (Right Bench, Ngopi - matching drawHansip from game.js)
     hs_x = pr_x + 640
-    draw.rectangle([hs_x - 28, 360, hs_x + 28, 435], fill="#166534", outline="#14532d", width=2) # Green Linmas
-    # Yellow shoulder badges
-    draw.rectangle([hs_x - 30, 362, hs_x - 22, 375], fill="#eab308")
-    draw.rectangle([hs_x + 22, 362, hs_x + 30, 375], fill="#eab308")
-    # Head & Green Beret
+    # Linmas Dark Green Uniform (#166534)
+    draw.rectangle([hs_x - 28, 360, hs_x + 28, 435], fill="#166534", outline="#14532d", width=2)
+    # White cross-belt (#f8fafc) and brass badge (#facc15)
+    draw.rectangle([hs_x - 30, 385, hs_x + 30, 393], fill="#f8fafc", outline="#cbd5e1", width=1)
+    draw.ellipse([hs_x - 6, 385, hs_x + 6, 393], fill="#facc15")
+    # Linmas Trousers (#14532d)
+    draw.rectangle([hs_x - 28, 435, hs_x + 28, 465], fill="#14532d", outline="#0f172a", width=2)
+
+    # Head & Linmas Green Cap with Black Visor & Gold Badge (matching drawHansipHead)
     draw.ellipse([hs_x - 20, 315, hs_x + 20, 360], fill="#fed7aa", outline="#3e352d", width=2)
-    draw.polygon([(hs_x - 26, 315), (hs_x, 295), (hs_x + 26, 312)], fill="#15803d") # Beret
-    draw.ellipse([hs_x - 4, 305, hs_x + 4, 313], fill="#eab308") # Beret badge
-    # Cheerful Face
-    draw.ellipse([hs_x - 12, 330, hs_x - 4, 338], fill="#0f172a")
-    draw.ellipse([hs_x + 4, 330, hs_x + 12, 338], fill="#0f172a")
-    draw.chord([hs_x - 10, 340, hs_x + 10, 354], 0, 180, fill="#dc2626") # open laughing mouth
+    draw.rounded_rectangle([hs_x - 22, 300, hs_x + 22, 322], radius=4, fill="#14532d", outline="#0f172a", width=2)
+    draw.rectangle([hs_x - 24, 320, hs_x + 6, 325], fill="#0f172a") # black visor brim
+    draw.ellipse([hs_x - 4, 306, hs_x + 4, 314], fill="#facc15") # golden emblem badge
+    # Cheerful Face with Eyes & Gold Tooth in Mouth
+    draw.ellipse([hs_x - 12, 330, hs_x - 4, 338], fill="#ffffff", outline="#3e352d")
+    draw.ellipse([hs_x - 10, 332, hs_x - 6, 336], fill="#0f172a")
+    draw.ellipse([hs_x + 4, 330, hs_x + 12, 338], fill="#ffffff", outline="#3e352d")
+    draw.ellipse([hs_x + 6, 332, hs_x + 10, 336], fill="#0f172a")
+    draw.chord([hs_x - 10, 342, hs_x + 10, 356], 0, 180, fill="#7f1d1d", outline="#3e352d", width=2)
+    draw.rectangle([hs_x + 2, 343, hs_x + 6, 347], fill="#facc15") # signature gold tooth!
 
     # Pos Ronda Name Sign
     draw.rounded_rectangle([pr_x + pr_w // 2 - 120, pr_y + 20, pr_x + pr_w // 2 + 120, pr_y + 55], radius=6, fill="#0f172a", outline="#facc15", width=2)
@@ -450,14 +504,16 @@ def render_scene_2(draw, t):
 
     # Characters Peeking and Dancing behind / beside Nisan!
     # Pociman dancing right beside the gravestone
-    draw_pociman(draw, gate_x - 20, 440, t_scene, is_dancing=True)
+    draw_pociman(draw, gate_x - 10, 440, t_scene, is_dancing=True)
 
     # Mbak Kuntilanak floating and dancing next to Pociman
-    draw_kuntilanak(draw, gate_x + 110, 380, t_scene)
+    draw_kuntilanak(draw, gate_x + 135, 390, t_scene)
 
     # Grand Celebratory Victory Banner at top
     draw.rounded_rectangle([W // 2 - 360, 16, W // 2 + 360, 68], radius=16, fill="#0f172a", outline="#facc15", width=3)
-    draw.text((W // 2 - 330, 26), "👑 TAMAT! POCIMAN JAWARA KAMPUNG RESMI LOLOS 👑", font=FONT_BANNER, fill="#fef08a")
+    title_text = "TAMAT! POCIMAN JAWARA KAMPUNG RESMI LOLOS"
+    tb = draw.textbbox((0, 0), title_text, font=FONT_BANNER)
+    draw.text((W // 2 - (tb[2] - tb[0]) // 2, 26), title_text, font=FONT_BANNER, fill="#fef08a")
 
     # Confetti Bursting
     for i, (cx, cy, col) in enumerate([
@@ -467,11 +523,11 @@ def render_scene_2(draw, t):
         c_wiggle = math.sin(t_scene * 12 + i) * 15
         draw.rectangle([cx + c_wiggle, cy + (t_scene * 60) % 200, cx + c_wiggle + 8, cy + (t_scene * 60) % 200 + 14], fill=col)
 
-    # Speech Bubbles for Pociman & Kunti
+    # Speech Bubbles for Pociman & Kunti (positioned comfortably above heads)
     if 5.8 <= t < 8.7:
-        draw_speech_bubble(draw, gate_x - 20, 310, "Pociman (Joget Koplo Santai):", "Daaaa warga kampung! Makasih udah diajak senam malam! Asik, tarik sis, semongkooo! 🕺", "bottom")
+        draw_speech_bubble(draw, gate_x - 10, 245, "Pociman (Joget Koplo Santai):", "Daaaa warga kampung! Makasih udah diajak senam malam! Asik, tarik sis, semongkooo!", "bottom")
     elif 8.8 <= t < 11.8:
-        draw_speech_bubble(draw, gate_x + 110, 270, "Mbak Kuntilanak (Centil):", "Hihihihi... Besok malam ronda lagi yaa mas-mas hansip! 💅👻", "bottom")
+        draw_speech_bubble(draw, gate_x + 135, 230, "Mbak Kuntilanak (Centil):", "Hihihihi... Besok malam ronda lagi yaa mas-mas hansip!", "bottom")
 
 # --- 5. Main Execution: Render All Frames & Encode Video ---
 def main():

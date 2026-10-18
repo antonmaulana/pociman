@@ -4,4 +4,6 @@ cookies.txt
 *.log
 scripts/raw_voices/
 scripts/*.wav
+__pycache__/
+*.pyc
 
