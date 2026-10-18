@@ -132,11 +132,7 @@
   }
 
   function getStageDuration(stg) {
-    if (stg === 1) return 30;
-    if (stg === 2) return 32;
-    if (stg <= 4) return 35;
-    if (stg <= 7) return 38;
-    return 42;
+    return 60;
   }
 
   function getSkyColors(stg) {
@@ -1322,13 +1318,13 @@
   ];
 
   function getStageObstaclePool(stg) {
-    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type !== 'pagar');
     return OBSTACLE_TYPES;
   }
 
   function spawnObstacle() {
     const lastObs = obstacles[obstacles.length - 1];
-    if (lastObs && lastObs.x > V_WIDTH - 220) return;
+    const minGap = stage === 1 ? 260 : Math.max(180, 240 - stage * 5);
+    if (lastObs && lastObs.x > V_WIDTH - minGap) return;
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
@@ -1453,11 +1449,10 @@
   }
 
   function getStageKuntiQuota(stg) {
-    if (stg < 3) return 0;
-    const stageEligible = Math.random() < (stg >= 6 ? 0.48 : 0.40);
-    if (!stageEligible) return 0;
-    if (stg >= 7 && Math.random() < 0.30) return 2;
-    return 1;
+    if (stg < 2) return 0;
+    const appears = Math.random() < 0.55;
+    if (!appears) return 0;
+    return Math.random() < 0.30 ? 2 : 1;
   }
 
   function resetStageState() {
@@ -1508,7 +1503,9 @@
   }
 
   function updateSpeedAndDistance(dt) {
-    const baseSpeed = 330 + Math.min(115, (stage - 1) * 12.0);
+    const progress = 1 - (stageTimer / stageTotalTime);
+    const rushBonus = progress > 0.75 ? 16 : (progress > 0.35 ? 8 : 0);
+    const baseSpeed = 330 + (stage - 1) * 14.5 + rushBonus;
     let currentSpeed = baseSpeed;
     if (player.tripTimer > 0) currentSpeed = baseSpeed * 0.5;
     else if (player.slowTimer > 0) currentSpeed = baseSpeed * 0.6;
@@ -1518,7 +1515,7 @@
 
   function updateCemeteryGate(dt) {
     stageTimer = Math.max(0, stageTimer - dt);
-    if (stageTimer <= 4.2 && !cemeteryGate.active) {
+    if (stageTimer <= 5.5 && !cemeteryGate.active) {
       cemeteryGate.active = true;
       cemeteryGate.x = V_WIDTH + 80;
       cemeteryGate.entered = false;
@@ -1542,10 +1539,10 @@
 
   function updateEscapeGap(dt) {
     if (player.tripTimer > 0) {
-      const tripDrain = (13 + stage * 0.28) * dt;
+      const tripDrain = (13 + stage * 0.72) * dt;
       escapeGap = Math.max(0, escapeGap - tripDrain);
     } else if (player.slowTimer > 0) {
-      const slowDrain = (9 + stage * 0.22) * dt;
+      const slowDrain = (9 + stage * 0.52) * dt;
       escapeGap = Math.max(0, escapeGap - slowDrain);
     } else {
       const catchupBonus = escapeGap < 30 ? 1.8 * dt : 0;
@@ -1703,13 +1700,15 @@
 
   function triggerBarrageThrows(wargaX) {
     spawnThrownItem(wargaX);
-    const doubleChance = stage >= 2 ? Math.min(0.45, 0.15 + (stage - 2) * 0.04) : 0;
+    const progress = 1 - (stageTimer / stageTotalTime);
+    const phaseBoost = progress > 0.40 ? 0.12 : 0;
+    const doubleChance = stage >= 2 ? Math.min(0.72, 0.18 + (stage - 2) * 0.065 + phaseBoost) : 0;
     if (Math.random() < doubleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 400);
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 380);
     }
-    const tripleChance = stage >= 6 ? Math.min(0.30, 0.10 + (stage - 6) * 0.05) : 0;
+    const tripleChance = stage >= 4 ? Math.min(0.48, 0.10 + (stage - 4) * 0.06 + phaseBoost) : 0;
     if (Math.random() < tripleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 820);
+      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 760);
     }
   }
 
@@ -1732,9 +1731,9 @@
     player.hitTimer = 0.8;
     player.slowTimer = 1.0;
     player.tauntTimer = 0;
-    player.invulnerableTime = 1.6;
+    player.invulnerableTime = 1.5;
 
-    const penalty = Math.min(15, 8 + stage * 0.28);
+    const penalty = Math.min(16, 7 + stage * 0.8);
     escapeGap = Math.max(0, escapeGap - penalty);
 
     window.soundManager.playBonk();
@@ -1750,7 +1749,7 @@
 
   function updateThrowTimer(dt, wargaX) {
     throwTimer -= dt;
-    if (throwTimer <= 1.0 && !warningActive) {
+    if (throwTimer <= 0.85 && !warningActive) {
       warningActive = true;
       throwWarningEl.classList.remove('hidden');
       window.soundManager.playWarning();
@@ -1760,8 +1759,10 @@
       triggerBarrageThrows(wargaX);
       warningActive = false;
       throwWarningEl.classList.add('hidden');
-      const baseCooldown = stage === 1 ? 4.0 : 3.6 - (stage - 1) * 0.12;
-      throwTimer = Math.max(1.8, baseCooldown + Math.random() * 0.4);
+      const progress = 1 - (stageTimer / stageTotalTime);
+      const phaseSpeedup = progress > 0.70 ? 0.45 : (progress > 0.35 ? 0.25 : 0);
+      const baseCooldown = stage === 1 ? 3.9 : Math.max(1.7, 3.8 - (stage - 1) * 0.23 - phaseSpeedup);
+      throwTimer = Math.max(1.4, baseCooldown + Math.random() * 0.35);
     }
   }
 
@@ -1783,6 +1784,7 @@
       if (!item.passed && item.x > player.x + 20) {
         item.passed = true;
         dodgedThrows++;
+        escapeGap = Math.min(100, escapeGap + 1.2);
         triggerPocimanTaunt(false);
       }
 
@@ -1796,7 +1798,6 @@
         continue;
       }
 
-      if (item.x > V_WIDTH + 80) thrownItems.splice(i, 1);
     }
   }
 
