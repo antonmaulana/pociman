@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.9.1" />
+  <link rel="stylesheet" href="style.css?v=2.9.7" />
 </head>
 <body>
   <div id="game-container">
@@ -290,9 +290,10 @@
     <!-- Credits & Game Guide Modal -->
     <div id="creditsScreen" class="modal-screen hidden">
       <div class="modal-card credits-card">
-        <div class="win-banner">📖 PANDUAN LENGKAP &amp; INFORMASI 📜</div>
-        <h2 class="game-title credits-title">POCIMAN</h2>
-        <p class="story-desc">Petualangan Pocong Kocak &bull; Menuju Gerbang TPU</p>
+        <div class="modal-header-compact">
+          <div class="guide-eyebrow">📖 BUKU PANDUAN &amp; INFORMASI</div>
+          <h2 class="guide-main-title">Petunjuk Bermain &amp; Bertahan</h2>
+        </div>
 
         <!-- Tab Selector: Panduan Bermain vs Info & Tim Produksi -->
         <div class="guide-tab-group">
@@ -306,14 +307,14 @@
             <div class="guide-sec-title">🎮 KONTROL PERMAINAN</div>
             <div class="guide-items-grid">
               <div class="guide-card">
-                <span class="guide-icon">📱</span>
+                <div class="guide-icon-badge">📱</div>
                 <div class="guide-card-body">
                   <strong>HP / Tablet (Sentuh Layar)</strong>
                   <span>Tap 1x untuk lompat pendek. Tap 2x berurutan cepat untuk <kbd>Double Jump</kbd> tinggi melompati pagar!</span>
                 </div>
               </div>
               <div class="guide-card">
-                <span class="guide-icon">💻</span>
+                <div class="guide-icon-badge">💻</div>
                 <div class="guide-card-body">
                   <strong>Laptop / PC (Keyboard &amp; Mouse)</strong>
                   <span>Tekan <kbd>SPASI</kbd> atau Klik Mouse kiri. Tekan 2x untuk <kbd>Double Jump</kbd>.</span>
@@ -326,14 +327,14 @@
             <div class="guide-sec-title">🏃 MEKANISME SURVIVAL</div>
             <div class="guide-items-grid">
               <div class="guide-card">
-                <span class="guide-icon">⚡</span>
+                <div class="guide-icon-badge">⚡</div>
                 <div class="guide-card-body">
                   <strong>Celah Pelarian (Escape Gap Bar)</strong>
                   <span>Jaga bar di atas tetap hijau! Jika tersandung atau terkena lemparan, kecepatan turun -40% dan warga mendekat. Jika bar habis (0%), Pociman tertangkap!</span>
                 </div>
               </div>
               <div class="guide-card">
-                <span class="guide-icon">💨</span>
+                <div class="guide-icon-badge">💨</div>
                 <div class="guide-card-body">
                   <strong>Bonus Menghindar (Dodge Reward)</strong>
                   <span>Berhasil melompati barang lemparan warga atau lolos dari cakar kucing memberi reward pemulihan celah pelarian (+1.2%).</span>
@@ -346,28 +347,28 @@
             <div class="guide-sec-title">⚠️ RINTANGAN &amp; BANTUAN KAMPUNG</div>
             <div class="guide-items-grid">
               <div class="guide-card">
-                <span class="guide-icon">🎋</span>
+                <div class="guide-icon-badge">🎋</div>
                 <div class="guide-card-body">
                   <strong>Pagar Bambu Tinggi</strong>
                   <span>Rintangan tinggi yang wajib dilewati menggunakan <kbd>Double Jump</kbd>. Aktif sejak Stage 1!</span>
                 </div>
               </div>
               <div class="guide-card">
-                <span class="guide-icon">🐈</span>
+                <div class="guide-icon-badge">🐈</div>
                 <div class="guide-card-body">
                   <strong>Kucing Oren Bar-bar</strong>
                   <span>Bisa mendadak nge-rem, balik lari, atau sprint menerjang. Jika terinjak, ekornya berdiri marah lalu menyerang balik!</span>
                 </div>
               </div>
               <div class="guide-card">
-                <span class="guide-icon">🩲</span>
+                <div class="guide-icon-badge">🩲</div>
                 <div class="guide-card-body">
                   <strong>Hujan Lemparan Slapstick</strong>
                   <span>Warga melempar sandal, gayung, panci gosong, ember seng, botol kecap, BH renda, CD pink, hingga kucing terbang! Perhatikan tanda seru di atas Pociman.</span>
                 </div>
               </div>
               <div class="guide-card">
-                <span class="guide-icon">👻</span>
+                <div class="guide-icon-badge">👻</div>
                 <div class="guide-card-body">
                   <strong>Mbak Kunti (Penyelamat)</strong>
                   <span>Mulai Stage 2, bisa muncul acak menggendong Pociman terbang bebas rintangan sambil mengobrol kocak.</span>
@@ -407,7 +408,7 @@
           </div>
         </div>
 
-        <button id="closeCreditsBtn" class="btn-play btn-close-guide" type="button">MENGERTI, TUTUP ✖️</button>
+        <button id="closeCreditsBtn" class="btn-secondary btn-close-guide" type="button">TUTUP PANDUAN ✕</button>
       </div>
     </div>
 
@@ -445,7 +446,7 @@
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.9.6"></script>
-  <script src="game.js?v=2.9.6"></script>
+  <script src="audio.js?v=2.9.7"></script>
+  <script src="game.js?v=2.9.7"></script>
 </body>
 </html>

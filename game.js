@@ -1912,19 +1912,19 @@
     if (obs.state === 'furious_prep') return -gameSpeed;
     if (obs.state === 'furious_charge') {
       if (player.x + 10 < obs.x) { obs.facing = -1; return -gameSpeed - 260; }
-      obs.facing = 1; return 280;
+      obs.facing = 1; return 300;
     }
     if (obs.state === 'walking_left') return -gameSpeed - obs.walkSpeed;
     if (obs.state === 'walking_right') return -gameSpeed + obs.walkSpeed;
-    if (obs.state === 'sprint_left') return -gameSpeed - 200;
-    if (obs.state === 'sprint_right') return 220;
+    if (obs.state === 'sprint_left') return -gameSpeed - 260;
+    if (obs.state === 'sprint_right') return 340;
     return -gameSpeed;
   }
 
   function handleCatFuriousAttack(obs) {
     obs.scratched = true;
-    obs.state = obs.x >= player.x ? 'sprint_right' : 'sprint_left';
-    obs.facing = obs.state === 'sprint_right' ? 1 : -1;
+    obs.state = 'sprint_left';
+    obs.facing = -1;
     player.slowTimer = 0.8;
     player.invulnerableTime = 1.4;
     escapeGap = Math.max(0, escapeGap - 8);
@@ -1932,22 +1932,23 @@
       window.soundManager.playCatScratch();
     }
     addComicText("CRET! DICAKAR KUCING! 🙀🩸", player.x + 10, player.y - 30, '#ef4444');
-    addComicText("KABUURR! 🐾💨", obs.x, obs.y - 18, '#fb923c');
+    addComicText("KABUURR! 🐾💨", obs.x - 10, obs.y - 18, '#fb923c');
     createDust(player.x, GROUND_Y);
     updateHUD();
+  }
+
+  function handleCatFuriousDodged(obs) {
+    obs.revengeDodged = true;
+    obs.state = 'sprint_right';
+    obs.facing = 1;
+    addComicText("HUP! LOLOS CAKARAN! 🐾💨", player.x + 10, player.y - 30, '#38bdf8');
+    escapeGap = Math.min(100, escapeGap + 1.2);
   }
 
   function handleObstaclePassed(obs) {
     obs.passed = true;
     escapeGap = Math.min(100, escapeGap + 0.6);
-    if (obs.type !== 'kucing') return;
-    if (obs.state === 'furious_charge' && !obs.scratched && !obs.revengeDodged) {
-      obs.revengeDodged = true;
-      obs.state = 'sprint_left';
-      obs.facing = -1;
-      addComicText("HUP! LOLOS CAKARAN! 🐾💨", player.x + 10, player.y - 30, '#38bdf8');
-      escapeGap = Math.min(100, escapeGap + 1.2);
-    } else if (!obs.hit) {
+    if (obs.type === 'kucing' && !obs.hit) {
       addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
     }
   }
@@ -1967,9 +1968,11 @@
       const vx = obs.type === 'kucing' ? getCatVelocity(obs) : -gameSpeed;
       obs.x += vx * dt;
 
-      if (obs.type === 'kucing' && obs.state === 'furious_charge' && !obs.scratched) {
-        if (!kuntiPowerup.active && player.invulnerableTime <= 0 && checkRectOverlap(player, obs)) {
+      if (obs.type === 'kucing' && obs.state === 'furious_charge' && !obs.scratched && !obs.revengeDodged) {
+        if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
           handleCatFuriousAttack(obs);
+        } else if (obs.x > player.x + player.w + 12) {
+          handleCatFuriousDodged(obs);
         }
       } else if (!obs.hit && !obs.scratched && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
