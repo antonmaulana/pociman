@@ -273,26 +273,26 @@ def draw_kuntilanak(draw, cx, cy, t):
     sway = math.sin(t * 9) * 14
 
     # Radiant lilac aura glow & sparkles (matching drawKuntilanakRescue from game.js)
-    draw.ellipse([cx - 65, float_y - 65, cx + 65, float_y + 65], fill="#3b0764")
-    draw.ellipse([cx - 52, float_y - 52, cx + 52, float_y + 52], fill="#581c87")
-    for i in range(5):
-        sa = t * 3.5 + i * (math.pi * 2 / 5)
-        sx = cx + math.cos(sa) * 58
-        sy = float_y + math.sin(sa) * 48
+    draw.ellipse([cx - 68, float_y - 68, cx + 68, float_y + 68], fill="#3b0764")
+    draw.ellipse([cx - 54, float_y - 54, cx + 54, float_y + 54], fill="#581c87")
+    for i in range(6):
+        sa = t * 3.5 + i * (math.pi * 2 / 6)
+        sx = cx + math.cos(sa) * 60
+        sy = float_y + math.sin(sa) * 50
         draw.ellipse([sx - 4, sy - 4, sx + 4, sy + 4], fill="#d8b4fe")
         draw.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill="#fef08a")
 
-    # Cascading Jet-Black Hair (matching drawKuntiHeadAndHair from game.js: #0f172a, outline #334155)
+    # Cascading Midnight Hair (#1e1b18 with #3e352d outline)
     hair_sway = math.sin(t * 5) * 10
     draw.polygon([
         (cx - 10, float_y - 45),
-        (cx - 38 + hair_sway, float_y + 10),
-        (cx - 32 + hair_sway, float_y + 85),
+        (cx - 40 + hair_sway, float_y + 10),
+        (cx - 34 + hair_sway, float_y + 85),
         (cx - 10 + hair_sway, float_y + 70),
         (cx + 8, float_y - 20)
-    ], fill="#0f172a", outline="#334155")
+    ], fill="#1e1b18", outline="#3e352d")
 
-    # Flowing White Dress with Lilac outline (matching drawKuntiDress from game.js: #f8fafc, outline #c084fc)
+    # Flowing White Dress with Lilac hem (#f8fafc with #c084fc hem, matching game.js)
     wave1 = math.sin(t * 6) * 8
     wave2 = math.cos(t * 7) * 8
     draw.polygon([
@@ -303,23 +303,27 @@ def draw_kuntilanak(draw, cx, cy, t):
         (cx - 30 + wave2, float_y + 80),
         (cx - 34 + wave2, float_y + 35),
         (cx - 14, float_y - 24)
-    ], fill="#f8fafc", outline="#c084fc")
+    ], fill="#f8fafc", outline="#3e352d")
+    draw.rectangle([cx - 30 + wave2, float_y + 76, cx + 30 + wave1, float_y + 82], fill="#c084fc")
 
-    # Dancing pale arms (matching game.js: #fed7aa, outline #c084fc)
+    # Cute pale waving ghost hands (#fef3c7)
     arm_sway = math.sin(t * 10) * 10
-    draw.rounded_rectangle([cx + 10, float_y - 6 + arm_sway, cx + 42, float_y + 3 + arm_sway], radius=4, fill="#fed7aa", outline="#c084fc", width=2)
+    draw.rounded_rectangle([cx + 10, float_y - 6 + arm_sway, cx + 42, float_y + 3 + arm_sway], radius=4, fill="#fef3c7", outline="#3e352d", width=2)
+    draw.rounded_rectangle([cx - 42, float_y - 12 - arm_sway, cx - 10, float_y - 3 - arm_sway], radius=4, fill="#fef3c7", outline="#3e352d", width=2)
 
-    # Cute Pale Warm Face (matching drawKuntiHeadAndHair: #fef3c7, outline #475569)
-    draw.ellipse([cx - 15, float_y - 48, cx + 15, float_y - 18], fill="#fef3c7", outline="#475569", width=2)
+    # Cute Pale Porcelain Face (#fef3c7, outline #3e352d)
+    draw.ellipse([cx - 15, float_y - 48, cx + 15, float_y - 18], fill="#fef3c7", outline="#3e352d", width=2)
 
-    # Arched happy smiling eyes
-    draw.arc([cx - 10, float_y - 40, cx - 2, float_y - 30], 190, 350, fill="#1e293b", width=2)
-    draw.arc([cx + 2, float_y - 40, cx + 10, float_y - 30], 190, 350, fill="#1e293b", width=2)
+    # Big Anime Chibi Eyes with White Catchlight Glints (matching game.js)
+    draw.ellipse([cx - 11, float_y - 40, cx - 3, float_y - 28], fill="#1e1b18")
+    draw.ellipse([cx + 3, float_y - 40, cx + 11, float_y - 28], fill="#1e1b18")
+    draw.ellipse([cx - 9, float_y - 39, cx - 6, float_y - 34], fill="#ffffff")
+    draw.ellipse([cx + 5, float_y - 39, cx + 8, float_y - 34], fill="#ffffff")
 
-    # Rosy Cheeks & Red Lips
-    draw.ellipse([cx - 12, float_y - 30, cx - 5, float_y - 24], fill="#f43f5e")
-    draw.ellipse([cx + 5, float_y - 30, cx + 12, float_y - 24], fill="#f43f5e")
-    draw.ellipse([cx - 4, float_y - 25, cx + 4, float_y - 20], fill="#dc2626")
+    # Rosy Blushing Cheeks & Cheerful Red Smile
+    draw.ellipse([cx - 13, float_y - 28, cx - 6, float_y - 22], fill="#f472b6")
+    draw.ellipse([cx + 6, float_y - 28, cx + 13, float_y - 22], fill="#f472b6")
+    draw.chord([cx - 5, float_y - 26, cx + 5, float_y - 19], 0, 180, fill="#dc2626", outline="#3e352d", width=1)
 
 # --- 3. Scene 1 Renderer (Pos Ronda Kampung) ---
 def render_scene_1(draw, t):
