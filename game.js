@@ -1,6 +1,6 @@
 /**
  * Pociman: Kabur dari Warga Kampung
- * Hilarious 2D Indonesian Village Pursuit Game with Stage 1-100 Progression
+ * Hilarious 2D Indonesian Village Pursuit Game, 10 stages
  */
 
 (function () {
@@ -35,6 +35,7 @@
   const startBtn = document.getElementById('startBtn');
   const creditsBtn = document.getElementById('creditsBtn');
   const closeCreditsBtn = document.getElementById('closeCreditsBtn');
+  const closeCreditsIconBtn = document.getElementById('closeCreditsIconBtn');
   const tabGuideBtn = document.getElementById('tabGuideBtn');
   const tabCreditsBtn = document.getElementById('tabCreditsBtn');
   const guideTabContent = document.getElementById('guideTabContent');
@@ -47,6 +48,7 @@
   const skipCutsceneBtn = document.getElementById('skipCutsceneBtn');
   const endingVideoContainer = document.getElementById('endingVideoContainer');
   const endingVideo = document.getElementById('endingVideo');
+  const unmuteVideoBtn = document.getElementById('unmuteVideoBtn');
   const startResetStageBtn = document.getElementById('startResetStageBtn');
   const startWallOfHonorBtn = document.getElementById('startWallOfHonorBtn');
   const wallOfHonorModal = document.getElementById('wallOfHonorModal');
@@ -88,6 +90,9 @@
   const GRAVITY = 1580;
   const JUMP_FORCE = -630;
   const DOUBLE_JUMP_FORCE = -540;
+  const JUMP_BUFFER = 0.12;
+  const GATE_LEAD_TIME = 5.5;
+  const INPUT_LOCK_MS = 700;
   const TOTAL_STAGES = 10;
 
   // --- Game State ---
@@ -102,6 +107,8 @@
     ENDING_CUTSCENE: 7
   };
   let gameState = STATE.MENU;
+  let stateSince = 0;
+  let lastLoopState = gameState;
 
   const bustedCutscene = {
     timer: 0,
@@ -110,14 +117,11 @@
     comicPops: []
   };
 
-  const endingCutscene = {
-    timer: 0,
-    duration: 9.6
-  };
-
   let lastTime = 0;
   let gameSpeed = 350;
   let distance = 0;
+  let groundScroll = 0;
+  let renderScale = 1;
   let stage = 1;
   let stageBannerTimer = 0;
   let stageTimer = 35;
@@ -134,6 +138,19 @@
   } catch (e) {
     highestStage = 1;
   }
+
+  const STAGE_HINTS = {
+    1: 'LOMPATI RINTANGAN, HINDARI TIMPUKAN',
+    2: 'AWAS KUCING OREN, MBAK KUNTI BISA NONGOL',
+    3: 'AYAM KAMPUNG IKUT NGAMUK',
+    4: 'TIMPUKAN MULAI BERUNTUN',
+    5: 'SETENGAH JALAN KE TPU',
+    6: 'WARGA MAKIN KOMPAK',
+    7: 'LANGKAH WARGA MAKIN CEPAT',
+    8: 'JANGAN KENDOR, GERBANG MAKIN DEKAT',
+    9: 'SATU STAGE LAGI SETELAH INI',
+    10: 'STAGE TERAKHIR, TPU TINGGAL DIKIT'
+  };
 
   function getStageDuration(stg) {
     return 60;
@@ -349,6 +366,7 @@
   let fireflies = [];
   let obstacles = [];
   let thrownItems = [];
+  let queuedThrows = [];
   let particles = [];
   let comicTexts = [];
 
@@ -365,6 +383,7 @@
     canDoubleJump: false,
     hopTime: 0,
     animTime: 0,
+    jumpBuffer: 0,
 
     tripTimer: 0,
     hitTimer: 0,
@@ -385,6 +404,7 @@
       this.canDoubleJump = false;
       this.hopTime = 0;
       this.animTime = 0;
+      this.jumpBuffer = 0;
       this.tripTimer = 0;
       this.hitTimer = 0;
       this.scratchTimer = 0;
@@ -412,7 +432,13 @@
         this.spinAngle = Math.PI * 2;
         window.soundManager.playDoubleJump();
         createWindBurst(this.x + 24, this.y + 60);
+      } else {
+        this.jumpBuffer = JUMP_BUFFER;
       }
+    },
+
+    hitbox() {
+      return { x: this.x + 8, y: this.y + 10, w: this.w - 16, h: this.h - 14 };
     },
 
     update(dt) {
@@ -433,12 +459,18 @@
       this.vy += GRAVITY * dt;
       this.y += this.vy * dt;
 
+      if (this.jumpBuffer > 0) this.jumpBuffer -= dt;
+
       if (this.y >= GROUND_Y - this.h) {
         this.y = GROUND_Y - this.h;
         this.vy = 0;
         this.isGrounded = true;
         this.canDoubleJump = false;
         this.spinAngle = 0;
+        if (this.jumpBuffer > 0) {
+          this.jumpBuffer = 0;
+          this.jump();
+        }
       }
     },
 
@@ -473,7 +505,7 @@
 
       if (this.tauntTimer > 0 && this.tauntText) {
         const bubbleX = this.x + this.w / 2;
-        const bubbleY = GROUND_Y - 118;
+        const bubbleY = Math.min(GROUND_Y - 118, this.y - 22);
         drawTauntSpeechBubble(ctx, bubbleX, bubbleY, this.tauntText, this.tauntIsShort);
       }
     }
@@ -925,9 +957,23 @@
 
     ctx.restore();
 
-    // Comic speech bubble in absolute coordinates (never clipped on left edge)
+    // Comic speech bubble with dynamic collision avoidance so it never overlaps Pociman's taunt
     if (shoutTimer > 0 && currentShout) {
-      drawSpeechBubble(ctx, wargaX + 75, GROUND_Y - 145, currentShout);
+      let bubbleY = GROUND_Y - 162;
+      const targetX = wargaX + 75;
+
+      if (player.tauntTimer > 0 && player.tauntText) {
+        ctx.save();
+        ctx.font = 'bold 13px sans-serif';
+        const wBw = ctx.measureText(currentShout).width + 24;
+        ctx.restore();
+        const pociBubbleLeft = (player.x + player.w / 2) - 80;
+        // If warga bubble would collide horizontally with Pociman's taunt
+        if (targetX + wBw / 2 > pociBubbleLeft - 15) {
+          bubbleY = GROUND_Y - 200; // Shift cleanly to upper lane
+        }
+      }
+      drawSpeechBubble(ctx, targetX, bubbleY, currentShout);
     }
   }
 
@@ -1243,28 +1289,33 @@
     ctx.save();
     ctx.font = 'bold 13px sans-serif';
     const textW = ctx.measureText(text).width;
-    const pad = 10;
+    const pad = 12;
     const bw = textW + pad * 2;
-    const bh = 26;
-    const bx = Math.max(12, Math.min(V_WIDTH - bw - 12, x - pad));
+    const bh = 28;
+    const bx = Math.max(12, Math.min(V_WIDTH - bw - 12, x - bw / 2));
+    const by = y - bh;
 
     ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#0f172a';
+    ctx.strokeStyle = '#dc2626';
     ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.roundRect(bx, y - 16, bw, bh, 6);
+    ctx.roundRect(bx, by, bw, bh, 8);
     ctx.fill();
     ctx.stroke();
 
+    const tailX = Math.max(bx + 16, Math.min(bx + bw - 16, x - 15));
     ctx.beginPath();
-    ctx.moveTo(bx + 18, y + 10);
-    ctx.lineTo(bx + 8, y + 18);
-    ctx.lineTo(bx + 28, y + 10);
+    ctx.moveTo(tailX - 7, by + bh);
+    ctx.lineTo(tailX - 2, by + bh + 9);
+    ctx.lineTo(tailX + 7, by + bh);
+    ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText(text, bx + pad, y + 2);
+    ctx.fillStyle = '#991b1b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, bx + bw / 2, by + bh / 2);
     ctx.restore();
   }
 
@@ -1369,6 +1420,8 @@
   ];
 
   function getStageObstaclePool(stg) {
+    if (stg <= 1) return OBSTACLE_TYPES.filter(o => o.type !== 'ayam' && o.type !== 'kucing');
+    if (stg === 2) return OBSTACLE_TYPES.filter(o => o.type !== 'ayam');
     return OBSTACLE_TYPES;
   }
 
@@ -1527,7 +1580,7 @@
   }
 
   function resetStageState() {
-    escapeGap = 50;
+    escapeGap = 64;
     bumpCount = 0;
     dodgedThrows = 0;
     cemeteryGate.active = false;
@@ -1539,6 +1592,7 @@
     kuntiSkyCameo.reset();
     obstacles = [];
     thrownItems = [];
+    queuedThrows = [];
     particles = [];
     comicTexts = [];
     warningActive = false;
@@ -1550,8 +1604,8 @@
     stage = Math.max(1, Math.min(TOTAL_STAGES, targetStage));
     stageTotalTime = getStageDuration(stage);
     stageTimer = stageTotalTime;
-    throwTimer = stage === 1 ? 3.4 : Math.max(1.8, 3.4 - (stage - 1) * 0.18);
-    obstacleTimer = Math.max(1.0, 1.8 - (stage - 1) * 0.085);
+    throwTimer = stage === 1 ? 5.6 : Math.max(1.8, 3.4 - (stage - 1) * 0.18);
+    obstacleTimer = stage === 1 ? 2.8 : Math.max(1.0, 1.8 - (stage - 1) * 0.085);
 
     resetStageState();
 
@@ -1569,8 +1623,9 @@
       totalBumps = 0;
     }
 
-    showStageBanner(`⭐ STAGE ${stage}: MENUJU GERBANG TPU!`);
+    showStageBanner(`STAGE ${stage}: ${STAGE_HINTS[stage]}`);
     window.soundManager.playStageUp();
+    window.soundManager.tempoScale = 1 - (stage - 1) * 0.02;
     window.soundManager.playGameplayBgm();
   }
 
@@ -1592,7 +1647,7 @@
 
   function updateCemeteryGate(dt) {
     stageTimer = Math.max(0, stageTimer - dt);
-    if (stageTimer <= 5.5 && !cemeteryGate.active) {
+    if (stageTimer <= GATE_LEAD_TIME && !cemeteryGate.active) {
       cemeteryGate.active = true;
       cemeteryGate.x = V_WIDTH + 80;
       cemeteryGate.entered = false;
@@ -1603,6 +1658,7 @@
         cemeteryGate.entered = true;
         window.soundManager.playGateSlam();
         setTimeout(() => {
+          if (gameState !== STATE.PLAYING) return;
           if (stage >= TOTAL_STAGES) startEndingCutscene();
           else triggerStageClear();
         }, 350);
@@ -1638,9 +1694,12 @@
 
   function updateShoutTimer(dt) {
     shoutTimer -= dt;
-    if (shoutTimer <= 0 && escapeGap < 75) {
+    if (shoutTimer <= 0) {
       currentShout = getNextVillagerShout();
       shoutTimer = Math.max(1.8, 3.8 - stage * 0.04);
+      if (window.soundManager && window.soundManager.playVillagerShout) {
+        window.soundManager.playVillagerShout();
+      }
     }
   }
 
@@ -1786,24 +1845,30 @@
     const progress = 1 - (stageTimer / stageTotalTime);
     const phaseBoost = progress > 0.40 ? 0.12 : 0;
     const doubleChance = stage >= 2 ? Math.min(0.72, 0.18 + (stage - 2) * 0.065 + phaseBoost) : 0;
-    if (Math.random() < doubleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 380);
-    }
+    if (Math.random() < doubleChance) queuedThrows.push(0.38);
     const tripleChance = stage >= 4 ? Math.min(0.48, 0.10 + (stage - 4) * 0.06 + phaseBoost) : 0;
-    if (Math.random() < tripleChance) {
-      setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 760);
+    if (Math.random() < tripleChance) queuedThrows.push(0.76);
+  }
+
+  function updateQueuedThrows(dt, wargaX) {
+    for (let i = queuedThrows.length - 1; i >= 0; i--) {
+      queuedThrows[i] -= dt;
+      if (queuedThrows[i] <= 0) {
+        queuedThrows.splice(i, 1);
+        spawnThrownItem(wargaX);
+      }
     }
   }
 
   function getItemHitMessage(item) {
-    if (!item) return "POYONGAN! -22% SPEED! 🤕";
+    if (!item) return "POYONGAN! MELAMBAT! 🤕";
     if (item.type === 'celana_dalam') return "KECELUP CD PINK! 🩲😵";
     if (item.type === 'bh_merah') return "KETAMPAR BH RENDA! 👙😳";
     if (item.type === 'ember') return "KEMBALIKAN EMBERKU! 🪣💥";
     if (item.type === 'sapu') return "DISAPU BERSIH! 🧹💢";
     if (item.type === 'botol') return "PECAH KECAP! 🍾🤕";
     if (item.type === 'kucing_terbang') return "DICAKAR KUCING TERBANG! 🙀⚡";
-    return "POYONGAN! -22% SPEED! 🤕";
+    return "POYONGAN! MELAMBAT! 🤕";
   }
 
   function handleItemHit(index) {
@@ -1865,6 +1930,7 @@
 
   function updateThrownMechanics(dt, wargaX) {
     updateThrowTimer(dt, wargaX);
+    updateQueuedThrows(dt, wargaX);
 
     for (let i = thrownItems.length - 1; i >= 0; i--) {
       const item = thrownItems[i];
@@ -1873,7 +1939,7 @@
       item.y += item.vy * dt;
       item.rot += item.rotSpeed * dt;
 
-      if (!kuntiPowerup.active && player.invulnerableTime <= 0 && checkRectOverlap(player, item)) {
+      if (!kuntiPowerup.active && player.invulnerableTime <= 0 && checkRectOverlap(player.hitbox(), item)) {
         handleItemHit(i);
         continue;
       }
@@ -1956,6 +2022,8 @@
       obs.furiousTimer -= dt;
       if (obs.furiousTimer <= 0) {
         obs.state = 'furious_charge';
+        obs.chargeDir = (obs.x >= player.x) ? -1 : 1;
+        obs.facing = obs.chargeDir;
         if (window.soundManager && window.soundManager.playCatScreech) {
           window.soundManager.playCatScreech();
         }
@@ -1963,7 +2031,12 @@
       }
       return;
     }
-    if (obs.state === 'furious_charge') return;
+    if (obs.state === 'furious_charge') {
+      if ((obs.chargeDir === -1 && obs.x < player.x - 20) || (obs.chargeDir === 1 && obs.x > player.x + player.w + 20)) {
+        handleCatFuriousDodged(obs);
+      }
+      return;
+    }
 
     const dist = obs.x - player.x;
     if (!obs.closeReacted && dist > 25 && dist < 105) {
@@ -1983,6 +2056,12 @@
           addComicText("ZOOMIES! 🐾💨", obs.x, obs.y - 18, '#fb923c');
         }
         obs.aiTimer = 1.4 + Math.random() * 1.8;
+      }
+    } else if (dist <= 25 && dist >= -40) {
+      // Underneath or close to Pocong: prevent sudden reversals under jumping Pociman
+      if (obs.state === 'idle') {
+        obs.state = 'walking_left';
+        obs.facing = -1;
       }
     }
   }
@@ -2005,8 +2084,9 @@
   function getCatVelocity(obs) {
     if (obs.state === 'furious_prep') return -gameSpeed;
     if (obs.state === 'furious_charge') {
-      if (player.x + 10 < obs.x) { obs.facing = -1; return -gameSpeed - 260; }
-      obs.facing = 1; return 300;
+      const dir = obs.chargeDir || (obs.x >= player.x ? -1 : 1);
+      obs.facing = dir;
+      return dir === -1 ? (-gameSpeed - 280) : 320;
     }
     if (obs.state === 'walking_left') return -gameSpeed - obs.walkSpeed;
     if (obs.state === 'walking_right') return -gameSpeed + obs.walkSpeed;
@@ -2036,10 +2116,13 @@
 
   function handleCatFuriousDodged(obs) {
     obs.revengeDodged = true;
-    obs.state = 'sprint_right';
-    obs.facing = 1;
+    obs.state = 'sprint_left';
+    obs.facing = -1;
     addComicText("HUP! LOLOS CAKARAN! 🐾💨", player.x + 10, player.y - 30, '#38bdf8');
     escapeGap = Math.min(100, escapeGap + 1.2);
+    if (window.soundManager && window.soundManager.playDodge) {
+      window.soundManager.playDodge();
+    }
   }
 
   function updateAyamMechanics(obs, dt) {
@@ -2091,6 +2174,9 @@
 
   function handleObstaclePassed(obs) {
     obs.passed = true;
+    if (window.soundManager && window.soundManager.playDodge) {
+      window.soundManager.playDodge();
+    }
     if (obs.type === 'kucing' && !obs.hit) {
       escapeGap = Math.min(100, escapeGap + 1.2);
       addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
@@ -2111,18 +2197,20 @@
     if (kuntiPowerup.active || player.invulnerableTime > 0 || player.tripTimer > 0) return;
     if (obs.type === 'kucing' && !obs.scratched) {
       if (obs.state === 'furious_charge' && !obs.revengeDodged) {
-        if (checkRectOverlap(player, obs)) handleCatFuriousAttack(obs);
-        else if (obs.x > player.x + player.w + 12) handleCatFuriousDodged(obs);
+        if (checkRectOverlap(player.hitbox(), obs)) handleCatFuriousAttack(obs);
+        else if ((obs.chargeDir === -1 && obs.x < player.x - 20) || (obs.chargeDir === 1 && obs.x > player.x + player.w + 20)) {
+          handleCatFuriousDodged(obs);
+        }
       } else if (obs.fromThrow) {
-        if (checkRectOverlap(player, obs)) handleCatFuriousAttack(obs);
-      } else if (!obs.hit && checkRectOverlap(player, obs)) {
+        if (checkRectOverlap(player.hitbox(), obs)) handleCatFuriousAttack(obs);
+      } else if (!obs.hit && checkRectOverlap(player.hitbox(), obs)) {
         handleObstacleHit(obs);
       }
     } else if (obs.type === 'ayam') {
-      if (!obs.hit && obs.state !== 'fleeing' && checkRectOverlap(player, obs)) {
+      if (!obs.hit && obs.state !== 'fleeing' && checkRectOverlap(player.hitbox(), obs)) {
         handleAyamHit(obs);
       }
-    } else if (!obs.hit && !obs.scratched && checkRectOverlap(player, obs)) {
+    } else if (!obs.hit && !obs.scratched && checkRectOverlap(player.hitbox(), obs)) {
       handleObstacleHit(obs);
     }
   }
@@ -2176,6 +2264,7 @@
       if (ct.alpha <= 0) comicTexts.splice(i, 1);
     }
 
+    groundScroll += gameSpeed * dt;
     for (const h of houses) h.x -= gameSpeed * 0.3 * dt;
     if (houses.length > 0 && houses[0].x + houses[0].w < -40) {
       const rem = houses.shift();
@@ -2247,7 +2336,9 @@
     stageTimeValEl.textContent = `${remainingSec}s`;
 
     // 1. TPU Progress (0% at start -> 100% when entering TPU = LOLOS)
-    const tpuPct = Math.min(100, Math.max(0, ((stageTotalTime - stageTimer) / stageTotalTime) * 100));
+    const tpuPct = cemeteryGate.entered
+      ? 100
+      : Math.min(97, Math.max(0, ((stageTotalTime - stageTimer) / (stageTotalTime - GATE_LEAD_TIME)) * 100));
     if (tpuBarEl) tpuBarEl.style.width = tpuPct + '%';
     if (tpuPinEl) tpuPinEl.style.left = tpuPct + '%';
 
@@ -2257,15 +2348,15 @@
     if (dangerPinEl) dangerPinEl.style.left = clampedGap + '%';
 
     if (dangerLabelEl) {
-      if (clampedGap < 25) {
-        dangerLabelEl.textContent = "🔥 KRITIS TERTANGKAP!";
+      if (clampedGap < 32) {
+        dangerLabelEl.textContent = "Kritis";
         dangerLabelEl.style.color = "#f43f5e";
-      } else if (clampedGap < 50) {
-        dangerLabelEl.textContent = "⚠️ WARGA MENDEKAT!";
+      } else if (clampedGap < 58) {
+        dangerLabelEl.textContent = "Mepet";
         dangerLabelEl.style.color = "#fbbf24";
       } else {
-        dangerLabelEl.textContent = "🔥 TERTANGKAP";
-        dangerLabelEl.style.color = "#ef4444";
+        dangerLabelEl.textContent = "Aman";
+        dangerLabelEl.style.color = "#34d399";
       }
     }
   }
@@ -2300,15 +2391,20 @@
     hideAllModals();
     if (skipCutsceneBtn) skipCutsceneBtn.classList.remove('hidden');
     if (endingVideoContainer) endingVideoContainer.classList.remove('hidden');
+    if (unmuteVideoBtn) unmuteVideoBtn.classList.add('hidden');
 
     if (endingVideo) {
+      try { endingVideo.load(); } catch (e) {}
       endingVideo.currentTime = 0;
+      endingVideo.muted = !!(window.soundManager && window.soundManager.isMuted);
+      endingVideo.volume = 1.0;
       endingVideo.onended = () => showVictoryScreen();
       endingVideo.onerror = () => showVictoryScreen();
       const p = endingVideo.play();
       if (p && p.catch) {
         p.catch(() => {
           endingVideo.muted = true;
+          if (unmuteVideoBtn) unmuteVideoBtn.classList.remove('hidden');
           endingVideo.play().catch(() => showVictoryScreen());
         });
       }
@@ -2317,15 +2413,12 @@
     }
   }
 
-  function updateEndingCutscene(dt) {
-    // Video player handles animation
-  }
-
   function showVictoryScreen() {
     gameState = STATE.VICTORY;
     if (hudEl) hudEl.classList.add('hidden');
     if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
     if (endingVideoContainer) endingVideoContainer.classList.add('hidden');
+    if (unmuteVideoBtn) unmuteVideoBtn.classList.add('hidden');
     if (endingVideo) endingVideo.pause();
 
     if (stage >= highestStage) {
@@ -2335,9 +2428,9 @@
     }
 
     winDistanceEl.textContent = `${Math.floor(distance)}m`;
-    winStageEl.textContent = `${TOTAL_STAGES}/${TOTAL_STAGES} TAMAT! 👑`;
+    winStageEl.textContent = `${TOTAL_STAGES}/${TOTAL_STAGES} tamat`;
     winBumpsEl.textContent = totalBumps;
-    winRankEl.textContent = totalBumps === 0 ? "Pociman Sakti Tanpa Cacat 👑" : (totalBumps <= 12 ? "Pociman Lincah ⚡" : "Pociman Benjol Tangguh 🤕");
+    winRankEl.textContent = totalBumps === 0 ? "Pociman Sakti Tanpa Cacat" : (totalBumps <= 12 ? "Pociman Lincah" : "Pociman Benjol Tangguh");
 
     victoryScreen.classList.remove('hidden');
     throwWarningEl.classList.add('hidden');
@@ -2346,7 +2439,7 @@
     if (honorFeedback) honorFeedback.classList.add('hidden');
     if (submitHonorBtn) {
       submitHonorBtn.disabled = false;
-      submitHonorBtn.textContent = 'KIRIM NAMA 🏆';
+      submitHonorBtn.textContent = 'KIRIM NAMA';
     }
     if (window.soundManager && window.soundManager.playWin) {
       window.soundManager.playWin();
@@ -2354,10 +2447,6 @@
     setTimeout(() => {
       if (gameState === STATE.VICTORY) window.soundManager.playMenuBgm();
     }, 700);
-  }
-
-  function triggerVictory() {
-    startEndingCutscene();
   }
 
   function triggerBustedSequence() {
@@ -2430,13 +2519,13 @@
       `Pociman tertangkap di Stage ${stage}! Sekarang diajak bikin TikTok bareng Pak RT... 📱`,
       "Kehabisan napas dan digendong Hansip ke pos ronda balai desa! 👮‍♂️",
       "Tersandung daster emak-emak dan diinterogasi sambil disodorin gayung merah! 🪣",
-      "Kena timbukan panci gosong tepat di jidat hingga benjol tiga tingkat! 🍳🤕",
+      "Kena timpukan panci gosong tepat di jidat hingga benjol tiga tingkat! 🍳🤕",
       "Kafan Pociman nyangkut di pagar bambu, pasrah digerebek warga ronda! 🎋",
       "Dikejar kucing oren kampung sampai nyungsep di selokan depan TPU! 🐱💨",
       "Tali pocong atas lepas, warga malah antre minta nomor undian kupon! 🎫",
       "Nafas ngos-ngosan, diajak ngopi tubruk & makan pisang goreng sama warga! ☕"
     ];
-    deathReasonEl.textContent = reasons[Math.floor(Math.random() * reasons.length)];
+    deathReasonEl.textContent = reasons[Math.floor(Math.random() * reasons.length)].replace(/\s*[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]+/gu, '');
 
     gameOverScreen.classList.remove('hidden');
     throwWarningEl.classList.add('hidden');
@@ -2456,10 +2545,14 @@
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
 
+    ctx.save();
+    ctx.beginPath(); ctx.arc(V_WIDTH - 120, 80, 32, 0, Math.PI * 2); ctx.clip();
     ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.arc(V_WIDTH - 120, 80, 32, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#090d16';
-    ctx.beginPath(); ctx.arc(V_WIDTH - 106, 74, 28, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(V_WIDTH - 120, 80, 32, 0, Math.PI * 2);
+    ctx.arc(V_WIDTH - 106, 74, 28, 0, Math.PI * 2);
+    ctx.fill('evenodd');
+    ctx.restore();
 
     ctx.fillStyle = '#ffffff';
     for (const s of stars) {
@@ -2506,6 +2599,26 @@
     ctx.stroke();
   }
 
+  function drawKuntiFlower(ctx, fx, fy, size = 6) {
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.2;
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * Math.PI * 2) / 5;
+      const px = fx + Math.cos(angle) * (size * 0.55);
+      const py = fy + Math.sin(angle) * (size * 0.55);
+      ctx.beginPath();
+      ctx.arc(px, py, size * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#facc15';
+    ctx.beginPath();
+    ctx.arc(fx, fy, size * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
   function drawKuntiSkyCameo(ctx) {
     if (!kuntiSkyCameo.active) return;
     const x = kuntiSkyCameo.x;
@@ -2524,13 +2637,15 @@
     ctx.fillStyle = aura;
     ctx.fillRect(-48, -48, 96, 96);
 
-    // Flowing chibi white dress
+    // Flowing chibi white dress with lilac scallop
     ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 1.8; ctx.fillStyle = '#f8fafc';
     ctx.beginPath();
     ctx.moveTo(8, -12); ctx.lineTo(-12, -12);
     ctx.quadraticCurveTo(-28 + wave, 6, -34 + wave, 14);
-    ctx.lineTo(16, 14); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.quadraticCurveTo(-10, 18, 16, 14);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#c084fc'; ctx.fillRect(-30 + wave, 11, 44, 3);
+    ctx.fillStyle = '#e879f9'; ctx.beginPath(); ctx.arc(-2, -6, 2.2, 0, Math.PI * 2); ctx.fill();
 
     // Flowing long black hair
     ctx.fillStyle = '#1e1b18';
@@ -2542,16 +2657,33 @@
     // Round porcelain chibi face
     ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.arc(4, -19, 13.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Big shiny anime eyes & red lip smile
+    // Bangs
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.ellipse(6, -20, 2.5, 4, 0, 0, Math.PI * 2);
-    ctx.ellipse(12, -20, 2.5, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-6, -26); ctx.quadraticCurveTo(0, -22, 6, -26);
+    ctx.quadraticCurveTo(12, -22, 16, -26); ctx.quadraticCurveTo(8, -32, 0, -32); ctx.closePath(); ctx.fill();
+
+    // Big shiny anime eyes with double catchlights
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath(); ctx.ellipse(6, -20, 2.8, 4.2, 0, 0, Math.PI * 2);
+    ctx.ellipse(12, -20, 2.8, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath(); ctx.ellipse(6, -18, 2.0, 1.5, 0, 0, Math.PI);
+    ctx.ellipse(12, -18, 2.0, 1.5, 0, 0, Math.PI); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(5.2, -21.5, 1.2, 0, Math.PI * 2); ctx.arc(11.2, -21.5, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(5.0, -21.5, 1.4, 0, Math.PI * 2); ctx.arc(11.0, -21.5, 1.4, 0, Math.PI * 2);
+    ctx.arc(6.8, -18.5, 0.8, 0, Math.PI * 2); ctx.arc(12.8, -18.5, 0.8, 0, Math.PI * 2); ctx.fill();
+
+    // Rosy pink blush
     ctx.fillStyle = '#f472b6';
-    ctx.beginPath(); ctx.arc(3, -15, 2.5, 0, Math.PI * 2); ctx.arc(13, -15, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -15, 2.8, 0, Math.PI * 2); ctx.arc(14.5, -15, 2.8, 0, Math.PI * 2); ctx.fill();
+
+    // Sweet red smile
     ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(8, -15, 3, 0.1, Math.PI - 0.1); ctx.stroke();
+    ctx.beginPath(); ctx.arc(8.5, -15, 3.2, 0.1, Math.PI - 0.1); ctx.stroke();
+
+    // Flower pin in hair
+    drawKuntiFlower(ctx, 14, -28, 5.5);
 
     drawCameoDrink(ctx);
 
@@ -2588,6 +2720,26 @@
     ctx.fillRect(0, GROUND_Y, V_WIDTH, V_HEIGHT - GROUND_Y);
     ctx.fillStyle = '#292524';
     ctx.fillRect(0, GROUND_Y, V_WIDTH, 8);
+    drawRoadDetail(ctx);
+  }
+
+  // Marka putus dan kerikil bergeser sebesar kecepatan lari, supaya laju terasa.
+  function drawRoadDetail(ctx) {
+    const period = 180;
+    const offset = groundScroll % period;
+    ctx.fillStyle = '#3a342f';
+    for (let x = -offset; x < V_WIDTH; x += period) {
+      ctx.fillRect(x, GROUND_Y + 62, 70, 5);
+    }
+    ctx.fillStyle = '#2f2a26';
+    for (let i = 0; i < 14; i++) {
+      const lane = 22 + ((i * 37) % 78);
+      const size = 3 + (i % 3) * 2;
+      const x = ((i * 137 - groundScroll * 1.25) % V_WIDTH + V_WIDTH) % V_WIDTH;
+      ctx.beginPath();
+      ctx.ellipse(x, GROUND_Y + 14 + lane, size + 2, size, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   function drawEntities(ctx) {
@@ -2634,12 +2786,30 @@
   }
 
   function draw() {
+    ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
     ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
     if (gameState === STATE.ENDING_CUTSCENE) {
       return;
     }
+    const shake = gameState === STATE.PLAYING && (player.hitTimer > 0.4 || player.tripTimer > 0.6) ? 3 : 0;
+    ctx.save();
+    if (shake) ctx.translate((Math.random() - 0.5) * shake * 2, (Math.random() - 0.5) * shake * 2);
     drawEnvironment(ctx);
     drawEntities(ctx);
+    ctx.restore();
+    if (gameState === STATE.PLAYING) drawDangerVignette(ctx);
+  }
+
+  // Tepi layar memerah saat jarak warga tinggal sedikit, supaya bahaya terasa tanpa melirik HUD.
+  function drawDangerVignette(ctx) {
+    if (escapeGap >= 30) return;
+    const strength = (30 - escapeGap) / 30;
+    const pulse = 0.65 + Math.sin(performance.now() / 120) * 0.35;
+    const g = ctx.createRadialGradient(V_WIDTH / 2, V_HEIGHT / 2, V_HEIGHT * 0.45, V_WIDTH / 2, V_HEIGHT / 2, V_WIDTH * 0.62);
+    g.addColorStop(0, 'rgba(220, 38, 38, 0)');
+    g.addColorStop(1, `rgba(220, 38, 38, ${(0.42 * strength * pulse).toFixed(3)})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
   }
 
   function drawBrawlCloud(ctx, cx, cy) {
@@ -2746,175 +2916,6 @@
     ctx.restore();
   }
 
-  function drawEndingCutscene(ctx) {
-    const t = endingCutscene.timer;
-    if (t < 4.8) {
-      drawEndingAct1(ctx, t);
-    } else {
-      drawEndingAct2(ctx, t - 4.8);
-    }
-    drawCutsceneOverlay(ctx, t);
-  }
-
-  function drawCutsceneOverlay(ctx, t) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-    ctx.beginPath();
-    ctx.roundRect(20, 16, 280, 28, 6);
-    ctx.fill();
-    ctx.strokeStyle = '#facc15';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = '#fef08a';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'left';
-    const actLabel = t < 4.8 ? 'BABAK 1: GERBANG TPU TERTUTUP 🔒' : 'BABAK 2: KOS-KOSAN LIANG LAHAT ☕';
-    ctx.fillText(actLabel, 30, 35);
-
-    const progress = Math.min(1, t / endingCutscene.duration);
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-    ctx.fillRect(0, V_HEIGHT - 6, V_WIDTH, 6);
-    ctx.fillStyle = '#facc15';
-    ctx.fillRect(0, V_HEIGHT - 6, V_WIDTH * progress, 6);
-    ctx.restore();
-  }
-
-  function drawEndingAct1(ctx, t) {
-    ctx.fillStyle = '#090d16';
-    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
-    ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.arc(V_WIDTH - 100, 80, 36, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1c1917';
-    ctx.fillRect(0, GROUND_Y, V_WIDTH, V_HEIGHT - GROUND_Y);
-
-    drawNisan(ctx, 620, GROUND_Y);
-    drawNisan(ctx, 740, GROUND_Y);
-    drawNisan(ctx, 860, GROUND_Y);
-
-    ctx.save();
-    ctx.translate(500, GROUND_Y);
-    drawStonePillar(ctx, -20);
-    drawStonePillar(ctx, 20);
-    drawIronGateDoor(ctx, true);
-    ctx.fillStyle = '#334155'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(-45, -145, 90, 26, 5); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('GERBANG TPU', 0, -128);
-    ctx.restore();
-
-    const pociX = 660 + Math.sin(t * 3) * 10;
-    drawCutscenePociman(ctx, pociX, GROUND_Y - 80, t);
-    drawSpeechBubble(ctx, pociX - 20, GROUND_Y - 105, "DADAH WARGA! KETEMU TAHUN DEPAN! 👋😝");
-
-    drawAct1Villagers(ctx, t);
-  }
-
-  function drawAct1Villagers(ctx, t) {
-    ctx.save();
-    ctx.translate(220, GROUND_Y);
-    drawPakRT(ctx, 0, 0, 0.4);
-    ctx.restore();
-    drawSpeechBubble(ctx, 220, GROUND_Y - 118, "ENCOK GUA KAMBUH! 👴💦");
-
-    ctx.save();
-    ctx.translate(330, GROUND_Y);
-    drawPemuda(ctx, 0, 0, 1.2);
-    ctx.restore();
-    drawSpeechBubble(ctx, 330, GROUND_Y - 118, "KUNCI GERBANG KETINGGALAN! 🔑😭");
-
-    ctx.save();
-    ctx.translate(430, GROUND_Y);
-    drawEmak(ctx, 0, 0, 2.0);
-    ctx.restore();
-    drawSpeechBubble(ctx, 430, GROUND_Y - 118, "PANCI GUA GOSONG MAK! 🍳😩");
-  }
-
-  function drawCutscenePociman(ctx, x, y, t) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(-16, 0, 32, 70, [14, 14, 10, 10]);
-    ctx.fill(); ctx.stroke();
-
-    ctx.beginPath(); ctx.arc(0, -5, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath(); ctx.arc(-6, 20, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(6, 20, 3.5, 0, Math.PI * 2); ctx.fill();
-
-    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 27, 5, 0, Math.PI); ctx.stroke();
-
-    const wave = Math.sin(t * 8) * 0.4;
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(14, 25); ctx.lineTo(26, 12 + wave * 10); ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawEndingAct2(ctx, t) {
-    ctx.fillStyle = '#1c110a';
-    ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
-    ctx.fillStyle = '#2e190e';
-    ctx.fillRect(0, 0, V_WIDTH, 45);
-    ctx.fillStyle = '#15803d';
-    ctx.fillRect(0, 0, V_WIDTH, 10);
-
-    ctx.fillStyle = '#78350f';
-    ctx.strokeStyle = '#451a03';
-    ctx.lineWidth = 2.5;
-    ctx.fillRect(60, 60, 320, 36);
-    ctx.strokeRect(60, 60, 320, 36);
-    ctx.fillStyle = '#fef08a';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🪦 KOS-KOSAN LIANG LAHAT #01 (VIP)', 220, 83);
-
-    const sway = Math.sin(t * 2.5) * 6;
-    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(480 + sway, 110); ctx.stroke();
-
-    const glow = ctx.createRadialGradient(480 + sway, 125, 4, 480 + sway, 125, 90);
-    glow.addColorStop(0, 'rgba(250, 204, 21, 0.45)');
-    glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-    ctx.fillStyle = glow;
-    ctx.beginPath(); ctx.arc(480 + sway, 125, 90, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillRect(470 + sway, 110, 20, 24);
-
-    drawAct2Characters(ctx, t);
-  }
-
-  function drawAct2Characters(ctx, t) {
-    ctx.fillStyle = '#b45309'; ctx.fillRect(180, 380, 280, 24);
-    ctx.fillStyle = '#f8fafc'; ctx.fillRect(200, 360, 240, 20);
-
-    ctx.save();
-    ctx.translate(260, 345);
-    ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.roundRect(0, -18, 90, 28, [12, 12, 8, 8]); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(14, -14, 24, 7);
-    ctx.fillStyle = '#b45309'; ctx.fillRect(80, -22, 16, 22);
-    ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(88, -26); ctx.lineTo(94, -32); ctx.stroke();
-    ctx.restore();
-
-    const kuntiFloat = Math.sin(t * 3) * 8;
-    ctx.save();
-    ctx.translate(620, 290 + kuntiFloat);
-    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-24, 85); ctx.lineTo(24, 85); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(-14, -20, 28, 65);
-    ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(0, -6, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#78350f'; ctx.fillRect(-45, 20, 42, 6);
-    ctx.fillStyle = '#eab308'; ctx.fillRect(-38, 14, 28, 6);
-    ctx.restore();
-
-    drawSpeechBubble(ctx, 160, 260, "Alhamdulillah, bobo nyenyak tanpa digebuk warga! 😴✨");
-    drawSpeechBubble(ctx, 480, 210, "Monggo Mas Poci, es teh manis & pisang goreng angetnya~ ☕🍌");
-  }
-
   function downloadCertificatePng() {
     const certCanvas = document.createElement('canvas');
     certCanvas.width = 960;
@@ -2925,7 +2926,7 @@
     link.download = 'sertifikat-bebas-warga-pociman.png';
     link.href = certCanvas.toDataURL('image/png');
     link.click();
-    showToast('📜 Piagam berhasil diunduh ke galeri!');
+    showToast('Piagam tersimpan sebagai gambar PNG');
   }
 
   function renderCertificateCanvas(ctx, w, h) {
@@ -2972,12 +2973,13 @@
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = '900 32px sans-serif';
-    ctx.fillText('POCIMAN JAWARA', w / 2, 230);
+    const holder = honorPlayerName ? honorPlayerName.value.trim().slice(0, 25) : '';
+    ctx.fillText((holder || 'POCIMAN JAWARA').toUpperCase(), w / 2, 230);
 
     ctx.fillStyle = '#cbd5e1';
     ctx.font = '15px sans-serif';
-    ctx.fillText('Atas kelincahan spektakuler menamatkan seluruh 10 Stage tanpa ampun,', w / 2, 275);
-    ctx.fillText('berhasil lolos dari kejaran Hansip, amukan daster emak-emak, dan timbukan sandal jepit!', w / 2, 302);
+    ctx.fillText('Atas kelincahan menamatkan seluruh 10 Stage tanpa ampun,', w / 2, 275);
+    ctx.fillText('berhasil lolos dari kejaran Hansip, amukan daster emak-emak, dan timpukan sandal jepit!', w / 2, 302);
 
     ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
     ctx.strokeStyle = '#eab308';
@@ -3016,7 +3018,7 @@
     const distText = Math.floor(distance) + 'm';
     const rankText = winRankEl ? winRankEl.textContent : 'Pociman Sakti ⚡';
     const msg = `👑 ALHAMDULILLAH GUE BERHASIL NAMATIN GAME POCIMAN (10/10 STAGE)! 🏆\n\n` +
-      `Lolos dari kepungan warga kampung, kejaran hansip, dan timbukan daster emak!\n` +
+      `Lolos dari kepungan warga kampung, kejaran hansip, dan timpukan daster emak!\n` +
       `📊 Jarak Lolos: ${distText}\n` +
       `🤕 Total Benjol: ${totalBumps}x\n` +
       `🎖️ Gelar: ${rankText}\n\n` +
@@ -3027,46 +3029,83 @@
   }
 
   function drawCatHead(ctx, hx, hy, isAngry) {
-    ctx.fillStyle = isAngry ? '#ea580c' : '#f97316';
-    ctx.beginPath(); ctx.arc(hx, hy, 8.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
 
+    // Ears (Triangles with inner pink/red)
     ctx.fillStyle = isAngry ? '#b91c1c' : '#ea580c';
     ctx.beginPath();
     if (isAngry) {
-      ctx.moveTo(hx - 7, hy - 4); ctx.lineTo(hx - 14, hy - 8); ctx.lineTo(hx - 2, hy - 7);
-      ctx.moveTo(hx, hy - 7); ctx.lineTo(hx + 8, hy - 14); ctx.lineTo(hx + 7, hy - 4);
+      ctx.moveTo(hx - 6, hy - 3); ctx.lineTo(hx - 13, hy - 9); ctx.lineTo(hx - 1, hy - 7);
+      ctx.moveTo(hx + 1, hy - 7); ctx.lineTo(hx + 8, hy - 14); ctx.lineTo(hx + 7, hy - 3);
     } else {
-      ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx - 2, hy - 14); ctx.lineTo(hx + 2, hy - 6);
-      ctx.moveTo(hx + 1, hy - 6); ctx.lineTo(hx + 6, hy - 13); ctx.lineTo(hx + 8, hy - 5);
+      ctx.moveTo(hx - 6, hy - 5); ctx.lineTo(hx - 3, hy - 14); ctx.lineTo(hx + 1, hy - 5);
+      ctx.moveTo(hx + 2, hy - 5); ctx.lineTo(hx + 7, hy - 13); ctx.lineTo(hx + 8, hy - 3);
     }
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Inner ear
+    ctx.fillStyle = isAngry ? '#7f1d1d' : '#fbcfe8';
+    ctx.beginPath();
+    ctx.moveTo(hx - 4, hy - 5); ctx.lineTo(hx - 2, hy - 11); ctx.lineTo(hx, hy - 5);
+    ctx.moveTo(hx + 3, hy - 5); ctx.lineTo(hx + 6, hy - 11); ctx.lineTo(hx + 7, hy - 4);
     ctx.fill();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.ellipse(hx + 4, hy + 3, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = isAngry ? '#ef4444' : '#facc15';
-    ctx.beginPath(); ctx.arc(hx + 3, hy - 1, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(hx + 3.5, hy - 2.5, 1.2, 3);
+    // Head sphere with cartoon outline
+    ctx.fillStyle = isAngry ? '#ea580c' : '#f97316';
+    ctx.beginPath(); ctx.arc(hx, hy, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // Cute cream muzzle
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath(); ctx.ellipse(hx + 2, hy + 3, 4.5, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Nose
     ctx.fillStyle = '#f43f5e';
-    ctx.fillRect(hx + 6.5, hy + 2, 2, 1.5);
+    ctx.beginPath();
+    ctx.moveTo(hx + 3, hy + 1); ctx.lineTo(hx + 5, hy + 2.5); ctx.lineTo(hx + 2, hy + 2.5);
+    ctx.closePath(); ctx.fill();
+
+    // Whiskers
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(hx + 6, hy + 2); ctx.lineTo(hx + 12, hy + 0.5);
+    ctx.moveTo(hx + 6, hy + 3.5); ctx.lineTo(hx + 12, hy + 4.5);
+    ctx.moveTo(hx - 2, hy + 2); ctx.lineTo(hx - 8, hy + 1);
+    ctx.moveTo(hx - 2, hy + 3.5); ctx.lineTo(hx - 8, hy + 4.5);
+    ctx.stroke();
+
+    // Expressive cartoon eye with catchlight
+    ctx.fillStyle = isAngry ? '#ef4444' : '#facc15';
+    ctx.beginPath(); ctx.arc(hx + 2.5, hy - 2, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath(); ctx.ellipse(hx + 3, hy - 2, isAngry ? 0.8 : 1.2, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(hx + 2, hy - 3, 1, 0, Math.PI * 2); ctx.fill();
 
     if (isAngry) {
-      ctx.strokeStyle = '#7f1d1d'; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#7f1d1d'; ctx.lineWidth = 2.0;
       ctx.beginPath();
-      ctx.moveTo(hx + 1, hy - 5); ctx.lineTo(hx + 6, hy - 3);
+      ctx.moveTo(hx - 2, hy - 6); ctx.lineTo(hx + 6, hy - 4);
       ctx.stroke();
     }
   }
 
   function drawCatBody(ctx, obs, isAngry, isRunning, legPhase, tailWiggle, anim) {
-    ctx.fillStyle = '#ea580c';
-    ctx.fillRect(6 + legPhase, obs.h - 6, 5, 6);
-    ctx.fillRect(obs.w - 12 - legPhase, obs.h - 6, 5, 6);
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
 
+    // Legs with cartoon outline
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath(); ctx.roundRect(6 + legPhase, obs.h - 6, 5.5, 6, [0, 0, 2, 2]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(obs.w - 12 - legPhase, obs.h - 6, 5.5, 6, [0, 0, 2, 2]); ctx.fill(); ctx.stroke();
+
+    // Torso with cartoon outline
     ctx.fillStyle = isAngry ? '#ea580c' : '#f97316';
     ctx.beginPath();
     ctx.ellipse(obs.w * 0.45, obs.h * 0.55, obs.w * 0.38, obs.h * 0.32, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fill(); ctx.stroke();
 
     if (isAngry) {
       ctx.fillStyle = '#c2410c';
@@ -3076,18 +3115,20 @@
         ctx.moveTo(sx - 3, obs.h * 0.28);
         ctx.lineTo(sx, obs.h * 0.05 + (s % 2) * 4);
         ctx.lineTo(sx + 3, obs.h * 0.28);
-        ctx.fill();
+        ctx.fill(); ctx.stroke();
       }
     }
 
+    // Tabby Stripes
     ctx.strokeStyle = '#c2410c'; ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(obs.w * 0.35, obs.h * 0.3); ctx.lineTo(obs.w * 0.35, obs.h * 0.6);
-    ctx.moveTo(obs.w * 0.50, obs.h * 0.28); ctx.lineTo(obs.w * 0.50, obs.h * 0.58);
+    ctx.moveTo(obs.w * 0.35, obs.h * 0.32); ctx.lineTo(obs.w * 0.35, obs.h * 0.58);
+    ctx.moveTo(obs.w * 0.50, obs.h * 0.30); ctx.lineTo(obs.w * 0.50, obs.h * 0.56);
     ctx.stroke();
 
-    ctx.strokeStyle = isAngry ? '#b91c1c' : '#ea580c';
-    ctx.lineWidth = isAngry ? 3.5 : 3;
+    // Tail with cartoon outline
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = isAngry ? 4.0 : 3.4;
     ctx.beginPath();
     if (isAngry) {
       const rageVibe = Math.sin(anim * 40) * 3;
@@ -3135,6 +3176,7 @@
     ctx.quadraticCurveTo(-16, 12, -8, -4);
     ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#c084fc'; ctx.fillRect(-12, 19, 24, 3);
+    ctx.fillStyle = '#e879f9'; ctx.beginPath(); ctx.arc(0, 3, 2, 0, Math.PI * 2); ctx.fill();
 
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
@@ -3149,14 +3191,21 @@
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.ellipse(-4, -13, 2.5, 3.5, 0, 0, Math.PI * 2);
     ctx.ellipse(4, -13, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath(); ctx.ellipse(-4, -11.5, 1.8, 1.2, 0, 0, Math.PI);
+    ctx.ellipse(4, -11.5, 1.8, 1.2, 0, 0, Math.PI); ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-4.8, -14.5, 1.2, 0, Math.PI * 2);
-    ctx.arc(3.2, -14.5, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.arc(3.2, -14.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(-3.5, -12, 0.7, 0, Math.PI * 2);
+    ctx.arc(4.5, -12, 0.7, 0, Math.PI * 2); ctx.fill();
 
     ctx.fillStyle = '#f472b6';
     ctx.beginPath(); ctx.arc(-6, -9, 2.2, 0, Math.PI * 2); ctx.arc(6, -9, 2.2, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.arc(0, -8, 2.5, 0.2, Math.PI - 0.2); ctx.stroke();
+
+    drawKuntiFlower(ctx, 7, -18, 4.5);
   }
 
   function drawKuntiPickup(ctx, x, y, bob) {
@@ -3190,24 +3239,29 @@
     ctx.lineWidth = 2.2;
     ctx.fillStyle = '#f8fafc';
 
-    // Cute chubby bell dress
-    ctx.beginPath();
-    ctx.moveTo(-12, -10); ctx.lineTo(12, -10);
+    // Cute chubby bell dress with scalloped ripples
     const wave1 = Math.sin(anim * 5) * 4;
     const wave2 = Math.cos(anim * 6) * 4;
+    ctx.beginPath();
+    ctx.moveTo(-12, -10); ctx.lineTo(12, -10);
     ctx.quadraticCurveTo(20 + wave1, 8, 18 + wave1, 26);
-    ctx.lineTo(-18 + wave2, 26);
+    ctx.quadraticCurveTo(9, 29, 0, 26);
+    ctx.quadraticCurveTo(-9, 29, -18 + wave2, 26);
     ctx.quadraticCurveTo(-20 + wave2, 8, -12, -10);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
 
-    // Lilac sash & hem trim
+    // Lilac sash & pastel ribbon bow
     ctx.fillStyle = '#c084fc';
     ctx.fillRect(-17 + wave2, 22, 35, 4);
     ctx.fillRect(-10, -3, 20, 3.5);
+    ctx.fillStyle = '#e879f9';
+    ctx.beginPath(); ctx.arc(0, -1.2, 2.5, 0, Math.PI * 2); ctx.fill();
 
-    // Chubby sleeves
+    // Chubby sleeves / waving ghost hands
     ctx.fillStyle = '#fef3c7';
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.roundRect(8, -5, 14, 6, 3);
     ctx.roundRect(-18, -8, 12, 6, 3);
@@ -3223,27 +3277,56 @@
     ctx.lineTo(-6, 12); ctx.lineTo(2, -12);
     ctx.closePath(); ctx.fill();
 
-    // Giant round chibi head matching Pociman 1:1
+    // Giant round porcelain chibi head matching Pociman 1:1
     ctx.fillStyle = '#fef3c7';
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
     ctx.beginPath(); ctx.arc(0, -26, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Big shiny chibi anime eyes
+    // Cute bangs across forehead
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
-    ctx.ellipse(-6, -26, 3.5, 5, 0, 0, Math.PI * 2);
-    ctx.ellipse(6, -26, 3.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.moveTo(-16, -34);
+    ctx.quadraticCurveTo(-8, -28, 0, -34);
+    ctx.quadraticCurveTo(8, -28, 16, -34);
+    ctx.quadraticCurveTo(8, -42, 0, -44);
+    ctx.quadraticCurveTo(-8, -42, -16, -34);
+    ctx.closePath(); ctx.fill();
+
+    // Big shiny anime chibi eyes with double catchlights
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.ellipse(-6, -26, 3.8, 5.2, 0, 0, Math.PI * 2);
+    ctx.ellipse(6, -26, 3.8, 5.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.ellipse(-6, -23.5, 2.6, 2.0, 0, 0, Math.PI);
+    ctx.ellipse(6, -23.5, 2.6, 2.0, 0, 0, Math.PI);
+    ctx.fill();
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(-7, -28, 1.8, 0, Math.PI * 2); ctx.arc(5, -28, 1.8, 0, Math.PI * 2);
-    ctx.arc(-5.2, -24, 1, 0, Math.PI * 2); ctx.arc(6.8, -24, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.arc(-7, -28.2, 1.8, 0, Math.PI * 2);
+    ctx.arc(5, -28.2, 1.8, 0, Math.PI * 2);
+    ctx.arc(-4.8, -24.2, 1.0, 0, Math.PI * 2);
+    ctx.arc(7.2, -24.2, 1.0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Rosy blushing cheeks & smile
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.65)';
-    ctx.beginPath(); ctx.arc(-10, -20, 3.5, 0, Math.PI * 2); ctx.arc(10, -20, 3.5, 0, Math.PI * 2); ctx.fill();
+    // Subtle eyelashes
+    ctx.strokeStyle = '#1e1b18'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(-10, -30); ctx.lineTo(-11, -33);
+    ctx.moveTo(10, -30); ctx.lineTo(11, -33);
+    ctx.stroke();
+
+    // Rosy blushing cheeks & sweet red smile
+    ctx.fillStyle = 'rgba(244, 114, 182, 0.75)';
+    ctx.beginPath(); ctx.arc(-11, -20, 3.8, 0, Math.PI * 2); ctx.arc(11, -20, 3.8, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.8;
-    ctx.beginPath(); ctx.arc(0, -18, 4, 0.1, Math.PI - 0.1); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -18, 4.2, 0.1, Math.PI - 0.1); ctx.stroke();
+
+    // Flower pin in hair
+    drawKuntiFlower(ctx, 13, -34, 6.5);
   }
 
   function drawKuntilanakRescue(ctx, p) {
@@ -3273,14 +3356,16 @@
   }
 
   function drawAyamBody(ctx, obs, isFlying, anim) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
+
     const legPhase = isFlying ? Math.sin(anim * 24) * 4 : Math.sin(anim * 8) * 1.5;
-    ctx.strokeStyle = '#eab308';
-    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(16, 22); ctx.lineTo(14 + legPhase, 30);
     ctx.moveTo(22, 22); ctx.lineTo(24 - legPhase, 30);
     ctx.stroke();
 
+    // Tail feathers with cartoon outline
     ctx.fillStyle = '#ea580c';
     ctx.beginPath();
     ctx.moveTo(26, 16);
@@ -3289,12 +3374,13 @@
     ctx.moveTo(28, 18);
     ctx.quadraticCurveTo(38, 18, 36, 10);
     ctx.quadraticCurveTo(30, 14, 26, 18);
-    ctx.fill();
+    ctx.fill(); ctx.stroke();
 
+    // Plump body with cartoon outline
     ctx.fillStyle = '#fef08a';
     ctx.beginPath();
     ctx.ellipse(19, 18, 12, 9, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#f59e0b';
     ctx.beginPath();
@@ -3308,7 +3394,7 @@
     ctx.fillStyle = '#f97316';
     ctx.beginPath();
     ctx.ellipse(0, 0, 8, 5, -0.2, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#ea580c';
     ctx.beginPath();
     ctx.ellipse(2, 1, 6, 3, -0.2, 0, Math.PI * 2);
@@ -3317,13 +3403,15 @@
   }
 
   function drawAyamHead(ctx, obs, isFlying, anim) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
     const bob = isFlying ? Math.sin(anim * 26) * 2 : Math.sin(anim * 6) * 1.2;
     const hx = 10, hy = 11 + bob;
 
     ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx, hy, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Chicken red comb (taller fiery comb if high flyer)
+    // Chicken red comb with outline
     ctx.fillStyle = '#ef4444';
     ctx.beginPath();
     ctx.arc(hx - 2, hy - 7, 2.8, 0, Math.PI * 2);
@@ -3333,19 +3421,21 @@
       ctx.arc(hx + 0.5, hy - 11.5, 3.5, 0, Math.PI * 2);
       ctx.arc(hx + 4, hy - 10, 3.2, 0, Math.PI * 2);
     }
-    ctx.fill();
+    ctx.fill(); ctx.stroke();
 
-    // Beak & wattle
+    // Beak & wattle with outline
     ctx.fillStyle = '#f59e0b';
-    ctx.beginPath(); ctx.moveTo(hx - 5, hy - 2); ctx.lineTo(hx - 12, hy + 1); ctx.lineTo(hx - 5, hy + 3.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(hx - 5, hy - 2); ctx.lineTo(hx - 12, hy + 1); ctx.lineTo(hx - 5, hy + 3.5); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#ef4444';
-    ctx.beginPath(); ctx.arc(hx - 4, hy + 5.5, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - 4, hy + 5.5, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Eyes & sweat drop
+    // Expressive cartoon eye with catchlight
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(hx - 2, hy - 1, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - 2, hy - 1, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#0f172a';
-    ctx.beginPath(); ctx.arc(hx - 2.5, hy - 1, isFlying ? 1.2 : 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - 2.5, hy - 1, isFlying ? 1.4 : 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(hx - 3, hy - 2, 1, 0, Math.PI * 2); ctx.fill();
 
     if (isFlying) {
       ctx.fillStyle = obs.isHighFly ? '#f43f5e' : '#38bdf8';
@@ -3638,12 +3728,12 @@
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
+    syncStateClock();
+
     if (gameState === STATE.PLAYING) {
       update(dt);
     } else if (gameState === STATE.BUSTED) {
       updateBustedCutscene(dt);
-    } else if (gameState === STATE.ENDING_CUTSCENE) {
-      updateEndingCutscene(dt);
     }
     draw();
 
@@ -3651,38 +3741,58 @@
   }
 
   // --- Input Handlers ---
+  function isSideModalOpen() {
+    return !creditsScreen.classList.contains('hidden') || !wallOfHonorModal.classList.contains('hidden');
+  }
+
+  // Tombol lompat cuma boleh melewati layar hasil setelah jeda singkat,
+  // supaya spam spasi di detik terakhir tidak melompati layar kalah/menang.
+  function syncStateClock() {
+    if (gameState === lastLoopState) return;
+    lastLoopState = gameState;
+    stateSince = performance.now();
+  }
+
   function handleJumpAction() {
-    if (gameState === STATE.BUSTED) {
-      triggerGameOver();
-      return;
-    }
-    if (gameState === STATE.ENDING_CUTSCENE) {
-      showVictoryScreen();
-      return;
-    }
     if (gameState === STATE.PLAYING) {
       player.jump();
-    } else if (gameState === STATE.MENU || gameState === STATE.GAMEOVER) {
+      return;
+    }
+    syncStateClock();
+    if (performance.now() - stateSince < INPUT_LOCK_MS || isSideModalOpen()) return;
+    if (gameState === STATE.BUSTED) {
+      triggerGameOver();
+    } else if (gameState === STATE.MENU) {
+      startStage(highestStage);
+    } else if (gameState === STATE.GAMEOVER) {
       startStage(stage);
     } else if (gameState === STATE.STAGECLEAR) {
       startStage(Math.min(TOTAL_STAGES, stage + 1));
-    } else if (gameState === STATE.VICTORY) {
-      startStage(1);
     }
   }
 
   window.addEventListener('keydown', (e) => {
+    const target = e.target;
+    if (target && target.closest && target.closest('input, textarea')) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      if (gameState !== STATE.PLAYING && target && target.closest && target.closest('button')) return;
       e.preventDefault();
-      handleJumpAction();
-    } else if (e.code === 'KeyP') {
+      if (!e.repeat) handleJumpAction();
+    } else if (e.code === 'Escape' && isSideModalOpen()) {
+      creditsScreen.classList.add('hidden');
+      wallOfHonorModal.classList.add('hidden');
+    } else if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat) {
       togglePause();
     }
   });
 
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameState === STATE.PLAYING) togglePause();
+  });
+
   const gameContainer = document.getElementById('game-container');
   gameContainer.addEventListener('pointerdown', (e) => {
-    if ((gameState !== STATE.PLAYING && gameState !== STATE.BUSTED && gameState !== STATE.ENDING_CUTSCENE) || e.target.closest('button') || e.target.closest('.modal-card')) return;
+    if ((gameState !== STATE.PLAYING && gameState !== STATE.BUSTED) || e.target.closest('button') || e.target.closest('.modal-card')) return;
     e.preventDefault();
     window.soundManager.init();
     handleJumpAction();
@@ -3705,14 +3815,29 @@
       h = availH;
       w = h * targetRatio;
     }
-    if (!isFull && w > 960) {
-      w = 960;
-      h = 540;
+    // Layar besar: tata letak tetap 960x540, lalu diperbesar dengan zoom supaya HUD ikut membesar.
+    let zoom = 1;
+    if (w > V_WIDTH) {
+      zoom = Math.min(w / V_WIDTH, 2.5);
+      w = V_WIDTH;
+      h = V_HEIGHT;
     }
+    gameContainer.style.zoom = zoom;
     gameContainer.style.width = Math.floor(w) + 'px';
     gameContainer.style.height = Math.floor(h) + 'px';
     gameContainer.style.marginLeft = 'auto';
     gameContainer.style.marginRight = 'auto';
+    fitCanvasResolution(w * zoom);
+  }
+
+  function fitCanvasResolution(cssWidth) {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const cap = isTouch ? 1.5 : 2;
+    const next = Math.min(cap, Math.max(1, (cssWidth * (window.devicePixelRatio || 1)) / V_WIDTH));
+    if (Math.abs(next - renderScale) < 0.05) return;
+    renderScale = next;
+    canvas.width = Math.round(V_WIDTH * renderScale);
+    canvas.height = Math.round(V_HEIGHT * renderScale);
   }
 
   function bindBtn(el, handler) {
@@ -3724,6 +3849,9 @@
       last = now;
       if (window.soundManager && window.soundManager.init) {
         window.soundManager.init();
+      }
+      if (window.soundManager && window.soundManager.playUiClick) {
+        window.soundManager.playUiClick();
       }
       handler(e);
     };
@@ -3773,7 +3901,7 @@
 
   async function toggleFullscreen() {
     if (!isFsSupported) {
-      showToast('📱 Layar otomatis menyesuaikan ke ukuran HP!');
+      showToast('Browser ini tidak mendukung layar penuh. Layar sudah menyesuaikan otomatis.');
       return;
     }
     try {
@@ -3793,7 +3921,7 @@
         if (screen.orientation && screen.orientation.lock) {
           screen.orientation.lock('landscape').catch(() => {});
         }
-        showToast('⛶ Layar Penuh Aktif');
+        showToast('Layar penuh aktif');
       } else {
         if (doc.exitFullscreen) {
           await doc.exitFullscreen();
@@ -3804,7 +3932,7 @@
         } else if (doc.msExitFullscreen) {
           await doc.msExitFullscreen();
         }
-        showToast('✖ Mode Layar Biasa');
+        showToast('Kembali ke layar biasa');
       }
     } catch (e) {
       console.warn('Fullscreen toggle:', e);
@@ -3820,7 +3948,7 @@
     highestStage = 1;
     try { localStorage.setItem('pociman_highest_stage', 1); } catch (e) {}
     updateStartScreenUI();
-    showToast('🔄 Progress stage berhasil direset ke Stage 1!');
+    showToast('Progress direset. Mulai lagi dari Stage 1');
   }
 
   function escapeHtml(str) {
@@ -3837,7 +3965,7 @@
     if (!honorListContainer) return;
     const cleanList = (Array.isArray(list) ? list : []).filter(entry => !isDevName(entry.name));
     if (cleanList.length === 0) {
-      honorListContainer.innerHTML = '<div class="honor-empty">Belum ada jawara. Jadilah yang pertama! 🏆</div>';
+      honorListContainer.innerHTML = '<div class="honor-empty">Belum ada nama di sini. Tamatkan 10 stage dan jadi yang pertama.</div>';
       return;
     }
     let html = '';
@@ -3862,7 +3990,7 @@
 
   async function fetchWallOfHonor() {
     if (!honorListContainer) return;
-    honorListContainer.innerHTML = '<div class="honor-loading">Memuat daftar jawara... ⏳</div>';
+    honorListContainer.innerHTML = '<div class="honor-loading">Memuat daftar...</div>';
     try {
       const res = await fetch('/api/honor');
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -3911,7 +4039,7 @@
       return;
     }
     submitHonorBtn.disabled = true;
-    submitHonorBtn.textContent = 'MENGIRIM... ⏳';
+    submitHonorBtn.textContent = 'MENGIRIM...';
 
     const payload = {
       name: name,
@@ -3928,8 +4056,8 @@
       });
       const data = await res.json();
       if (data && data.success) {
-        showHonorFeedback('Selamat! Namamu berhasil masuk Wall of Honor! 🏆', 'success');
-        submitHonorBtn.textContent = 'TERDAFTAR ✓';
+        showHonorFeedback('Namamu sudah masuk Wall of Honor.', 'success');
+        submitHonorBtn.textContent = 'SUDAH TERCATAT';
         if (data.list) renderWallOfHonor(data.list);
         setTimeout(openWallOfHonorModal, 1100);
       } else {
@@ -3937,8 +4065,8 @@
       }
     } catch (err) {
       saveHonorLocally(payload);
-      showHonorFeedback('Tersimpan di Wall of Honor lokal! 🏆', 'success');
-      submitHonorBtn.textContent = 'TERDAFTAR LOKAL ✓';
+      showHonorFeedback('Server tidak terjangkau. Namamu disimpan di perangkat ini saja.', 'success');
+      submitHonorBtn.textContent = 'TERSIMPAN DI HP INI';
       setTimeout(openWallOfHonorModal, 1100);
     }
   }
@@ -3974,6 +4102,7 @@
 
   bindBtn(creditsBtn, openGuideModal);
   bindBtn(closeCreditsBtn, () => creditsScreen.classList.add('hidden'));
+  bindBtn(closeCreditsIconBtn, () => creditsScreen.classList.add('hidden'));
   bindBtn(tabGuideBtn, () => switchGuideTab('guide'));
   bindBtn(tabCreditsBtn, () => switchGuideTab('credits'));
 
@@ -3983,9 +4112,17 @@
   bindBtn(resetStage1Btn, () => startStage(1));
   bindBtn(winPlayAgainBtn, () => startStage(1));
   bindBtn(skipCutsceneBtn, showVictoryScreen);
+  bindBtn(unmuteVideoBtn, () => {
+    if (endingVideo) {
+      endingVideo.muted = false;
+      if (unmuteVideoBtn) unmuteVideoBtn.classList.add('hidden');
+    }
+  });
   bindBtn(shareWaBtn, shareToWhatsApp);
   bindBtn(downloadCertBtn, downloadCertificatePng);
   bindBtn(replayEndingBtn, startEndingCutscene);
+  const previewEndingVideoBtn = document.getElementById('previewEndingVideoBtn');
+  bindBtn(previewEndingVideoBtn, startEndingCutscene);
   bindBtn(resumeBtn, togglePause);
   bindBtn(pauseBtn, togglePause);
 
@@ -4010,7 +4147,7 @@
   function updateFullscreenUI() {
     const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
     if (fullscreenBtn) fullscreenBtn.textContent = isFull ? '✖' : '⛶';
-    if (startFullscreenBtn) startFullscreenBtn.textContent = isFull ? '✖ Layar Biasa' : '⛶ Layar Penuh';
+    if (startFullscreenBtn) startFullscreenBtn.textContent = isFull ? 'Keluar Layar Penuh' : 'Layar Penuh';
   }
 
   document.addEventListener('fullscreenchange', () => {
@@ -4034,7 +4171,7 @@
   const unlockAudioAndPlayMenu = () => {
     if (window.soundManager) {
       window.soundManager.init();
-      if (gameState === STATE.START && !window.soundManager.currentBgm) {
+      if (gameState === STATE.MENU && !window.soundManager.currentBgm) {
         window.soundManager.playMenuBgm();
       }
     }
@@ -4045,24 +4182,30 @@
 
   function updateStartScreenUI() {
     if (!startBtn) return;
+    const secondary = document.querySelector('.start-secondary-btn-group');
     if (highestStage > 1 && highestStage <= TOTAL_STAGES) {
-      startBtn.textContent = `LANJUTKAN (STAGE ${highestStage}) 🏃💨`;
+      startBtn.textContent = `LANJUT DARI STAGE ${highestStage}`;
       if (startResetStageBtn) startResetStageBtn.style.display = 'inline-flex';
+      if (secondary) secondary.classList.remove('single');
     } else {
-      startBtn.textContent = 'KABUR SEKARANG! 🏃💨';
+      startBtn.textContent = 'KABUR SEKARANG';
       if (startResetStageBtn) startResetStageBtn.style.display = 'none';
+      if (secondary) secondary.classList.add('single');
     }
   }
 
   // Init
   if (!isFsSupported) {
-    if (startFullscreenBtn) startFullscreenBtn.textContent = '📱 Layar Otomatis Pas';
+    if (startFullscreenBtn) startFullscreenBtn.textContent = 'Layar Otomatis Pas';
     if (fullscreenBtn) fullscreenBtn.style.display = 'none';
   }
+  soundBtn.textContent = window.soundManager.isMuted ? '🔇' : '🔊';
   initVillageScenery();
   updateStartScreenUI();
   fitGameToScreen();
   updateHUD();
+  window.triggerEndingCutscene = startEndingCutscene;
+  window.testEndingVideo = startEndingCutscene;
   requestAnimationFrame(gameLoop);
 
 })();

@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Pociman: Kabur dari Warga</title>
-  <link rel="stylesheet" href="style.css?v=2.9.12" />
+  <link rel="stylesheet" href="style.css?v=3.0.0" />
 </head>
 <body>
   <div id="game-container">
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
+    <canvas id="gameCanvas" width="960" height="540" role="img" aria-label="Area permainan Pociman"></canvas>
 
     <!-- In-Game Throw Warning Overlay -->
     <div id="throwWarning" class="throw-warning hidden">
@@ -48,9 +48,9 @@
           <!-- 1. Meter Progres Menuju Gerbang TPU (Kondisi LOLOS) -->
           <div class="meter-row tpu-row">
             <div class="meter-labels">
-              <span class="meter-start">🏃 AWAL</span>
-              <span class="meter-title">MENUJU TPU: <strong id="stageTimeVal">45s</strong></span>
-              <span class="meter-finish">🪦 MASUK TPU (LOLOS!)</span>
+              <span class="meter-start">AWAL</span>
+              <span class="meter-title">MENUJU TPU <strong id="stageTimeVal">60s</strong></span>
+              <span class="meter-finish">GERBANG TPU</span>
             </div>
             <div class="progress-track tpu-track">
               <div id="tpuBar" class="progress-fill tpu-fill" style="width: 0%;"></div>
@@ -61,9 +61,9 @@
           <!-- 2. Meter Kejaran Warga (Kondisi TERTANGKAP) -->
           <div class="meter-row chase-row">
             <div class="meter-labels">
-              <span class="meter-danger" id="dangerLabel">🔥 TERTANGKAP!</span>
-              <span class="meter-sub">JARAK KEJARAN WARGA</span>
-              <span class="meter-safe">🛡️ JARAK AMAN</span>
+              <span class="meter-danger">TERTANGKAP</span>
+              <span class="meter-sub" id="dangerLabel">Aman</span>
+              <span class="meter-safe">AMAN</span>
             </div>
             <div class="progress-track danger-track">
               <div id="escapeBar" class="progress-fill danger-fill" style="width: 50%;"></div>
@@ -75,46 +75,46 @@
 
       <!-- Right: Fullscreen, Sound & Pause -->
       <div class="hud-right">
-        <button id="fullscreenBtn" class="ui-btn-icon" title="Layar Penuh / Fullscreen">⛶</button>
-        <button id="soundBtn" class="ui-btn-icon" title="Toggle Suara">🔊</button>
-        <button id="pauseBtn" class="ui-btn-icon" title="Jeda Game">⏸</button>
+        <button id="fullscreenBtn" class="ui-btn-icon" title="Layar penuh" aria-label="Layar penuh">⛶</button>
+        <button id="soundBtn" class="ui-btn-icon" title="Suara nyala atau mati" aria-label="Suara nyala atau mati">🔊</button>
+        <button id="pauseBtn" class="ui-btn-icon" title="Jeda (P atau Esc)" aria-label="Jeda">⏸</button>
       </div>
     </div>
 
     <!-- Start / Title Screen Modal -->
     <div id="startScreen" class="modal-screen">
       <div class="modal-card start-card">
-        <div class="tagline">PETUALANGAN KOCAK SI POCONG LUCU</div>
+        <div class="tagline">KEJAR-KEJARAN POCONG VS WARGA RONDA</div>
         <h1 class="game-title">POCIMAN</h1>
         <p class="story-desc">
-          Kabur dari kejaran warga kampung sampai masuk gerbang TPU!
+          Lari, lompat, dan jangan sampai disusul warga. Garis finisnya gerbang TPU.
         </p>
 
         <div class="quick-controls-box">
           <div class="quick-ctrl-item">
-            <span class="ctrl-tag">📱 HP / Tablet</span>
-            <span class="ctrl-desc">Sentuh layar (<kbd>2x Tap</kbd> Double Jump)</span>
+            <span class="ctrl-tag">HP / Tablet</span>
+            <span class="ctrl-desc">Tap layar untuk lompat, tap lagi di udara untuk <kbd>Double Jump</kbd></span>
           </div>
           <div class="quick-ctrl-item">
-            <span class="ctrl-tag">💻 Laptop / PC</span>
-            <span class="ctrl-desc">Klik Mouse atau tekan <kbd>SPASI</kbd></span>
+            <span class="ctrl-tag">Laptop / PC</span>
+            <span class="ctrl-desc">Klik mouse atau tekan <kbd>SPASI</kbd>, tekan lagi di udara untuk <kbd>Double Jump</kbd></span>
           </div>
         </div>
 
 
         <div class="start-hero-cta">
-          <button id="startBtn" class="btn-play btn-hero-start">KABUR SEKARANG! 🏃💨</button>
+          <button id="startBtn" class="btn-play btn-hero-start">KABUR SEKARANG</button>
         </div>
 
         <div class="start-secondary-btn-group">
-          <button id="startWallOfHonorBtn" class="btn-sub-action btn-honor-toggle" type="button">🏆 Wall of Honor</button>
-          <button id="startResetStageBtn" class="btn-sub-action btn-reset-stage" type="button">🔄 Ulang Dari Stage 1</button>
+          <button id="startWallOfHonorBtn" class="btn-sub-action btn-honor-toggle" type="button">Wall of Honor</button>
+          <button id="startResetStageBtn" class="btn-sub-action btn-reset-stage" type="button">Ulang dari Stage 1</button>
         </div>
 
         <div class="creator-credits-footer">
           <div class="start-utility-row">
-            <button id="startFullscreenBtn" class="btn-util-pill" type="button">⛶ Layar Penuh</button>
-            <button id="creditsBtn" class="btn-util-pill" type="button">ℹ️ Panduan &amp; Info</button>
+            <button id="startFullscreenBtn" class="btn-util-pill" type="button">Layar Penuh</button>
+            <button id="creditsBtn" class="btn-util-pill" type="button">Panduan &amp; Info</button>
           </div>
           <div class="credits-by">
             Karya: <strong>Anton Maulana</strong> &bull; <span>Kawan Kita Solusindo</span>
@@ -126,7 +126,7 @@
     <!-- Stage Clear Modal -->
     <div id="stageClearScreen" class="modal-screen hidden">
       <div class="modal-card win-card">
-        <div class="win-banner">ALHAMDULILLAH MASUK KUBURAN! 🪦</div>
+        <div class="win-banner">ALHAMDULILLAH MASUK KUBURAN</div>
         <h1 class="game-title win-title" id="stageClearTitle">STAGE 1 SELESAI!</h1>
         <p class="story-desc">
           Pociman berhasil masuk gerbang TPU! Gerbang terkunci dan warga takut masuk kuburan malam-malam.
@@ -135,7 +135,7 @@
         <div class="stats-summary">
           <div class="summary-item">
             <span class="summary-label">Waktu Tempuh</span>
-            <span id="stageClearTime" class="summary-value highlight">45s</span>
+            <span id="stageClearTime" class="summary-value highlight">60s</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Benjol Kepala</span>
@@ -148,8 +148,8 @@
         </div>
 
         <div class="btn-group">
-          <button id="nextStageBtn" class="btn-play">LANJUT STAGE BERIKUTNYA ⏩</button>
-          <button id="replayStageBtn" class="btn-secondary">ULANGI STAGE 🔄</button>
+          <button id="nextStageBtn" class="btn-play">LANJUT KE STAGE BERIKUTNYA</button>
+          <button id="replayStageBtn" class="btn-secondary">ULANGI STAGE</button>
         </div>
       </div>
     </div>
@@ -157,23 +157,24 @@
     <!-- Ending Cutscene Short Video Player -->
     <div id="endingVideoContainer" class="ending-video-container hidden">
       <video id="endingVideo" class="ending-video" playsinline preload="auto">
-        <source src="ending.mp4?v=2.9.1" type="video/mp4" />
-        <source src="ending.webm?v=2.9.1" type="video/webm" />
+        <source src="ending.mp4?v=3.2.0" type="video/mp4" />
+        <source src="ending.webm?v=3.2.0" type="video/webm" />
       </video>
+      <button id="unmuteVideoBtn" class="video-unmute-btn hidden" type="button">🔊 Ketuk untuk nyalakan suara</button>
     </div>
 
     <!-- Skip Cutscene Button for Ending Video -->
-    <button id="skipCutsceneBtn" class="skip-cutscene-btn hidden" type="button">LEWATI VIDEO AKHIR ⏩</button>
+    <button id="skipCutsceneBtn" class="skip-cutscene-btn hidden" type="button">LEWATI VIDEO</button>
 
     <!-- Victory Screen Modal (Game Complete - Stage 10 Certificate Payoff) -->
     <div id="victoryScreen" class="modal-screen hidden">
       <div class="modal-card win-card cert-card">
-        <div class="win-banner">👑 PIAGAM RESMI KELULUSAN TPU 👑</div>
+        <div class="win-banner">PIAGAM RESMI KELULUSAN TPU</div>
         <div class="cert-header">
           <div class="cert-authority">PEMERINTAH ALAM GAIB &bull; KELURAHAN TPU KRAMAT JATI</div>
           <h1 class="game-title win-title cert-title">SURAT KETERANGAN BEBAS WARGA</h1>
           <p class="story-desc cert-desc">
-            Diberikan kepada <strong>Pociman Jawara</strong> atas keberhasilannya menamatkan 10 Stage, lolos dari kepungan warga, kejaran hansip, dan timbukan panci emak!
+            Diberikan kepada <strong>Pociman Jawara</strong> karena menamatkan 10 Stage, lolos dari kepungan warga, kejaran hansip, dan timpukan panci emak.
           </p>
         </div>
 
@@ -184,7 +185,7 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">Stage Tuntas</span>
-            <span id="winStage" class="summary-value highlight">10/10 👑</span>
+            <span id="winStage" class="summary-value highlight">10/10</span>
           </div>
           <div class="summary-item">
             <span class="summary-label">Total Benjol</span>
@@ -192,22 +193,22 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">Gelar Juara</span>
-            <span id="winRank" class="summary-value highlight">Pociman Sakti ⚡</span>
+            <span id="winRank" class="summary-value highlight">Pociman Sakti</span>
           </div>
         </div>
 
         <!-- Wall of Honor Player Submission Box -->
         <div class="honor-submission-box">
           <div class="honor-box-header">
-            <span class="honor-trophy-icon">🏆</span>
+            <span class="honor-trophy-icon" aria-hidden="true">🏆</span>
             <div>
-              <div class="honor-box-title">CATAT NAMAMU DI WALL OF HONOR!</div>
-              <div class="honor-box-sub">Buktikan prestasimu agar tercatat abadi dan bisa dilihat oleh pemain lain!</div>
+              <div class="honor-box-title">Catat namamu di Wall of Honor</div>
+              <div class="honor-box-sub">Namamu tampil di daftar pemain yang sudah tamat dan tercetak di piagam.</div>
             </div>
           </div>
           <div class="honor-input-group">
-            <input id="honorPlayerName" type="text" maxlength="25" placeholder="Ketik namamu / julukan..." class="honor-input" />
-            <button id="submitHonorBtn" class="btn-play btn-submit-honor" type="button">KIRIM NAMA 🏆</button>
+            <input id="honorPlayerName" type="text" maxlength="25" placeholder="Namamu atau julukan" class="honor-input" aria-label="Nama untuk Wall of Honor" autocomplete="nickname" />
+            <button id="submitHonorBtn" class="btn-play btn-submit-honor" type="button">KIRIM NAMA</button>
           </div>
           <div id="honorFeedback" class="honor-feedback hidden"></div>
         </div>
@@ -218,11 +219,11 @@
         </div>
 
         <div class="win-actions-grid">
-          <button id="viewHonorBtn" class="btn-play btn-honor-view" type="button">🏆 LIHAT WALL OF HONOR</button>
-          <button id="shareWaBtn" class="btn-secondary btn-share-wa" type="button">📲 BAGIKAN KE WHATSAPP</button>
-          <button id="downloadCertBtn" class="btn-secondary btn-cert" type="button">📜 UNDUH PIAGAM (PNG)</button>
-          <button id="replayEndingBtn" class="btn-secondary" type="button">🎬 TONTON ULANG VIDEO AKHIR</button>
-          <button id="winPlayAgainBtn" class="btn-secondary" type="button">MAIN LAGI DARI STAGE 1 🔄</button>
+          <button id="viewHonorBtn" class="btn-play btn-honor-view" type="button">LIHAT WALL OF HONOR</button>
+          <button id="shareWaBtn" class="btn-secondary btn-share-wa" type="button">BAGIKAN KE WHATSAPP</button>
+          <button id="downloadCertBtn" class="btn-secondary btn-cert" type="button">UNDUH PIAGAM (PNG)</button>
+          <button id="replayEndingBtn" class="btn-secondary" type="button">TONTON ULANG VIDEO AKHIR</button>
+          <button id="winPlayAgainBtn" class="btn-secondary" type="button">MAIN LAGI DARI STAGE 1</button>
         </div>
       </div>
     </div>
@@ -230,7 +231,7 @@
     <!-- Game Over Screen Modal -->
     <div id="gameOverScreen" class="modal-screen hidden">
       <div class="modal-card game-over-card">
-        <div class="gameover-title">TERTANGKAP WARGA! 💥</div>
+        <div class="gameover-title">TERTANGKAP WARGA!</div>
         <p id="deathReason" class="death-reason">Kena kepung warga ronda! Sekarang diajak selfie sama Pak RT...</p>
 
         <div class="stats-summary">
@@ -249,8 +250,8 @@
         </div>
 
         <div class="btn-group">
-          <button id="restartBtn" class="btn-play">ULANGI STAGE INI 🔄</button>
-          <button id="resetStage1Btn" class="btn-secondary">MULAI DARI STAGE 1 ⏪</button>
+          <button id="restartBtn" class="btn-play">ULANGI STAGE INI</button>
+          <button id="resetStage1Btn" class="btn-secondary">MULAI DARI STAGE 1</button>
         </div>
       </div>
     </div>
@@ -259,8 +260,8 @@
     <div id="pauseScreen" class="modal-screen hidden">
       <div class="modal-card mini-card">
         <h2>PERMAINAN DIJEDA</h2>
-        <p>Pociman lagi selonjoran dulu tarik napas!</p>
-        <button id="resumeBtn" class="btn-play">LANJUT KABUR ▶</button>
+        <p>Pociman lagi selonjoran, tarik napas dulu. Tekan P atau Esc untuk lanjut.</p>
+        <button id="resumeBtn" class="btn-play">LANJUT KABUR</button>
       </div>
     </div>
 
@@ -269,94 +270,89 @@
     <div id="creditsScreen" class="modal-screen hidden">
       <div class="modal-card credits-card">
         <div class="modal-header-compact">
-          <div class="guide-eyebrow">📖 BUKU PANDUAN &amp; INFORMASI</div>
-          <h2 class="guide-main-title">Petunjuk Bermain &amp; Bertahan</h2>
+          <div class="guide-eyebrow">PANDUAN &amp; INFO</div>
+          <h2 class="guide-main-title">Cara main dan bertahan</h2>
+          <button id="closeCreditsIconBtn" class="modal-close-icon" type="button" aria-label="Tutup Panduan">&times;</button>
         </div>
 
         <!-- Tab Selector: Panduan Bermain vs Info & Tim Produksi -->
         <div class="guide-tab-group">
-          <button id="tabGuideBtn" class="guide-tab-btn active" type="button">📖 Panduan Bermain</button>
-          <button id="tabCreditsBtn" class="guide-tab-btn" type="button">📜 Info &amp; Tim Produksi</button>
+          <button id="tabGuideBtn" class="guide-tab-btn active" type="button">Panduan Bermain</button>
+          <button id="tabCreditsBtn" class="guide-tab-btn" type="button">Info &amp; Tim</button>
         </div>
 
         <!-- Tab 1: Panduan Bermain Lengkap -->
         <div id="guideTabContent" class="guide-tab-panel">
           <div class="guide-section">
-            <div class="guide-sec-title">🎮 KONTROL PERMAINAN</div>
-            <div class="guide-items-grid">
-              <div class="guide-card">
-                <div class="guide-icon-badge">📱</div>
-                <div class="guide-card-body">
-                  <strong>HP / Tablet (Sentuh Layar)</strong>
-                  <span>Tap 1x untuk lompat pendek. Tap 2x berurutan cepat untuk <kbd>Double Jump</kbd> tinggi melompati pagar!</span>
-                </div>
+            <div class="guide-sec-title">KONTROL LOMPAT</div>
+            <div class="guide-ctrl-strip">
+              <div class="ctrl-strip-item">
+                <span class="ctrl-strip-badge">📱 HP / Tablet</span>
+                <span class="ctrl-strip-desc">Tap layar untuk lompat &bull; Tap lagi di udara untuk <kbd>Double Jump</kbd></span>
               </div>
-              <div class="guide-card">
-                <div class="guide-icon-badge">💻</div>
-                <div class="guide-card-body">
-                  <strong>Laptop / PC (Keyboard &amp; Mouse)</strong>
-                  <span>Tekan <kbd>SPASI</kbd> atau Klik Mouse kiri. Tekan 2x untuk <kbd>Double Jump</kbd>.</span>
-                </div>
+              <div class="ctrl-strip-item">
+                <span class="ctrl-strip-badge">💻 Laptop / PC</span>
+                <span class="ctrl-strip-desc"><kbd>SPASI</kbd>, <kbd>W</kbd>, atau Klik &bull; Di udara: <kbd>Double Jump</kbd> &bull; <kbd>P</kbd> atau <kbd>Esc</kbd>: Jeda</span>
               </div>
             </div>
           </div>
 
           <div class="guide-section">
-            <div class="guide-sec-title">🏃 MEKANISME SURVIVAL</div>
+            <div class="guide-sec-title">CARA BERTAHAN</div>
             <div class="guide-items-grid">
               <div class="guide-card">
                 <div class="guide-icon-badge">⚡</div>
                 <div class="guide-card-body">
-                  <strong>Celah Pelarian (Escape Gap Bar)</strong>
-                  <span>Jaga bar tetap hijau! Tingkat perlambatan: lemparan (-22%) &lt; cakar kucing (-38%) &lt; kesandung rintangan (-55%). Jika bar habis (0%), Pociman tertangkap!</span>
+                  <strong>Jarak dari warga</strong>
+                  <span>Jaga bar bawah tetap hijau. Kesandung bikin paling lambat, lalu cakar kucing, lalu timpukan. Kalau bar habis, Pociman tertangkap. Layar memerah saat sudah mepet.</span>
                 </div>
               </div>
               <div class="guide-card">
                 <div class="guide-icon-badge">💨</div>
                 <div class="guide-card-body">
-                  <strong>Bonus Menghindar (Dodge Reward)</strong>
-                  <span>Berhasil melompati barang lemparan warga atau lolos dari cakar kucing memberi reward pemulihan celah pelarian (+1.2%).</span>
+                  <strong>Bonus menghindar</strong>
+                  <span>Berhasil melewati timpukan warga atau lolos dari cakar kucing menambah jarak aman sedikit.</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="guide-section">
-            <div class="guide-sec-title">⚠️ RINTANGAN &amp; BANTUAN KAMPUNG</div>
+            <div class="guide-sec-title">RINTANGAN &amp; BANTUAN</div>
             <div class="guide-items-grid">
-              <div class="guide-card">
+              <div class="guide-card card-bamboo">
                 <div class="guide-icon-badge">🎋</div>
                 <div class="guide-card-body">
-                  <strong>Pagar Bambu Tinggi</strong>
-                  <span>Rintangan tinggi yang wajib dilewati menggunakan <kbd>Double Jump</kbd>. Aktif sejak Stage 1!</span>
+                  <strong>Pagar bambu</strong>
+                  <span>Rintangan tertinggi di jalan. Satu lompatan cukup kalau waktunya pas. Muncul sejak Stage 1.</span>
                 </div>
               </div>
-              <div class="guide-card">
+              <div class="guide-card card-cat">
                 <div class="guide-icon-badge">🐈</div>
                 <div class="guide-card-body">
-                  <strong>Kucing Oren Bar-bar</strong>
-                  <span>Bisa mendadak nge-rem, balik lari, atau sprint menerjang. Jika terinjak, ekornya berdiri marah lalu menyerang balik!</span>
+                  <strong>Kucing oren</strong>
+                  <span>Bisa mendadak ngerem, balik arah, atau lari menerjang. Kalau terinjak, dia marah lalu menyerang balik. Muncul sejak Stage 2.</span>
                 </div>
               </div>
-              <div class="guide-card">
+              <div class="guide-card card-chicken">
                 <div class="guide-icon-badge">🐔</div>
                 <div class="guide-card-body">
-                  <strong>Ayam Ngamuk (Terbang Panik)</strong>
-                  <span>Saat didekati, ayam panik berkokok heboh dan terbang setinggi dada Pociman. Gunakan <kbd>Double Jump</kbd> untuk melompati di udara!</span>
+                  <strong>Ayam ngamuk</strong>
+                  <span>Ayam panik lalu terbang. Yang terbang rendah bisa dilompati. Yang terbang setinggi kepala dilewati dari bawah (jangan lompat) atau pakai <kbd>Double Jump</kbd>. Muncul sejak Stage 3.</span>
                 </div>
               </div>
-              <div class="guide-card">
+              <div class="guide-card card-throw">
                 <div class="guide-icon-badge">🩲</div>
                 <div class="guide-card-body">
-                  <strong>Hujan Lemparan Slapstick</strong>
-                  <span>Warga melempar sandal, gayung, panci gosong, ember seng, botol kecap, BH renda, CD pink, hingga kucing terbang! Perhatikan tanda seru di atas Pociman.</span>
+                  <strong>Hujan timpukan</strong>
+                  <span>Warga melempar sandal, gayung, panci gosong, ember, botol kecap, sampai kucing terbang. Tanda AWAS TIMPUKAN muncul sebentar sebelum lemparan.</span>
                 </div>
               </div>
-              <div class="guide-card">
+              <div class="guide-card card-kunti card-full">
                 <div class="guide-icon-badge">👻</div>
                 <div class="guide-card-body">
-                  <strong>Mbak Kunti (Penyelamat)</strong>
-                  <span>Mulai Stage 2, bisa muncul acak menggendong Pociman terbang bebas rintangan sambil mengobrol kocak.</span>
+                  <strong>Mbak Kunti Penyelamat</strong>
+                  <span>Kadang muncul dari Stage 2. Sentuh dia, Pociman digendong terbang sebentar dan kebal dari seluruh rintangan.</span>
                 </div>
               </div>
             </div>
@@ -376,16 +372,20 @@
             </div>
             <div class="credit-row">
               <span class="credit-role">Pengembangan Teknis</span>
-              <span class="credit-name">Tim Dev Kawan Kita Solusindo (AI Assisted)</span>
+              <span class="credit-name">Tim Dev Kawan Kita Solusindo (dibantu AI)</span>
             </div>
             <div class="credit-row">
               <span class="credit-role">Audio &amp; Efek Suara</span>
-              <span class="credit-name">Web Audio API Procedural Synthesizer</span>
+              <span class="credit-name">Dibuat langsung di browser (Web Audio API)</span>
             </div>
             <div class="credit-row">
               <span class="credit-role">Arsitektur Game</span>
-              <span class="credit-name">Pure HTML5 Canvas 2D (0 Dependency)</span>
+              <span class="credit-name">HTML5 Canvas 2D, tanpa library</span>
             </div>
+          </div>
+
+          <div style="margin-top: 14px; text-align: center;">
+            <button id="previewEndingVideoBtn" class="btn-sub-action" type="button" style="padding: 8px 18px; border-radius: 9999px; font-weight: bold; background: rgba(234, 88, 12, 0.2); border: 1.5px solid #ea580c; color: #fef08a; cursor: pointer;">🎬 Putar Video Ending (14s)</button>
           </div>
 
           <div class="credits-copyright">
@@ -393,45 +393,45 @@
           </div>
         </div>
 
-        <button id="closeCreditsBtn" class="btn-secondary btn-close-guide" type="button">TUTUP PANDUAN ✕</button>
+        <button id="closeCreditsBtn" class="btn-secondary btn-close-guide" type="button">TUTUP</button>
       </div>
     </div>
 
     <!-- Wall of Honor Leaderboard Modal -->
     <div id="wallOfHonorModal" class="modal-screen hidden">
       <div class="modal-card honor-modal-card">
-        <div class="win-banner">🏆 DINDING KEHORMATAN (WALL OF HONOR) 🏆</div>
+        <div class="win-banner">WALL OF HONOR</div>
         <h2 class="game-title honor-title">JAWARA PENAMAT POCIMAN</h2>
         <p class="story-desc">
-          Daftar pahlawan pocong sakti yang sukses menamatkan seluruh 10 Stage tanpa tertangkap!
+          Pemain yang sudah menamatkan 10 stage.
         </p>
 
         <div id="honorListContainer" class="honor-list-container">
-          <div class="honor-loading">Memuat daftar jawara... ⏳</div>
+          <div class="honor-loading">Memuat daftar...</div>
         </div>
 
         <div class="btn-group">
-          <button id="refreshHonorBtn" class="btn-secondary" type="button">REFRESH 🔄</button>
-          <button id="closeHonorBtn" class="btn-play" type="button">TUTUP ✖️</button>
+          <button id="refreshHonorBtn" class="btn-secondary" type="button">MUAT ULANG</button>
+          <button id="closeHonorBtn" class="btn-play" type="button">TUTUP</button>
         </div>
       </div>
     </div>
 
     <!-- Mobile Touch Control Helper -->
     <div id="touchHelper" class="touch-helper hidden">
-      <span>TAP LAYAR UNTUK LOMPAT &bull; TAP 2X DOUBLE JUMP</span>
+      <span>TAP UNTUK LOMPAT &bull; TAP LAGI DI UDARA UNTUK DOUBLE JUMP</span>
     </div>
   </div>
 
   <!-- Portrait Orientation Hint (Fixed above game container) -->
   <div id="portraitNotice" class="portrait-notice">
-    <span>📱 Putar HP ke horizontal (landscape) untuk tampilan lebih nyaman &amp; luas!</span>
+    <span>Putar HP ke mode landscape supaya layar lebih luas.</span>
   </div>
 
   <!-- Mobile Toast Banner -->
   <div id="mobileToast" class="mobile-toast hidden"></div>
 
-  <script src="audio.js?v=2.9.22"></script>
-  <script src="game.js?v=2.9.22"></script>
+  <script src="audio.js?v=3.0.0"></script>
+  <script src="game.js?v=3.0.0"></script>
 </body>
 </html>

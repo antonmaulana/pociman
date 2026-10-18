@@ -109,6 +109,11 @@ function serveStreamFile(req, res, filePath, stat, ext) {
     const parts = range.replace(/bytes=/, '').split('-');
     const start = parseInt(parts[0], 10);
     const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+    if (!(start >= 0) || !(end >= start) || end >= stat.size) {
+      res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+      res.end();
+      return;
+    }
     const chunkSize = (end - start) + 1;
     const stream = fs.createReadStream(filePath, { start, end });
     res.writeHead(206, {
@@ -132,6 +137,11 @@ function serveStreamFile(req, res, filePath, stat, ext) {
 function serveStaticFile(req, res, pathname) {
   let safePath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
   if (safePath === '/' || safePath === '\\') safePath = '/index.html';
+  if (/^[/\\](server\.js|data|scripts|node_modules|package|\.)/i.test(safePath)) {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('404 Not Found');
+    return;
+  }
   const filePath = path.join(PUBLIC_DIR, safePath);
 
   fs.stat(filePath, (err, stat) => {
