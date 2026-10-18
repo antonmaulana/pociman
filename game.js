@@ -978,46 +978,57 @@
 
   function drawHansipHead(ctx) {
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -64, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -64, 11.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
     ctx.fillStyle = '#14532d';
-    ctx.beginPath(); ctx.roundRect(-10, -77, 21, 9, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-11, -78, 22, 10, [4, 4, 1, 1]); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-2, -70, 14, 3);
+    ctx.beginPath(); ctx.ellipse(4, -69, 9, 3, 0.1, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#facc15';
     ctx.beginPath(); ctx.arc(0, -74, 2.5, 0, Math.PI * 2); ctx.fill();
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-4, -64, 4.5, 0, Math.PI * 2); ctx.arc(4, -64, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
+    ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.arc(-3, -64, 1.8, 0, Math.PI * 2); ctx.arc(5, -64, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-3.8, -65, 1, 0, Math.PI * 2); ctx.arc(4.2, -65, 1, 0, Math.PI * 2); ctx.fill();
+
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -56, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#facc15'; ctx.fillRect(2, -58, 6, 3);
+    ctx.beginPath(); ctx.arc(1, -56, 3.5, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, -57, 3, 2);
+    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(4, -58, 6, 3);
+    ctx.beginPath(); ctx.arc(10, -56.5, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.ellipse(-9, -68, 2, 3, -0.4, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawHansip(ctx, x, y, runPhase) {
     const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
     ctx.save();
     ctx.translate(x, y - bob);
-    ctx.strokeStyle = '#2d3748';
+    ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
     drawRunningHumanLegs(ctx, runPhase, '#14532d', '#0f172a', false);
 
     ctx.fillStyle = '#166534';
     ctx.beginPath(); ctx.roundRect(-11, -52, 24, 28, 4); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(-12, -36, 26, 4.5); ctx.strokeRect(-12, -36, 26, 4.5);
     ctx.fillStyle = '#facc15';
-    ctx.beginPath(); ctx.arc(-5, -45, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-12, -52, 4, 3); ctx.fillRect(9, -52, 4, 3);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(-12, -36, 26, 5); ctx.strokeRect(-12, -36, 26, 5);
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(-2, -37, 5, 7); ctx.strokeRect(-2, -37, 5, 7);
 
     drawHansipHead(ctx);
 
-    const armSwing = Math.sin(runPhase + Math.PI) * 0.45;
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.5;
     ctx.save();
     ctx.translate(6, -46); ctx.rotate(armSwing);
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4.5;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(16, -24); ctx.stroke();
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(16, -26); ctx.stroke();
+    ctx.fillStyle = '#451a03'; ctx.fillRect(-2, -2, 5, 5);
     ctx.restore();
 
     ctx.restore();
@@ -1026,32 +1037,48 @@
   function drawPemudaHead(ctx) {
     ctx.fillStyle = '#fed7aa';
     ctx.beginPath(); ctx.arc(1, -78, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#dc2626'; ctx.fillRect(-10, -84, 22, 4);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(-10, -80, 22, 3);
+
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
-    ctx.moveTo(-9, -84); ctx.lineTo(-12, -94); ctx.lineTo(-4, -88);
-    ctx.lineTo(1, -96);  ctx.lineTo(6, -88);  ctx.lineTo(12, -92);
-    ctx.lineTo(9, -82);  ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.moveTo(-10, -84); ctx.lineTo(-14, -95); ctx.lineTo(-5, -88);
+    ctx.lineTo(1, -98);   ctx.lineTo(7, -88);   ctx.lineTo(13, -94);
+    ctx.lineTo(10, -82);  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#dc2626'; ctx.fillRect(-11, -85, 23, 4);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(-11, -81, 23, 3);
+    const ribbonWave = Math.sin(performance.now() / 90) * 4;
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath(); ctx.moveTo(-10, -84); ctx.quadraticCurveTo(-22, -88 + ribbonWave, -26, -82); ctx.lineTo(-10, -82); ctx.fill();
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-3, -77, 4.5, 0, Math.PI * 2); ctx.arc(5, -77, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
+    ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.arc(-2, -77, 1.8, 0, Math.PI * 2); ctx.arc(6, -77, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fca5a5';
+    ctx.beginPath(); ctx.arc(-6, -73, 2.5, 0, Math.PI * 2); ctx.arc(8, -73, 2.5, 0, Math.PI * 2); ctx.fill();
+
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(2, -70, 3.5, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(2, -70, 4, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath(); ctx.arc(2, -68, 2, 0, Math.PI); ctx.fill();
   }
 
   function drawPemudaTorch(ctx, runPhase) {
-    const torchArm = Math.sin(runPhase) * 0.4;
+    const torchArm = Math.sin(runPhase) * 0.45;
     ctx.save();
     ctx.translate(6, -60); ctx.rotate(torchArm);
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -30); ctx.stroke();
-    const flk = Math.sin(performance.now() / 80) * 3;
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -32); ctx.stroke();
+    ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 5.5;
+    ctx.beginPath(); ctx.moveTo(14, -26); ctx.lineTo(19, -34); ctx.stroke();
+
+    const flk = Math.sin(performance.now() / 70) * 3.5;
     ctx.fillStyle = '#ea580c';
-    ctx.beginPath(); ctx.moveTo(14, -30); ctx.lineTo(22, -30); ctx.lineTo(18 + flk, -52); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(18, -34, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(13, -32); ctx.lineTo(23, -32); ctx.lineTo(18 + flk, -56); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.moveTo(14.5, -32); ctx.lineTo(21.5, -32); ctx.lineTo(18 + flk * 0.7, -50); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath(); ctx.arc(18, -36, 4.5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
@@ -1065,9 +1092,12 @@
     drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#0f172a', true);
     ctx.fillStyle = '#15803d';
     ctx.beginPath(); ctx.roundRect(-12, -48, 25, 26, 4); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#166534'; ctx.lineWidth = 1.2;
+    ctx.strokeRect(-10, -44, 21, 18);
 
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 2.2;
     ctx.fillStyle = '#f8fafc';
-    ctx.beginPath(); ctx.roundRect(-10, -70, 22, 24, 6); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-10, -70, 22, 24, 5); ctx.fill(); ctx.stroke();
 
     drawPemudaHead(ctx);
     drawPemudaTorch(ctx, runPhase);
@@ -1077,18 +1107,29 @@
 
   function drawPakRTHead(ctx) {
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -66, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -66, 13.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    ctx.save();
+    ctx.translate(0, -78);
+    ctx.rotate(-0.1);
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.roundRect(-12, -81, 24, 11, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-13, -7, 26, 12, 3); ctx.fill(); ctx.stroke();
+    ctx.restore();
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-5, -67, 5, 0, Math.PI * 2); ctx.arc(5, -67, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
+    ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.arc(-4, -67, 2, 0, Math.PI * 2); ctx.arc(6, -67, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.4;
+    ctx.strokeRect(-9, -71, 8, 8); ctx.strokeRect(1, -71, 8, 8);
+    ctx.beginPath(); ctx.moveTo(-1, -67); ctx.lineTo(1, -67); ctx.stroke();
+
     ctx.fillStyle = '#262626';
-    ctx.beginPath(); ctx.ellipse(0, -60, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -59, 10, 4.5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -56, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -55, 3, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.ellipse(-9, -62, 1.8, 2.8, -0.3, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawPakRT(ctx, x, y, runPhase) {
@@ -1101,19 +1142,20 @@
     drawRunningHumanLegs(ctx, runPhase, '#1e293b', '#78350f', true);
 
     ctx.fillStyle = '#92400e';
-    ctx.beginPath(); ctx.ellipse(0, -42, 16, 18, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -42, 16.5, 18.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#f59e0b';
-    ctx.beginPath(); ctx.arc(-5, -42, 2, 0, Math.PI * 2); ctx.arc(4, -38, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-6, -44, 2, 0, Math.PI * 2); ctx.arc(5, -40, 2, 0, Math.PI * 2); ctx.arc(-2, -34, 2, 0, Math.PI * 2); ctx.fill();
 
     drawPakRTHead(ctx);
 
-    const armSwing = Math.sin(runPhase + Math.PI) * 0.35;
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.4;
     ctx.save();
     ctx.translate(-8, -46); ctx.rotate(armSwing);
-    ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-16, -14); ctx.stroke();
-    ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.roundRect(-22, -14, 14, 16, 3); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#fed7aa'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-14, -16); ctx.stroke();
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath(); ctx.moveTo(-14, -16); ctx.lineTo(-24, -22); ctx.lineTo(-24, -10); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(-26, -23, 3, 14);
     ctx.restore();
 
     ctx.restore();
@@ -1121,18 +1163,29 @@
 
   function drawEmakHead(ctx) {
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -66, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -66, 12.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fca5a5';
+    ctx.beginPath(); ctx.arc(-7, -63, 2.5, 0, Math.PI * 2); ctx.arc(7, -63, 2.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.lineWidth = 1.5;
     ctx.fillStyle = '#ec4899';
-    ctx.beginPath();
-    ctx.roundRect(-12, -78, 6, 6, 2); ctx.roundRect(-2, -80, 6, 6, 2); ctx.roundRect(8, -78, 6, 6, 2);
-    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-13, -79, 7, 7, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath(); ctx.roundRect(-3, -82, 7, 7, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#a855f7';
+    ctx.beginPath(); ctx.roundRect(7, -79, 7, 7, 2); ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath(); ctx.arc(-5, -67, 4.5, 0, Math.PI * 2); ctx.arc(5, -67, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3e352d';
+    ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.arc(-4, -67, 1.8, 0, Math.PI * 2); ctx.arc(6, -67, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-9, -73); ctx.lineTo(-2, -70); ctx.moveTo(9, -73); ctx.lineTo(2, -70); ctx.stroke();
+
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath(); ctx.ellipse(0, -58, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -58, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -58, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawEmak(ctx, x, y, runPhase) {
@@ -1146,21 +1199,25 @@
 
     ctx.fillStyle = '#ea580c';
     ctx.beginPath();
-    ctx.moveTo(-10, -54); ctx.lineTo(10, -54);
-    ctx.lineTo(17, -14);  ctx.lineTo(-17, -14);
+    ctx.moveTo(-11, -54); ctx.lineTo(11, -54);
+    ctx.lineTo(18, -14);  ctx.lineTo(-18, -14);
     ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#fde047';
-    ctx.beginPath(); ctx.arc(-5, -34, 2.5, 0, Math.PI * 2); ctx.arc(6, -26, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-6, -38, 3, 0, Math.PI * 2); ctx.arc(6, -42, 3, 0, Math.PI * 2);
+    ctx.arc(-8, -24, 3, 0, Math.PI * 2); ctx.arc(7, -22, 3, 0, Math.PI * 2);
+    ctx.arc(0, -30, 3.5, 0, Math.PI * 2); ctx.fill();
 
     drawEmakHead(ctx);
 
-    const broomSwing = Math.sin(runPhase + Math.PI) * 0.6;
+    const broomSwing = Math.sin(runPhase + Math.PI) * 0.65;
     ctx.save();
     ctx.translate(8, -48); ctx.rotate(broomSwing);
-    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3.5;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(20, -32); ctx.stroke();
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(22, -34); ctx.stroke();
     ctx.fillStyle = '#eab308';
-    ctx.fillRect(18, -46, 8, 16); ctx.strokeRect(18, -46, 8, 16);
+    ctx.beginPath(); ctx.roundRect(18, -48, 10, 18, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(18, -40, 10, 3);
     ctx.restore();
 
     ctx.restore();
@@ -2984,38 +3041,122 @@
     ctx.restore();
   }
 
+  function drawChibiKuntiMini(ctx) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.moveTo(-8, -4); ctx.lineTo(8, -4);
+    ctx.quadraticCurveTo(16, 12, 14, 22);
+    ctx.lineTo(-14, 22);
+    ctx.quadraticCurveTo(-16, 12, -8, -4);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c084fc'; ctx.fillRect(-12, 19, 24, 3);
+
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.arc(0, -14, 12, 0, Math.PI * 2);
+    ctx.moveTo(-11, -12); ctx.quadraticCurveTo(-16, 4, -14, 20); ctx.lineTo(-8, 14);
+    ctx.moveTo(11, -12);  ctx.quadraticCurveTo(16, 4, 14, 20);   ctx.lineTo(8, 14);
+    ctx.fill();
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath(); ctx.arc(0, -13, 10, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath(); ctx.ellipse(-4, -13, 2.5, 3.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(4, -13, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-4.8, -14.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(3.2, -14.5, 1.2, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath(); ctx.arc(-6, -9, 2.2, 0, Math.PI * 2); ctx.arc(6, -9, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(0, -8, 2.5, 0.2, Math.PI - 0.2); ctx.stroke();
+  }
+
   function drawKuntiPickup(ctx, x, y, bob) {
     ctx.save();
     ctx.translate(x, y);
 
-    const rad = 28 + Math.sin(bob * 2) * 5;
-    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, rad);
-    aura.addColorStop(0, 'rgba(216, 180, 254, 0.7)');
-    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.35)');
+    const rad = 30 + Math.sin(bob * 2.5) * 6;
+    const aura = ctx.createRadialGradient(0, 0, 6, 0, 0, rad);
+    aura.addColorStop(0, 'rgba(233, 213, 255, 0.85)');
+    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.4)');
     aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
     ctx.fillStyle = aura;
     ctx.fillRect(-rad, -rad, rad * 2, rad * 2);
 
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.5;
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * Math.PI * 2) / 5 + bob * 0.5;
-      const px = Math.cos(angle) * 11;
-      const py = Math.sin(angle) * 11;
-      ctx.beginPath();
-      ctx.ellipse(px, py, 7, 4.5, angle, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-    }
-    ctx.fillStyle = '#facc15';
-    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    const floatY = Math.sin(bob * 3) * 3;
+    ctx.save();
+    ctx.translate(0, floatY);
+    drawChibiKuntiMini(ctx);
+    ctx.restore();
 
     ctx.fillStyle = '#f5d0fe';
     ctx.font = 'bold 11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText("Mbak Kunti", 0, -18);
+    ctx.fillText("Mbak Kunti ✨", 0, -28);
 
     ctx.restore();
+  }
+
+  function drawKuntiDress(ctx, anim) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = '#f8fafc';
+
+    ctx.beginPath();
+    ctx.moveTo(-11, -18); ctx.lineTo(11, -18);
+    const wave1 = Math.sin(anim * 5) * 6;
+    const wave2 = Math.cos(anim * 6) * 6;
+    ctx.quadraticCurveTo(24 + wave1, 20, 20 + wave1, 52);
+    ctx.lineTo(-20 + wave2, 52);
+    ctx.quadraticCurveTo(-24 + wave2, 20, -11, -18);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#c084fc';
+    ctx.fillRect(-18 + wave2, 48, 38, 4);
+    ctx.fillRect(-9, -2, 18, 4);
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath();
+    ctx.roundRect(8, -4, 22, 6, 3);
+    ctx.roundRect(-22, -8, 16, 6, 3);
+    ctx.fill(); ctx.stroke();
+  }
+
+  function drawKuntiHeadAndHair(ctx, anim) {
+    const hairSway = Math.sin(anim * 4) * 8;
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.moveTo(-8, -36);
+    ctx.quadraticCurveTo(-34 + hairSway, -8, -26 + hairSway, 42);
+    ctx.lineTo(-8, 22);
+    ctx.lineTo(2, -18);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(0, -32, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath();
+    ctx.ellipse(-4.5, -32, 2.5, 3.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(4.5, -32, 2.5, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-5.2, -33.5, 1.2, 0, Math.PI * 2);
+    ctx.arc(3.8, -33.5, 1.2, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = 'rgba(244, 63, 94, 0.6)';
+    ctx.beginPath(); ctx.arc(-7, -26, 3, 0, Math.PI * 2); ctx.arc(7, -26, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(0, -25, 3, 0.1, Math.PI - 0.1); ctx.stroke();
   }
 
   function drawKuntilanakRescue(ctx, p) {
@@ -3027,11 +3168,12 @@
     ctx.save();
     ctx.translate(kx, ky + floatWiggle);
 
-    const aura = ctx.createRadialGradient(0, 0, 10, 0, 0, 65);
-    aura.addColorStop(0, 'rgba(192, 132, 252, 0.45)');
+    const aura = ctx.createRadialGradient(0, 0, 10, 0, 0, 70);
+    aura.addColorStop(0, 'rgba(192, 132, 252, 0.5)');
+    aura.addColorStop(0.7, 'rgba(216, 180, 254, 0.25)');
     aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
     ctx.fillStyle = aura;
-    ctx.fillRect(-65, -65, 130, 130);
+    ctx.fillRect(-70, -70, 140, 140);
 
     drawKuntiDress(ctx, anim);
     drawKuntiHeadAndHair(ctx, anim);
@@ -3041,61 +3183,6 @@
     if (kuntiPowerup.dialogTimer > 0) {
       drawSpeechBubble(ctx, p.x + 20, p.y - 75, kuntiPowerup.dialogText);
     }
-  }
-
-  function drawKuntiDress(ctx, anim) {
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.8;
-    ctx.fillStyle = '#f8fafc';
-
-    ctx.beginPath();
-    ctx.moveTo(-10, -20);
-    ctx.lineTo(10, -20);
-    const wave1 = Math.sin(anim * 5) * 5;
-    const wave2 = Math.cos(anim * 6) * 6;
-    ctx.quadraticCurveTo(24 + wave1, 20, 20 + wave1, 52);
-    ctx.lineTo(-20 + wave2, 52);
-    ctx.quadraticCurveTo(-24 + wave2, 20, -10, -20);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = '#fed7aa';
-    ctx.strokeStyle = '#c084fc';
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.roundRect(6, -6, 26, 7, 3);
-    ctx.fill(); ctx.stroke();
-  }
-
-  function drawKuntiHeadAndHair(ctx, anim) {
-    ctx.fillStyle = '#0f172a';
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    const hairSway = Math.sin(anim * 4) * 6;
-    ctx.moveTo(-6, -34);
-    ctx.quadraticCurveTo(-28 + hairSway, -10, -24 + hairSway, 38);
-    ctx.lineTo(-8, 20);
-    ctx.lineTo(0, -20);
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = '#fef3c7';
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, -32, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(-4, -32, 3.5, Math.PI * 1.1, Math.PI * 1.9);
-    ctx.arc(4, -32, 3.5, Math.PI * 1.1, Math.PI * 1.9);
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
-    ctx.beginPath(); ctx.arc(-7, -26, 2.5, 0, Math.PI * 2); ctx.arc(7, -26, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#dc2626';
-    ctx.beginPath(); ctx.ellipse(0, -24, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawAyamBody(ctx, obs, isFlying, anim) {
@@ -3237,78 +3324,145 @@
   }
 
   function drawThrownApparel(ctx, type, w, h) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
     if (type === 'celana_dalam') {
       ctx.fillStyle = '#f472b6';
       ctx.beginPath();
-      ctx.moveTo(-w / 2, -h / 2);
-      ctx.lineTo(w / 2, -h / 2);
-      ctx.lineTo(w * 0.25, h / 2);
-      ctx.lineTo(-w * 0.25, h / 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#fbcfe8'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.moveTo(-w / 2, -h / 2 + 3); ctx.lineTo(w / 2, -h / 2 + 3);
+      ctx.quadraticCurveTo(w * 0.35, h * 0.2, w * 0.2, h / 2);
+      ctx.lineTo(-w * 0.2, h / 2);
+      ctx.quadraticCurveTo(-w * 0.35, h * 0.2, -w / 2, -h / 2 + 3);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-w / 2 - 1, -h / 2, w + 2, 4); ctx.strokeRect(-w / 2 - 1, -h / 2, w + 2, 4);
       ctx.fillStyle = '#ef4444';
-      ctx.beginPath(); ctx.arc(-2, -1, 2, 0, Math.PI * 2); ctx.arc(2, -1, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-4, 0, 1.8, 0, Math.PI * 2); ctx.arc(4, 1, 1.8, 0, Math.PI * 2);
+      ctx.arc(0, 5, 1.5, 0, Math.PI * 2); ctx.fill();
     } else if (type === 'bh_merah') {
-      ctx.fillStyle = '#e11d48';
+      ctx.fillStyle = '#dc2626';
       ctx.beginPath();
-      ctx.arc(-w * 0.24, 0, h * 0.44, 0, Math.PI * 2);
-      ctx.arc(w * 0.24, 0, h * 0.44, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fda4af'; ctx.lineWidth = 1.5;
+      ctx.arc(-w * 0.25, 0, h * 0.44, 0, Math.PI * 2);
+      ctx.arc(w * 0.25, 0, h * 0.44, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#fda4af'; ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.moveTo(-w * 0.44, -h * 0.35); ctx.lineTo(-w * 0.24, 0); ctx.lineTo(0, -2); ctx.lineTo(w * 0.24, 0); ctx.lineTo(w * 0.44, -h * 0.35);
+      ctx.arc(-w * 0.25, -2, h * 0.38, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.arc(w * 0.25, -2, h * 0.38, Math.PI * 1.1, Math.PI * 1.9);
       ctx.stroke();
+      ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.45, -h * 0.35); ctx.lineTo(-w * 0.25, 0);
+      ctx.lineTo(w * 0.25, 0); ctx.lineTo(w * 0.45, -h * 0.35);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  function drawSandalGayungPanci(ctx, type, w, h, color) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
+    if (type === 'sandal') {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-w / 2 + 2, -h / 2 + 2, w - 4, 3);
+      ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.3, 0); ctx.lineTo(-w * 0.15, -h * 0.35);
+      ctx.moveTo(w * 0.3, 0); ctx.lineTo(-w * 0.15, h * 0.35); ctx.stroke();
+      ctx.fillStyle = '#ca8a04'; ctx.beginPath(); ctx.arc(w * 0.3, 0, 2, 0, Math.PI * 2); ctx.fill();
+    } else if (type === 'gayung') {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w * 0.65, h, 4); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#9f1239';
+      ctx.beginPath(); ctx.ellipse(-w * 0.2, -h * 0.25, w * 0.2, h * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.roundRect(w * 0.15, -h * 0.15, w * 0.45, 6, 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.arc(-w * 0.35, -h * 0.6, 2.5, 0, Math.PI * 2); ctx.arc(-w * 0.1, -h * 0.65, 2, 0, Math.PI * 2); ctx.fill();
+    } else if (type === 'panci') {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(0, 0, h / 2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.strokeRect(-h / 2 + 1, -2, h - 2, 4);
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(0, 3, h * 0.38, 0, Math.PI); ctx.fill();
+      ctx.fillStyle = '#1e1b18';
+      ctx.beginPath(); ctx.roundRect(h / 2, -3, 12, 6, 2); ctx.fill(); ctx.stroke();
+    }
+  }
+
+  function drawSapuEmberBotol(ctx, type, w, h, color) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
+    if (type === 'sapu') {
+      ctx.strokeStyle = color; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(w * 0.1, 0); ctx.stroke();
+      ctx.fillStyle = '#eab308';
+      ctx.beginPath(); ctx.moveTo(w * 0.1, -4); ctx.lineTo(w / 2, -h / 2);
+      ctx.lineTo(w / 2, h / 2); ctx.lineTo(w * 0.1, 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(w * 0.15, -4.5, 4, 9);
+    } else if (type === 'ember') {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.45, -h * 0.45); ctx.lineTo(w * 0.45, -h * 0.45);
+      ctx.lineTo(w * 0.32, h * 0.45);   ctx.lineTo(-w * 0.32, h * 0.45);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-w * 0.38, 0); ctx.lineTo(w * 0.38, 0); ctx.stroke();
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(0, -h * 0.45, w * 0.32, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(0, -h * 0.5, 2.5, 0, Math.PI * 2); ctx.fill();
+    } else if (type === 'botol') {
+      ctx.fillStyle = '#1e1b18';
+      ctx.beginPath(); ctx.roundRect(-w * 0.35, -h * 0.15, w * 0.7, h * 0.65, 4); ctx.fill(); ctx.stroke();
+      ctx.fillRect(-w * 0.14, -h * 0.45, w * 0.28, h * 0.35);
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(-w * 0.18, -h * 0.5, w * 0.36, 4);
+      ctx.fillStyle = '#facc15'; ctx.fillRect(-w * 0.28, -0.05 * h, w * 0.56, h * 0.32);
+      ctx.fillStyle = '#78350f'; ctx.fillRect(-w * 0.2, 0.05 * h, w * 0.4, 3);
     }
   }
 
   function drawThrownUtensil(ctx, type, w, h, color) {
-    if (type === 'sandal') {
-      ctx.fillStyle = color; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 4); ctx.fill(); ctx.stroke();
-    } else if (type === 'gayung') {
-      ctx.fillStyle = color;
-      ctx.fillRect(-w / 2, -h / 2, w * 0.65, h);
-      ctx.fillRect(w * 0.15, -h * 0.2, w * 0.45, 4);
-    } else if (type === 'panci') {
-      ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(0, 0, h / 2, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillRect(h / 2, -2, 10, 4);
-    } else if (type === 'sapu') {
-      ctx.strokeStyle = color; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(w / 2, 0); ctx.stroke();
-      ctx.fillStyle = '#eab308'; ctx.fillRect(w * 0.1, -4, w * 0.4, 8);
-    } else if (type === 'ember') {
-      ctx.fillStyle = color;
-      ctx.beginPath(); ctx.moveTo(-w * 0.45, -h * 0.45); ctx.lineTo(w * 0.45, -h * 0.45);
-      ctx.lineTo(w * 0.32, h * 0.45); ctx.lineTo(-w * 0.32, h * 0.45); ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5; ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, -h * 0.45, w * 0.32, Math.PI, 0); ctx.stroke();
-    } else if (type === 'botol') {
-      ctx.fillStyle = '#1e293b'; ctx.fillRect(-w * 0.3, -h * 0.1, w * 0.6, h * 0.55);
-      ctx.fillStyle = '#0f172a'; ctx.fillRect(-w * 0.12, -h * 0.45, w * 0.24, h * 0.35);
-      ctx.fillStyle = '#dc2626'; ctx.fillRect(-w * 0.15, -h * 0.5, w * 0.3, 3);
-      ctx.fillStyle = '#f59e0b'; ctx.fillRect(-w * 0.22, 0, w * 0.44, h * 0.25);
+    if (type === 'sandal' || type === 'gayung' || type === 'panci') {
+      drawSandalGayungPanci(ctx, type, w, h, color);
+    } else {
+      drawSapuEmberBotol(ctx, type, w, h, color);
     }
   }
 
   function drawFlyingCat(ctx, w, h) {
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.8;
+
     ctx.fillStyle = '#ea580c';
-    ctx.beginPath(); ctx.ellipse(0, 0, 16, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, 16, 11, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c2410c';
+    ctx.fillRect(-4, -11, 3, 5); ctx.fillRect(2, -11, 3, 5);
+
+    ctx.fillStyle = '#ea580c';
     ctx.beginPath();
-    ctx.moveTo(8, -8); ctx.lineTo(13, -15); ctx.lineTo(15, -6);
-    ctx.moveTo(2, -9); ctx.lineTo(6, -16); ctx.lineTo(8, -7); ctx.fill();
+    ctx.moveTo(7, -8); ctx.lineTo(13, -16); ctx.lineTo(15, -6);
+    ctx.moveTo(1, -9); ctx.lineTo(5, -17); ctx.lineTo(8, -7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath(); ctx.moveTo(8, -8); ctx.lineTo(12, -14); ctx.lineTo(13, -7); ctx.fill();
+
     ctx.fillStyle = '#f97316';
-    ctx.fillRect(-14, -8, 6, 4); ctx.fillRect(10, -8, 6, 4);
-    ctx.fillRect(-14, 4, 6, 4); ctx.fillRect(10, 4, 6, 4);
+    ctx.beginPath();
+    ctx.arc(-12, -7, 3.5, 0, Math.PI * 2); ctx.arc(10, -7, 3.5, 0, Math.PI * 2);
+    ctx.arc(-12, 6, 3.5, 0, Math.PI * 2);  ctx.arc(10, 6, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f472b6';
+    ctx.beginPath(); ctx.arc(-12, 6, 1.5, 0, Math.PI * 2); ctx.arc(10, 6, 1.5, 0, Math.PI * 2); ctx.fill();
+
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(7, -2, 3, 0, Math.PI * 2); ctx.arc(12, -2, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath(); ctx.arc(7, -2, 1.2, 0, Math.PI * 2); ctx.arc(12, -2, 1.2, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(-14, 0); ctx.quadraticCurveTo(-22, -8, -18, -14); ctx.stroke();
+    ctx.beginPath(); ctx.arc(6, -2, 3.5, 0, Math.PI * 2); ctx.arc(12, -2, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath(); ctx.arc(6, -2, 1.4, 0, Math.PI * 2); ctx.arc(12, -2, 1.4, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(-14, 0); ctx.quadraticCurveTo(-24, -10, -20, -16); ctx.stroke();
   }
 
   function drawThrownItem(ctx, item) {
