@@ -960,173 +960,177 @@
     }
   }
 
-  function drawRunningHumanLegs(ctx, runPhase, trouserColor, shoeColor, isSandal = false) {
+  function drawRunningHumanLegs(ctx, runPhase, trouserColor, shoeColor, isSandal = false, isBocil = false) {
     const swingL = Math.sin(runPhase) * 0.65;
     const swingR = Math.sin(runPhase + Math.PI) * 0.65;
+    const hipY = isBocil ? -11 : -22;
+    const legW = isBocil ? 7 : 8;
+    const legH = isBocil ? 10 : 17;
+    const footH = isBocil ? 4 : 5.5;
 
-    // Back leg (Right) - short stubby chibi
+    // Back leg (Right)
     ctx.save();
-    ctx.translate(5, -11);
+    ctx.translate(isBocil ? 5 : 6, hipY);
     ctx.rotate(swingR);
     ctx.fillStyle = trouserColor;
-    ctx.beginPath(); ctx.roundRect(-3.5, 0, 7, 10, [2, 2, 3, 3]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-legW / 2, 0, legW, legH, 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = shoeColor;
     if (isSandal) {
-      ctx.fillRect(-4.5, 8, 9, 3); ctx.strokeRect(-4.5, 8, 9, 3);
-      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-3, 6, 6, 3);
+      ctx.fillRect(-legW / 2 - 1, legH - 2, legW + 3, footH); ctx.strokeRect(-legW / 2 - 1, legH - 2, legW + 3, footH);
+      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-legW / 2, legH - 4, legW, 3);
     } else {
-      ctx.beginPath(); ctx.roundRect(-4.5, 7.5, 9.5, 4.5, [2, 3, 2, 2]); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(-legW / 2 - 1, legH - 2, legW + 4, footH, 2); ctx.fill(); ctx.stroke();
     }
     ctx.restore();
 
-    // Front leg (Left) - short stubby chibi
+    // Front leg (Left)
     ctx.save();
-    ctx.translate(-5, -11);
+    ctx.translate(isBocil ? -5 : -6, hipY);
     ctx.rotate(swingL);
     ctx.fillStyle = trouserColor;
-    ctx.beginPath(); ctx.roundRect(-3.5, 0, 7, 10, [2, 2, 3, 3]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-legW / 2, 0, legW, legH, 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = shoeColor;
     if (isSandal) {
-      ctx.fillRect(-4.5, 8, 9, 3); ctx.strokeRect(-4.5, 8, 9, 3);
-      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-3, 6, 6, 3);
+      ctx.fillRect(-legW / 2 - 1, legH - 2, legW + 3, footH); ctx.strokeRect(-legW / 2 - 1, legH - 2, legW + 3, footH);
+      ctx.fillStyle = '#fed7aa'; ctx.fillRect(-legW / 2, legH - 4, legW, 3);
     } else {
-      ctx.beginPath(); ctx.roundRect(-4.5, 7.5, 9.5, 4.5, [2, 3, 2, 2]); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(-legW / 2 - 1, legH - 2, legW + 4, footH, 2); ctx.fill(); ctx.stroke();
     }
     ctx.restore();
   }
 
   function drawHansipHead(ctx) {
-    // Big round chibi head
+    // Adult cartoon head
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -40, 17.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -74, 18.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Linmas peaked cap (Topi pet hijau)
+    // Linmas peaked cap (Topi pet hijau tua)
     ctx.fillStyle = '#14532d';
-    ctx.beginPath(); ctx.roundRect(-15, -55, 30, 13, [7, 7, 2, 2]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-17, -91, 34, 16, [8, 8, 2, 2]); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#0f172a';
-    ctx.beginPath(); ctx.ellipse(5, -44, 11, 4, 0.15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6, -77, 13, 5, 0.15, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#facc15';
-    ctx.beginPath(); ctx.arc(0, -49, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -84, 3.5, 0, Math.PI * 2); ctx.fill();
 
-    // Big expressive chibi eyes with white catchlight
+    // Big expressive cartoon eyes with white catchlight
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -40, 5, 0, Math.PI * 2); ctx.arc(5, -40, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-6, -74, 5.5, 0, Math.PI * 2); ctx.arc(6, -74, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.arc(-4, -40, 2.2, 0, Math.PI * 2); ctx.arc(6, -40, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5, -74, 2.5, 0, Math.PI * 2); ctx.arc(7, -74, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-4.8, -41.2, 1.2, 0, Math.PI * 2); ctx.arc(5.2, -41.2, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5.8, -75.2, 1.2, 0, Math.PI * 2); ctx.arc(6.2, -75.2, 1.2, 0, Math.PI * 2); ctx.fill();
 
     // Rosy cheeks & panic sweat
     ctx.fillStyle = '#fca5a5';
-    ctx.beginPath(); ctx.arc(-11, -35, 3, 0, Math.PI * 2); ctx.arc(11, -35, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-12, -68, 3.5, 0, Math.PI * 2); ctx.arc(12, -68, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#38bdf8';
-    ctx.beginPath(); ctx.ellipse(-12, -45, 2.2, 3.2, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-13, -80, 2.5, 3.8, -0.3, 0, Math.PI * 2); ctx.fill();
 
     // Comical whistle in mouth
-    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(3, -34, 7, 3.5); ctx.strokeRect(3, -34, 7, 3.5);
-    ctx.beginPath(); ctx.arc(10, -32, 2.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(4, -66, 8, 4); ctx.strokeRect(4, -66, 8, 4);
+    ctx.beginPath(); ctx.arc(12, -64, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   }
 
   function drawHansip(ctx, x, y, runPhase) {
-    const bob = Math.abs(Math.sin(runPhase * 2)) * 3;
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
     ctx.save();
     ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
-    drawRunningHumanLegs(ctx, runPhase, '#14532d', '#0f172a', false);
+    drawRunningHumanLegs(ctx, runPhase, '#14532d', '#0f172a', false, false);
 
-    // Chubby Linmas torso
+    // Adult Linmas torso
     ctx.fillStyle = '#166534';
-    ctx.beginPath(); ctx.roundRect(-12, -26, 24, 16, [6, 6, 4, 4]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-16, -56, 32, 34, [6, 6, 4, 4]); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#facc15';
-    ctx.fillRect(-12, -26, 4, 3); ctx.fillRect(8, -26, 4, 3);
+    ctx.fillRect(-16, -56, 5, 4); ctx.fillRect(11, -56, 5, 4);
     ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(-12, -16, 24, 4); ctx.strokeRect(-12, -16, 24, 4);
+    ctx.fillRect(-16, -37, 32, 5.5); ctx.strokeRect(-16, -37, 32, 5.5);
     ctx.fillStyle = '#facc15';
-    ctx.fillRect(-2, -17, 5, 6); ctx.strokeRect(-2, -17, 5, 6);
+    ctx.fillRect(-3, -38, 6, 7.5); ctx.strokeRect(-3, -38, 6, 7.5);
 
     drawHansipHead(ctx);
 
     // Swinging baton (pentungan)
-    const armSwing = Math.sin(runPhase + Math.PI) * 0.6;
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.65;
     ctx.save();
-    ctx.translate(8, -20); ctx.rotate(armSwing);
-    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4.5;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(14, -18); ctx.stroke();
-    ctx.fillStyle = '#451a03'; ctx.fillRect(-2, -2, 5, 5);
+    ctx.translate(12, -48); ctx.rotate(armSwing);
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -24); ctx.stroke();
+    ctx.fillStyle = '#451a03'; ctx.fillRect(-2, -2, 6, 6);
     ctx.restore();
 
     ctx.restore();
   }
 
   function drawPemudaHead(ctx) {
-    // Big round chibi head
+    // Adult cartoon head
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -40, 17.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -74, 18.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Spiky messy chibi hair
+    // Spiky messy comic hair
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
-    ctx.moveTo(-14, -46); ctx.lineTo(-18, -57); ctx.lineTo(-8, -50);
-    ctx.lineTo(0, -60);   ctx.lineTo(8, -50);   ctx.lineTo(17, -56);
-    ctx.lineTo(14, -44);  ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.moveTo(-16, -82); ctx.lineTo(-20, -96); ctx.lineTo(-10, -88);
+    ctx.lineTo(0, -100);  ctx.lineTo(10, -88);  ctx.lineTo(20, -95);
+    ctx.lineTo(16, -80);  ctx.closePath(); ctx.fill(); ctx.stroke();
 
     // Pita Merah Putih headband
-    ctx.fillStyle = '#dc2626'; ctx.fillRect(-15, -48, 30, 4);
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(-15, -44, 30, 3.5);
-    const ribbonWave = Math.sin(performance.now() / 90) * 3;
+    ctx.fillStyle = '#dc2626'; ctx.fillRect(-17, -84, 34, 5);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(-17, -79, 34, 4.5);
+    const ribbonWave = Math.sin(performance.now() / 90) * 3.5;
     ctx.fillStyle = '#dc2626';
-    ctx.beginPath(); ctx.moveTo(-14, -47); ctx.quadraticCurveTo(-24, -51 + ribbonWave, -27, -45); ctx.lineTo(-14, -44); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-16, -83); ctx.quadraticCurveTo(-28, -88 + ribbonWave, -32, -81); ctx.lineTo(-16, -79); ctx.fill();
 
     // Expressive shouting anime eyes & mouth
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -39, 5, 0, Math.PI * 2); ctx.arc(5, -39, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-6, -73, 5.5, 0, Math.PI * 2); ctx.arc(6, -73, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.arc(-4, -39, 2.2, 0, Math.PI * 2); ctx.arc(6, -39, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5, -73, 2.5, 0, Math.PI * 2); ctx.arc(7, -73, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-4.8, -40.2, 1.2, 0, Math.PI * 2); ctx.arc(5.2, -40.2, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-5.8, -74.2, 1.2, 0, Math.PI * 2); ctx.arc(6.2, -74.2, 1.2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#fca5a5';
-    ctx.beginPath(); ctx.arc(-10, -34, 3, 0, Math.PI * 2); ctx.arc(10, -34, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-12, -67, 3.5, 0, Math.PI * 2); ctx.arc(12, -67, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -32, 4.5, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -65, 5, 0, Math.PI); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#f43f5e';
-    ctx.beginPath(); ctx.arc(0, -30.5, 2.2, 0, Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -63, 2.5, 0, Math.PI); ctx.fill();
   }
 
   function drawPemudaTorch(ctx, runPhase) {
     const torchArm = Math.sin(runPhase) * 0.5;
     ctx.save();
-    ctx.translate(8, -24); ctx.rotate(torchArm);
-    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(14, -22); ctx.stroke();
-    ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.moveTo(11, -17); ctx.lineTo(15, -23); ctx.stroke();
+    ctx.translate(10, -50); ctx.rotate(torchArm);
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -28); ctx.stroke();
+    ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(14, -22); ctx.lineTo(19, -30); ctx.stroke();
 
-    const flk = Math.sin(performance.now() / 70) * 3;
+    const flk = Math.sin(performance.now() / 70) * 3.5;
     ctx.fillStyle = '#ea580c';
-    ctx.beginPath(); ctx.moveTo(10, -22); ctx.lineTo(18, -22); ctx.lineTo(14 + flk, -40); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(13, -28); ctx.lineTo(23, -28); ctx.lineTo(18 + flk, -52); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#f59e0b';
-    ctx.beginPath(); ctx.moveTo(11, -22); ctx.lineTo(17, -22); ctx.lineTo(14 + flk * 0.7, -35); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(14.5, -28); ctx.lineTo(21.5, -28); ctx.lineTo(18 + flk * 0.7, -46); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#fef08a';
-    ctx.beginPath(); ctx.arc(14, -25, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(18, -32, 4.5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
 
   function drawPemuda(ctx, x, y, runPhase) {
-    const bob = Math.abs(Math.sin(runPhase * 2)) * 3;
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
     ctx.save();
     ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
-    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#0f172a', true);
+    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#0f172a', true, false);
 
-    // Chubby singlet torso & sarung roll
+    // Adult singlet torso & rolled sarung
     ctx.fillStyle = '#15803d';
-    ctx.beginPath(); ctx.roundRect(-12, -18, 24, 8, 3); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-16, -36, 32, 14, 4); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#f8fafc';
-    ctx.beginPath(); ctx.roundRect(-11, -26, 22, 13, 5); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-15, -56, 30, 26, 6); ctx.fill(); ctx.stroke();
 
     drawPemudaHead(ctx);
     drawPemudaTorch(ctx, runPhase);
@@ -1135,128 +1139,128 @@
   }
 
   function drawPakRTHead(ctx) {
-    // Big round chibi head
+    // Adult bapak-bapak head
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -41, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -75, 19, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
     // Tilted black peci
     ctx.save();
-    ctx.translate(0, -51);
+    ctx.translate(0, -87);
     ctx.rotate(-0.08);
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.roundRect(-15, -7, 30, 13, [5, 5, 1, 1]); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-17, -8, 34, 16, [5, 5, 2, 2]); ctx.fill(); ctx.stroke();
     ctx.restore();
 
     // Round wire glasses & big comical eyes
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -41, 5.5, 0, Math.PI * 2); ctx.arc(5, -41, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-6, -75, 6, 0, Math.PI * 2); ctx.arc(6, -75, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.arc(-4, -41, 2.2, 0, Math.PI * 2); ctx.arc(6, -41, 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.4;
-    ctx.strokeRect(-9, -45, 8, 8); ctx.strokeRect(1, -45, 8, 8);
-    ctx.beginPath(); ctx.moveTo(-1, -41); ctx.lineTo(1, -41); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-5, -75, 2.5, 0, Math.PI * 2); ctx.arc(7, -75, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(-10, -79, 9, 9); ctx.strokeRect(2, -79, 9, 9);
+    ctx.beginPath(); ctx.moveTo(-1, -75); ctx.lineTo(2, -75); ctx.stroke();
 
-    // Bushy black mustache & open mouth
+    // Bushy black mustache & gasping mouth
     ctx.fillStyle = '#262626';
-    ctx.beginPath(); ctx.ellipse(0, -34, 11, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, -66, 13, 5.5, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.arc(0, -30, 3.2, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, -61, 3.8, 0, Math.PI); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#38bdf8';
-    ctx.beginPath(); ctx.ellipse(-12, -45, 2, 3, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-14, -80, 2.5, 3.5, -0.3, 0, Math.PI * 2); ctx.fill();
   }
 
   function drawPakRT(ctx, x, y, runPhase) {
-    const bob = Math.abs(Math.sin(runPhase * 2)) * 2.5;
-    ctx.save();
-    ctx.translate(x, y - bob);
-    ctx.strokeStyle = '#3e352d';
-    ctx.lineWidth = 2.2;
-
-    drawRunningHumanLegs(ctx, runPhase, '#1e293b', '#78350f', true);
-
-    // Chubby round potbelly torso (perut buncit)
-    ctx.fillStyle = '#92400e';
-    ctx.beginPath(); ctx.ellipse(0, -19, 17, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath(); ctx.arc(-6, -21, 2, 0, Math.PI * 2); ctx.arc(6, -18, 2, 0, Math.PI * 2); ctx.arc(0, -13, 2, 0, Math.PI * 2); ctx.fill();
-
-    drawPakRTHead(ctx);
-
-    // Holding megaphone Toa shouting
-    const armSwing = Math.sin(runPhase + Math.PI) * 0.4;
-    ctx.save();
-    ctx.translate(-8, -20); ctx.rotate(armSwing);
-    ctx.strokeStyle = '#fed7aa'; ctx.lineWidth = 3.5;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-12, -10); ctx.stroke();
-    ctx.fillStyle = '#f8fafc';
-    ctx.beginPath(); ctx.moveTo(-12, -10); ctx.lineTo(-20, -15); ctx.lineTo(-20, -5); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ef4444'; ctx.fillRect(-22, -16, 3, 12);
-    ctx.restore();
-
-    ctx.restore();
-  }
-
-  function drawEmakHead(ctx) {
-    // Big round chibi head & blushing cheeks
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.arc(0, -40, 17.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fca5a5';
-    ctx.beginPath(); ctx.arc(-10, -36, 3, 0, Math.PI * 2); ctx.arc(10, -36, 3, 0, Math.PI * 2); ctx.fill();
-
-    // 3 Giant colorful hair curlers/rollers
-    ctx.lineWidth = 1.6;
-    ctx.fillStyle = '#ec4899';
-    ctx.beginPath(); ctx.roundRect(-15, -55, 9, 9, 3); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#06b6d4';
-    ctx.beginPath(); ctx.roundRect(-4.5, -58, 9, 9, 3); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#a855f7';
-    ctx.beginPath(); ctx.roundRect(6, -55, 9, 9, 3); ctx.fill(); ctx.stroke();
-
-    // Angry comical eyes & lipstick mouth
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-5, -40, 5, 0, Math.PI * 2); ctx.arc(5, -40, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.arc(-4, -40, 2.2, 0, Math.PI * 2); ctx.arc(6, -40, 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-9, -46); ctx.lineTo(-2, -43); ctx.moveTo(9, -46); ctx.lineTo(2, -43); ctx.stroke();
-    ctx.fillStyle = '#dc2626';
-    ctx.beginPath(); ctx.ellipse(0, -32, 5, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#7f1d1d';
-    ctx.beginPath(); ctx.ellipse(0, -32, 3.2, 2.2, 0, 0, Math.PI * 2); ctx.fill();
-  }
-
-  function drawEmak(ctx, x, y, runPhase) {
     const bob = Math.abs(Math.sin(runPhase * 2)) * 3;
     ctx.save();
     ctx.translate(x, y - bob);
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2.2;
 
-    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#38bdf8', true);
+    drawRunningHumanLegs(ctx, runPhase, '#1e293b', '#78350f', true, false);
 
-    // Chubby daster (bell-shaped house dress)
+    // Large adult potbelly torso (perut buncit)
+    ctx.fillStyle = '#92400e';
+    ctx.beginPath(); ctx.ellipse(0, -40, 21, 19, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath(); ctx.arc(-8, -43, 2.5, 0, Math.PI * 2); ctx.arc(8, -39, 2.5, 0, Math.PI * 2); ctx.arc(0, -32, 2.5, 0, Math.PI * 2); ctx.fill();
+
+    drawPakRTHead(ctx);
+
+    // Holding megaphone Toa shouting
+    const armSwing = Math.sin(runPhase + Math.PI) * 0.45;
+    ctx.save();
+    ctx.translate(-12, -45); ctx.rotate(armSwing);
+    ctx.strokeStyle = '#fed7aa'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-16, -14); ctx.stroke();
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath(); ctx.moveTo(-16, -14); ctx.lineTo(-26, -20); ctx.lineTo(-26, -8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(-28, -21, 4, 15);
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function drawEmakHead(ctx) {
+    // Adult mother head & blushing cheeks
+    ctx.fillStyle = '#fed7aa';
+    ctx.beginPath(); ctx.arc(0, -74, 18.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fca5a5';
+    ctx.beginPath(); ctx.arc(-12, -69, 3.5, 0, Math.PI * 2); ctx.arc(12, -69, 3.5, 0, Math.PI * 2); ctx.fill();
+
+    // 3 Giant colorful hair curlers/rollers
+    ctx.lineWidth = 1.6;
+    ctx.fillStyle = '#ec4899';
+    ctx.beginPath(); ctx.roundRect(-18, -94, 11, 11, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#06b6d4';
+    ctx.beginPath(); ctx.roundRect(-5.5, -97, 11, 11, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#a855f7';
+    ctx.beginPath(); ctx.roundRect(7, -94, 11, 11, 3); ctx.fill(); ctx.stroke();
+
+    // Angry fierce eyes & lipstick mouth
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(-6, -74, 5.5, 0, Math.PI * 2); ctx.arc(6, -74, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1e1b18';
+    ctx.beginPath(); ctx.arc(-5, -74, 2.5, 0, Math.PI * 2); ctx.arc(7, -74, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(-11, -81); ctx.lineTo(-3, -77); ctx.moveTo(11, -81); ctx.lineTo(3, -77); ctx.stroke();
+    ctx.fillStyle = '#dc2626';
+    ctx.beginPath(); ctx.ellipse(0, -64, 6, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#7f1d1d';
+    ctx.beginPath(); ctx.ellipse(0, -64, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawEmak(ctx, x, y, runPhase) {
+    const bob = Math.abs(Math.sin(runPhase * 2)) * 3.5;
+    ctx.save();
+    ctx.translate(x, y - bob);
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 2.2;
+
+    drawRunningHumanLegs(ctx, runPhase, '#fed7aa', '#38bdf8', true, false);
+
+    // Wide adult batik daster
     ctx.fillStyle = '#ea580c';
     ctx.beginPath();
-    ctx.moveTo(-11, -26); ctx.lineTo(11, -26);
-    ctx.lineTo(16, -9);  ctx.lineTo(-16, -9);
+    ctx.moveTo(-14, -56); ctx.lineTo(14, -56);
+    ctx.lineTo(22, -18);  ctx.lineTo(-22, -18);
     ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#fde047';
     ctx.beginPath();
-    ctx.arc(-6, -20, 2.5, 0, Math.PI * 2); ctx.arc(6, -22, 2.5, 0, Math.PI * 2);
-    ctx.arc(-7, -13, 2.5, 0, Math.PI * 2); ctx.arc(7, -12, 2.5, 0, Math.PI * 2);
-    ctx.arc(0, -16, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.arc(-8, -44, 3, 0, Math.PI * 2); ctx.arc(8, -46, 3, 0, Math.PI * 2);
+    ctx.arc(-10, -28, 3, 0, Math.PI * 2); ctx.arc(10, -26, 3, 0, Math.PI * 2);
+    ctx.arc(0, -36, 3.5, 0, Math.PI * 2); ctx.fill();
 
     drawEmakHead(ctx);
 
     // Swinging broom (sapu lidi)
-    const broomSwing = Math.sin(runPhase + Math.PI) * 0.7;
+    const broomSwing = Math.sin(runPhase + Math.PI) * 0.75;
     ctx.save();
-    ctx.translate(8, -20); ctx.rotate(broomSwing);
-    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 3.8;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(18, -24); ctx.stroke();
+    ctx.translate(12, -46); ctx.rotate(broomSwing);
+    ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 4.5;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(24, -32); ctx.stroke();
     ctx.fillStyle = '#eab308';
-    ctx.beginPath(); ctx.roundRect(14, -34, 9, 14, 2.5); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ef4444'; ctx.fillRect(14, -28, 9, 2.5);
+    ctx.beginPath(); ctx.roundRect(18, -44, 12, 18, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ef4444'; ctx.fillRect(18, -36, 12, 3);
     ctx.restore();
 
     ctx.restore();
@@ -1269,26 +1273,27 @@
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 2;
 
-    drawRunningHumanLegs(ctx, runPhase * 1.4, '#fed7aa', '#0f172a', true);
+    // Running little stubby legs (isBocil = true)
+    drawRunningHumanLegs(ctx, runPhase * 1.4, '#fed7aa', '#0f172a', true, true);
 
-    // Chubby ninja sarung body bundle
+    // Little child ninja sarung body bundle
     ctx.fillStyle = '#0284c7';
-    ctx.beginPath(); ctx.ellipse(0, -17, 13, 11, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -18, 13, 12, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-    // Giant round head with ninja sarung hood
-    ctx.beginPath(); ctx.arc(0, -35, 14.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Round head with ninja sarung hood
+    ctx.beginPath(); ctx.arc(0, -38, 15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#fed7aa';
-    ctx.beginPath(); ctx.roundRect(-9, -38, 18, 10, 4); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(-10, -41, 20, 10, 4); ctx.fill(); ctx.stroke();
 
-    // Big excited chibi eyes
+    // Big excited child eyes
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-4, -33, 4, 0, Math.PI * 2); ctx.arc(4, -33, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-5, -36, 4, 0, Math.PI * 2); ctx.arc(5, -36, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#3e352d';
-    ctx.beginPath(); ctx.arc(-3, -33, 2, 0, Math.PI * 2); ctx.arc(5, -33, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-4, -36, 2, 0, Math.PI * 2); ctx.arc(6, -36, 2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(-3.6, -34, 1, 0, Math.PI * 2); ctx.arc(4.4, -34, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-4.6, -37, 1, 0, Math.PI * 2); ctx.arc(5.4, -37, 1, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f472b6';
-    ctx.beginPath(); ctx.arc(-7, -30, 2, 0, Math.PI * 2); ctx.arc(7, -30, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-8, -33, 2, 0, Math.PI * 2); ctx.arc(8, -33, 2, 0, Math.PI * 2); ctx.fill();
 
     ctx.restore();
   }
@@ -2843,7 +2848,7 @@
 
     const pociX = 660 + Math.sin(t * 3) * 10;
     drawCutscenePociman(ctx, pociX, GROUND_Y - 80, t);
-    drawSpeechBubble(ctx, pociX - 20, GROUND_Y - 95, "DADAH WARGA! KETEMU TAHUN DEPAN! 👋😝");
+    drawSpeechBubble(ctx, pociX - 20, GROUND_Y - 105, "DADAH WARGA! KETEMU TAHUN DEPAN! 👋😝");
 
     drawAct1Villagers(ctx, t);
   }
@@ -2853,19 +2858,19 @@
     ctx.translate(220, GROUND_Y);
     drawPakRT(ctx, 0, 0, 0.4);
     ctx.restore();
-    drawSpeechBubble(ctx, 220, GROUND_Y - 75, "ENCOK GUA KAMBUH! 👴💦");
+    drawSpeechBubble(ctx, 220, GROUND_Y - 118, "ENCOK GUA KAMBUH! 👴💦");
 
     ctx.save();
     ctx.translate(330, GROUND_Y);
     drawPemuda(ctx, 0, 0, 1.2);
     ctx.restore();
-    drawSpeechBubble(ctx, 330, GROUND_Y - 75, "KUNCI GERBANG KETINGGALAN! 🔑😭");
+    drawSpeechBubble(ctx, 330, GROUND_Y - 118, "KUNCI GERBANG KETINGGALAN! 🔑😭");
 
     ctx.save();
     ctx.translate(430, GROUND_Y);
     drawEmak(ctx, 0, 0, 2.0);
     ctx.restore();
-    drawSpeechBubble(ctx, 430, GROUND_Y - 75, "PANCI GUA GOSONG MAK! 🍳😩");
+    drawSpeechBubble(ctx, 430, GROUND_Y - 118, "PANCI GUA GOSONG MAK! 🍳😩");
   }
 
   function drawCutscenePociman(ctx, x, y, t) {
