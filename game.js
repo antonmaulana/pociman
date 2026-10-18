@@ -17,6 +17,7 @@
   const stageBannerTextEl = document.getElementById('stageBannerText');
   const bumpCountEl = document.getElementById('bumpCount');
   const distanceValEl = document.getElementById('distanceVal');
+  const hudEl = document.getElementById('hud');
   const tpuBarEl = document.getElementById('tpuBar');
   const tpuPinEl = document.getElementById('tpuPin');
   const escapeBarEl = document.getElementById('escapeBar');
@@ -1374,6 +1375,7 @@
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
     if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
+    if (hudEl) hudEl.classList.add('hidden');
   }
 
   function showStageBanner(text) {
@@ -1413,6 +1415,7 @@
     initVillageScenery();
     updateHUD();
     hideAllModals();
+    if (hudEl) hudEl.classList.remove('hidden');
     updateTouchHelper();
 
     gameState = STATE.PLAYING;
@@ -1857,6 +1860,7 @@
   function triggerStageClear() {
     window.soundManager.stopBgm();
     gameState = STATE.STAGECLEAR;
+    if (hudEl) hudEl.classList.add('hidden');
     if (stage >= highestStage && stage < TOTAL_STAGES) {
       highestStage = stage + 1;
       try { localStorage.setItem('pociman_highest_stage', highestStage); } catch (e) {}
@@ -1894,6 +1898,7 @@
 
   function showVictoryScreen() {
     gameState = STATE.VICTORY;
+    if (hudEl) hudEl.classList.add('hidden');
     if (skipCutsceneBtn) skipCutsceneBtn.classList.add('hidden');
     if (stage >= highestStage) {
       highestStage = TOTAL_STAGES;
@@ -1918,6 +1923,7 @@
   function triggerBustedSequence() {
     window.soundManager.stopBgm();
     gameState = STATE.BUSTED;
+    if (hudEl) hudEl.classList.add('hidden');
     bustedCutscene.timer = 0;
     bustedCutscene.dustPuffs = [];
     bustedCutscene.comicPops = [
@@ -1975,6 +1981,7 @@
   function triggerGameOver() {
     window.soundManager.stopBgm();
     gameState = STATE.GAMEOVER;
+    if (hudEl) hudEl.classList.add('hidden');
     finalStageEl.textContent = `Stage ${stage} / ${TOTAL_STAGES}`;
     finalDistanceEl.textContent = `${Math.floor(distance)}m`;
     finalBumpsEl.textContent = totalBumps;

@@ -62,6 +62,10 @@ canvas {
   z-index: 10;
 }
 
+.overlay-ui.hidden {
+  display: none !important;
+}
+
 .hud-left, .hud-right {
   display: flex;
   align-items: center;
@@ -319,6 +323,10 @@ canvas {
   display: none !important;
   opacity: 0;
   pointer-events: none;
+}
+
+.hidden:not(.mobile-toast):not(.touch-helper) {
+  display: none !important;
 }
 
 .modal-card {
@@ -862,6 +870,10 @@ canvas {
   cursor: pointer;
   box-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
   transition: all 0.15s ease;
+}
+
+.skip-cutscene-btn.hidden {
+  display: none !important;
 }
 
 .skip-cutscene-btn:hover {
