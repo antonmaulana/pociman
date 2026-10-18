@@ -199,17 +199,17 @@
   const kuntiSkyCameo = {
     active: false,
     x: -120,
-    y: 58,
+    y: 120,
     speed: 120,
-    timer: 14,
+    timer: 12,
     animTime: 0,
     hasGiggled: false,
     reset() {
       this.active = false;
       this.x = -120;
-      this.y = 58;
+      this.y = 120;
       this.speed = 120;
-      this.timer = 14 + Math.random() * 10;
+      this.timer = 12 + Math.random() * 8;
       this.animTime = 0;
       this.hasGiggled = false;
     }
@@ -2252,10 +2252,10 @@
       if (kuntiSkyCameo.timer <= 0) {
         kuntiSkyCameo.active = true;
         kuntiSkyCameo.x = -80;
-        kuntiSkyCameo.y = 48 + Math.random() * 26;
-        kuntiSkyCameo.speed = 110 + Math.random() * 35;
+        kuntiSkyCameo.y = 110 + Math.random() * 25;
+        kuntiSkyCameo.speed = 110 + Math.random() * 30;
         kuntiSkyCameo.hasGiggled = false;
-        kuntiSkyCameo.timer = 28 + Math.random() * 18;
+        kuntiSkyCameo.timer = 24 + Math.random() * 16;
       }
     } else {
       kuntiSkyCameo.x += kuntiSkyCameo.speed * dt;
@@ -2531,13 +2531,14 @@
     const y = kuntiSkyCameo.y + Math.sin(kuntiSkyCameo.animTime * 3) * 6;
     ctx.save();
     ctx.translate(x, y);
+    ctx.scale(1.25, 1.25);
 
-    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, 36);
-    aura.addColorStop(0, 'rgba(216, 180, 254, 0.6)');
-    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.25)');
+    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, 38);
+    aura.addColorStop(0, 'rgba(216, 180, 254, 0.7)');
+    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.3)');
     aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
     ctx.fillStyle = aura;
-    ctx.fillRect(-36, -36, 72, 72);
+    ctx.fillRect(-38, -38, 76, 76);
 
     ctx.strokeStyle = '#3e352d';
     ctx.lineWidth = 1.6;
@@ -2553,7 +2554,7 @@
 
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
-    ctx.arc(6, -10, 8, 0, Math.PI * 2);
+    ctx.arc(6, -10, 8.5, 0, Math.PI * 2);
     ctx.quadraticCurveTo(-18 + wave, 0, -22 + wave, 16);
     ctx.lineTo(0, 4);
     ctx.closePath(); ctx.fill();
@@ -2562,10 +2563,11 @@
     ctx.beginPath(); ctx.arc(6, -9, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath(); ctx.arc(7.5, -9, 1.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(7, -9.5, 0.7, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f472b6';
     ctx.beginPath(); ctx.arc(6, -6, 2, 0, Math.PI * 2); ctx.fill();
 
-    ctx.fillStyle = 'rgba(251, 146, 60, 0.85)';
+    ctx.fillStyle = 'rgba(251, 146, 60, 0.9)';
     ctx.fillRect(14, -6, 7, 9);
     ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(17, -10); ctx.lineTo(17, -4); ctx.stroke();
