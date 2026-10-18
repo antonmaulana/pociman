@@ -1534,7 +1534,7 @@
 
     showStageBanner(`⭐ STAGE ${stage}: MENUJU GERBANG TPU!`);
     window.soundManager.playStageUp();
-    window.soundManager.playBgm();
+    window.soundManager.playGameplayBgm();
   }
 
   function updateSpeedAndDistance(dt) {
@@ -2225,6 +2225,9 @@
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
     window.soundManager.playStageClear();
+    setTimeout(() => {
+      if (gameState === STATE.STAGECLEAR) window.soundManager.playMenuBgm();
+    }, 600);
   }
 
   function startEndingCutscene() {
@@ -2284,6 +2287,9 @@
     if (window.soundManager && window.soundManager.playWin) {
       window.soundManager.playWin();
     }
+    setTimeout(() => {
+      if (gameState === STATE.VICTORY) window.soundManager.playMenuBgm();
+    }, 700);
   }
 
   function triggerVictory() {
@@ -2372,6 +2378,9 @@
     throwWarningEl.classList.add('hidden');
     stageBannerEl.classList.add('hidden');
     window.soundManager.playCaught();
+    setTimeout(() => {
+      if (gameState === STATE.GAMEOVER) window.soundManager.playMenuBgm();
+    }, 750);
   }
 
   // --- Render Loop & Helpers ---
@@ -3754,10 +3763,12 @@
     if (gameState === STATE.PLAYING) {
       gameState = STATE.PAUSED;
       pauseScreen.classList.remove('hidden');
+      if (window.soundManager) window.soundManager.playMenuBgm();
     } else if (gameState === STATE.PAUSED) {
       gameState = STATE.PLAYING;
       pauseScreen.classList.add('hidden');
       lastTime = performance.now();
+      if (window.soundManager) window.soundManager.playGameplayBgm();
     }
   }
 
@@ -3790,22 +3801,11 @@
     setTimeout(fitGameToScreen, 150);
   });
 
-  const musicOptionBtns = document.querySelectorAll('.music-option-btn');
-  function initMusicSelector() {
-    const activeTrack = (window.soundManager && window.soundManager.selectedBgmTrack) || 'koplo';
-    musicOptionBtns.forEach(btn => {
-      const track = btn.dataset.track;
-      btn.classList.toggle('active', track === activeTrack);
-      bindBtn(btn, () => {
-        musicOptionBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        if (window.soundManager) {
-          window.soundManager.setBgmTrack(track);
-          window.soundManager.playBgm(track);
-        }
-      });
-    });
-  }
+  document.addEventListener('pointerdown', () => {
+    if (gameState === STATE.START && window.soundManager && !window.soundManager.currentBgm) {
+      window.soundManager.playMenuBgm();
+    }
+  }, { once: true });
 
   function updateStartScreenUI() {
     if (!startBtn) return;
@@ -3823,7 +3823,6 @@
     if (startFullscreenBtn) startFullscreenBtn.textContent = '📱 Layar Otomatis Pas';
     if (fullscreenBtn) fullscreenBtn.style.display = 'none';
   }
-  initMusicSelector();
   initVillageScenery();
   updateStartScreenUI();
   fitGameToScreen();

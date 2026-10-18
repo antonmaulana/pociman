@@ -353,49 +353,51 @@ class SoundManager {
     if (this.isMuted) return;
     this.init();
     if (!this.ctx) return;
-
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(620, now);
-    osc.frequency.exponentialRampToValueAtTime(1180, now + 0.08);
-    osc.frequency.exponentialRampToValueAtTime(420, now + 0.28);
-
+    osc.frequency.setValueAtTime(750, now);
+    osc.frequency.exponentialRampToValueAtTime(1280, now + 0.07);
+    osc.frequency.exponentialRampToValueAtTime(380, now + 0.28);
     gain.gain.setValueAtTime(0.32, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     osc.start(now);
-    osc.stop(now + 0.3);
+    osc.stop(now + 0.28);
   }
 
   playCatMeow() {
     if (this.isMuted) return;
     this.init();
     if (!this.ctx) return;
-
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(440, now);
-    osc.frequency.exponentialRampToValueAtTime(760, now + 0.12);
-    osc.frequency.exponentialRampToValueAtTime(380, now + 0.36);
+    osc.frequency.setValueAtTime(410, now);
+    osc.frequency.exponentialRampToValueAtTime(740, now + 0.15);
+    osc.frequency.exponentialRampToValueAtTime(340, now + 0.42);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(450, now);
+    filter.frequency.exponentialRampToValueAtTime(1400, now + 0.18);
+    filter.frequency.exponentialRampToValueAtTime(320, now + 0.42);
 
     gain.gain.setValueAtTime(0.01, now);
-    gain.gain.linearRampToValueAtTime(0.24, now + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+    gain.gain.linearRampToValueAtTime(0.28, now + 0.07);
+    gain.gain.exponentialRampToValueAtTime(0.22, now + 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
 
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.38);
+    osc.stop(now + 0.42);
   }
 
   playCatHiss() {
@@ -403,18 +405,30 @@ class SoundManager {
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.32);
+    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1200, now);
+    filter.frequency.exponentialRampToValueAtTime(2200, now + 0.1);
+    filter.frequency.exponentialRampToValueAtTime(600, now + 0.32);
+    filter.Q.setValueAtTime(3.5, now);
+
     const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(800, now);
-    osc.frequency.linearRampToValueAtTime(1400, now + 0.12);
-    osc.frequency.exponentialRampToValueAtTime(300, now + 0.35);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
-    osc.connect(gain);
+    gain.gain.setValueAtTime(0.01, now);
+    gain.gain.linearRampToValueAtTime(0.26, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+    noise.connect(filter);
+    filter.connect(gain);
     gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.36);
+    noise.start(now);
+    noise.stop(now + 0.32);
   }
 
   playCatScratch() {
@@ -425,8 +439,8 @@ class SoundManager {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(1500, now);
-    osc.frequency.exponentialRampToValueAtTime(260, now + 0.15);
+    osc.frequency.setValueAtTime(1600, now);
+    osc.frequency.exponentialRampToValueAtTime(240, now + 0.16);
     gain.gain.setValueAtTime(0.35, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
     osc.connect(gain);
@@ -441,9 +455,9 @@ class SoundManager {
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const clucks = [
-      { t: 0, f1: 850, f2: 440, d: 0.08 },
-      { t: 0.09, f1: 1020, f2: 520, d: 0.08 },
-      { t: 0.18, f1: 1280, f2: 600, d: 0.12 }
+      { t: 0.00, f1: 680, f2: 440, d: 0.06 },
+      { t: 0.07, f1: 720, f2: 460, d: 0.06 },
+      { t: 0.14, f1: 780, f2: 480, d: 0.07 }
     ];
     clucks.forEach(c => {
       const osc = this.ctx.createOscillator();
@@ -452,13 +466,24 @@ class SoundManager {
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(c.f1, st);
       osc.frequency.exponentialRampToValueAtTime(c.f2, st + c.d);
-      gain.gain.setValueAtTime(0.3, st);
+      gain.gain.setValueAtTime(0.28, st);
       gain.gain.exponentialRampToValueAtTime(0.001, st + c.d);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(st);
-      osc.stop(st + c.d);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(st); osc.stop(st + c.d);
     });
+
+    const screamOsc = this.ctx.createOscillator();
+    const screamGain = this.ctx.createGain();
+    const screamTime = now + 0.22;
+    screamOsc.type = 'sawtooth';
+    screamOsc.frequency.setValueAtTime(850, screamTime);
+    screamOsc.frequency.linearRampToValueAtTime(1450, screamTime + 0.09);
+    screamOsc.frequency.exponentialRampToValueAtTime(560, screamTime + 0.28);
+    screamGain.gain.setValueAtTime(0.01, screamTime);
+    screamGain.gain.linearRampToValueAtTime(0.35, screamTime + 0.04);
+    screamGain.gain.exponentialRampToValueAtTime(0.001, screamTime + 0.28);
+    screamOsc.connect(screamGain); screamGain.connect(this.ctx.destination);
+    screamOsc.start(screamTime); screamOsc.stop(screamTime + 0.28);
   }
 
   playAyamFlap() {
@@ -471,15 +496,55 @@ class SoundManager {
       const gain = this.ctx.createGain();
       const t = now + i * 0.06;
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(240, t);
+      osc.frequency.setValueAtTime(260, t);
       osc.frequency.exponentialRampToValueAtTime(90, t + 0.05);
-      gain.gain.setValueAtTime(0.24, t);
+      gain.gain.setValueAtTime(0.25, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start(t);
       osc.stop(t + 0.05);
     }
+  }
+
+  playKuntiLaugh() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const chuckles = [
+      { t: 0.00, f: 880, d: 0.08 },
+      { t: 0.08, f: 940, d: 0.08 },
+      { t: 0.16, f: 920, d: 0.08 },
+      { t: 0.24, f: 960, d: 0.09 },
+      { t: 0.33, f: 910, d: 0.09 },
+      { t: 0.42, f: 840, d: 0.12 }
+    ];
+    chuckles.forEach(c => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+      const st = now + c.t;
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(c.f + 60, st);
+      osc.frequency.exponentialRampToValueAtTime(c.f - 40, st + c.d);
+
+      filter.type = 'peaking';
+      filter.frequency.setValueAtTime(2800, st);
+      filter.gain.setValueAtTime(8, st);
+
+      gain.gain.setValueAtTime(0.01, st);
+      gain.gain.linearRampToValueAtTime(0.24, st + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + c.d);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(st);
+      osc.stop(st + c.d);
+    });
   }
 
   playKuntiRescue() {
@@ -503,20 +568,9 @@ class SoundManager {
       osc.stop(t + 0.35);
     });
 
-    for (let j = 0; j < 4; j++) {
-      const oscL = this.ctx.createOscillator();
-      const gainL = this.ctx.createGain();
-      const t = now + 0.32 + j * 0.10;
-      oscL.type = 'triangle';
-      oscL.frequency.setValueAtTime(880 + (j % 2) * 80, t);
-      oscL.frequency.exponentialRampToValueAtTime(740, t + 0.08);
-      gainL.gain.setValueAtTime(0.20, t);
-      gainL.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-      oscL.connect(gainL);
-      gainL.connect(this.ctx.destination);
-      oscL.start(t);
-      oscL.stop(t + 0.09);
-    }
+    setTimeout(() => {
+      this.playKuntiLaugh();
+    }, 280);
   }
 
   playTone(freq, type = 'sine', duration = 0.1, gainVal = 0.15, time = null) {
@@ -562,36 +616,23 @@ class SoundManager {
     }
   }
 
-  setBgmTrack(trackId) {
-    if (!BGM_TRACKS[trackId]) return;
-    this.selectedBgmTrack = trackId;
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('pociman_bgm', trackId);
-    }
-    if (this.currentBgm) {
-      this.playBgm(trackId);
-    }
-  }
-
   playBgmDrums(trackId, step, time) {
-    if (trackId === 'koplo') {
-      if (step % 8 === 0 || step % 8 === 6) this.playDrumHit('kick', time);
-      if (step % 8 === 4 || step % 8 === 7) this.playDrumHit('tak', time);
+    if (trackId === 'gameplay' || trackId === 'koplo') {
+      const s8 = step % 8;
+      if (s8 === 0 || s8 === 6) this.playDrumHit('dut', time);
+      if (s8 === 4 || s8 === 7) this.playDrumHit('tak', time);
       if (step % 2 === 0) this.playDrumHit('hat', time);
-    } else if (trackId === 'circus') {
-      if (step % 8 === 0) this.playDrumHit('kick', time);
-      if (step % 8 === 4) this.playDrumHit('tak', time);
-      if (step % 4 === 2) this.playDrumHit('hat', time);
     } else {
-      if (step % 4 === 0) this.playDrumHit('kick', time);
-      if (step % 4 === 2) this.playDrumHit('tak', time);
-      if (step % 2 === 1) this.playDrumHit('hat', time);
+      const s8 = step % 8;
+      if (s8 === 0) this.playDrumHit('kick', time);
+      if (s8 === 4) this.playDrumHit('tak', time);
+      if (s8 === 2 || s8 === 6) this.playDrumHit('hat', time);
     }
   }
 
   playBgmStep(step, time) {
-    const trackId = this.currentBgm || this.selectedBgmTrack || 'koplo';
-    const track = BGM_TRACKS[trackId] || BGM_TRACKS['koplo'];
+    const trackId = this.currentBgm || 'gameplay';
+    const track = BGM_TRACKS[trackId] || BGM_TRACKS['gameplay'];
     const bassNote = track.bass[step % track.bass.length];
     const melNote = track.mel[step % track.mel.length];
 
@@ -599,24 +640,34 @@ class SoundManager {
       this.playTone(midiToFreq(bassNote), track.bassType, track.stepDuration * 0.9, 0.18, time);
     }
     if (melNote) {
-      this.playTone(midiToFreq(melNote), track.melType, track.stepDuration * 0.85, 0.13, time);
+      this.playTone(midiToFreq(melNote), track.melType, track.stepDuration * 0.85, 0.14, time);
     }
     this.playBgmDrums(trackId, step, time);
   }
 
-  playBgm(trackId = null) {
+  playBgm(trackId = 'gameplay') {
+    const target = trackId || 'gameplay';
+    if (this.currentBgm === target && this.bgmTimer) return;
     this.stopBgm();
     if (this.isMuted) return;
     this.init();
     if (!this.ctx) return;
 
-    this.currentBgm = trackId || this.selectedBgmTrack || 'koplo';
+    this.currentBgm = target;
     this.bgmStep = 0;
     this.bgmNextTime = this.ctx.currentTime + 0.05;
 
     this.bgmTimer = setInterval(() => {
       this.tickBgm();
     }, 35);
+  }
+
+  playMenuBgm() {
+    this.playBgm('menu');
+  }
+
+  playGameplayBgm() {
+    this.playBgm('gameplay');
   }
 
   stopBgm() {
@@ -629,8 +680,8 @@ class SoundManager {
 
   tickBgm() {
     if (!this.ctx || this.isMuted || !this.currentBgm) return;
-    const track = BGM_TRACKS[this.currentBgm] || BGM_TRACKS['koplo'];
-    const stepDuration = track.stepDuration || 0.11;
+    const track = BGM_TRACKS[this.currentBgm] || BGM_TRACKS['gameplay'];
+    const stepDuration = track.stepDuration || 0.108;
     while (this.bgmNextTime < this.ctx.currentTime + 0.16) {
       const s = this.bgmStep % 128;
       this.playBgmStep(s, this.bgmNextTime);
@@ -645,9 +696,35 @@ function midiToFreq(m) {
 }
 
 const BGM_TRACKS = {
-  koplo: {
-    name: 'Koplo Slapstick',
-    stepDuration: 0.11,
+  menu: {
+    name: 'Tiptoe Pocong Ronda (Menu)',
+    stepDuration: 0.125,
+    bassType: 'triangle',
+    melType: 'sine',
+    bass: [
+      48,0,55,0, 48,0,55,0, 48,0,55,0, 48,0,55,0,
+      48,0,55,0, 48,0,55,0, 48,0,55,0, 48,0,55,0,
+      41,0,48,0, 41,0,48,0, 41,0,48,0, 41,0,48,0,
+      43,0,50,0, 43,0,50,0, 43,0,50,0, 43,0,50,0,
+      48,0,55,0, 48,0,55,0, 48,0,55,0, 48,0,55,0,
+      45,0,52,0, 45,0,52,0, 41,0,48,0, 41,0,48,0,
+      43,0,50,0, 43,0,50,0, 43,0,50,0, 43,0,50,0,
+      48,0,52,0, 55,0,52,0, 48,0,55,0, 48,0,0,0
+    ],
+    mel: [
+      72,0,71,72, 75,0,72,0, 71,0,68,0, 69,0,72,0,
+      72,0,71,72, 75,0,72,0, 74,75,74,72, 69,0,72,0,
+      74,0,73,74, 77,0,74,0, 72,0,69,0, 71,0,72,0,
+      71,0,70,71, 74,0,71,0, 68,0,69,71, 72,71,69,0,
+      72,0,71,72, 75,0,72,0, 76,0,74,0, 72,0,69,0,
+      77,0,76,77, 81,0,77,0, 76,0,74,72, 74,0,76,0,
+      74,0,73,74, 77,0,74,0, 71,0,74,0, 72,0,71,0,
+      69,71,72,74, 75,74,72,71, 69,68,69,71, 72,0,0,0
+    ]
+  },
+  gameplay: {
+    name: 'Koplo Slapstick Pociman (Chase)',
+    stepDuration: 0.106,
     bassType: 'sawtooth',
     melType: 'triangle',
     bass: [
@@ -670,60 +747,10 @@ const BGM_TRACKS = {
       74,0,77,0, 76,74,72,0, 71,0,74,0, 72,0,71,0,
       69,71,72,74, 76,74,72,71, 69,68,69,71, 72,74,76,0
     ]
-  },
-  circus: {
-    name: 'Sirkus Hantu Tiptoe',
-    stepDuration: 0.115,
-    bassType: 'triangle',
-    melType: 'sine',
-    bass: [
-      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
-      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
-      48,0,51,0, 53,54,55,0, 51,0,48,0, 47,0,48,0,
-      45,0,48,0, 50,51,52,0, 49,0,45,0, 43,0,45,0,
-      43,0,46,0, 48,49,50,0, 46,0,43,0, 42,0,43,0,
-      50,0,53,0, 51,0,48,0, 46,0,43,0, 42,0,43,0,
-      48,0,45,0, 43,0,42,0, 45,0,48,0, 50,0,45,0,
-      43,0,45,0, 46,0,48,0, 49,0,50,0, 52,0,45,0
-    ],
-    mel: [
-      62,0,65,0, 69,68,67,0, 65,0,62,0, 61,62,65,0,
-      62,0,65,0, 69,68,67,0, 70,0,69,0, 67,65,62,0,
-      67,0,70,0, 74,73,72,0, 70,0,67,0, 66,67,70,0,
-      69,0,73,0, 72,70,69,0, 67,0,65,0, 64,65,67,0,
-      74,0,72,0, 70,69,67,0, 65,67,69,0, 62,0,65,0,
-      76,0,74,0, 73,72,70,0, 69,70,72,0, 67,0,69,0,
-      70,0,69,0, 67,65,64,0, 65,0,67,0, 69,0,64,0,
-      62,64,65,67, 69,70,72,73, 74,73,70,69, 67,65,64,0
-    ]
-  },
-  ragtime: {
-    name: 'Ragtime Kartun',
-    stepDuration: 0.105,
-    bassType: 'sawtooth',
-    melType: 'square',
-    bass: [
-      36,0,43,0, 36,0,43,0, 36,0,43,0, 36,0,43,0,
-      41,0,48,0, 41,0,48,0, 36,0,43,0, 36,0,43,0,
-      43,0,50,0, 43,0,50,0, 36,0,43,0, 36,0,43,0,
-      43,0,50,0, 43,0,50,0, 36,0,40,0, 43,0,48,0,
-      36,0,43,0, 36,0,43,0, 36,0,43,0, 36,0,43,0,
-      41,0,48,0, 41,0,48,0, 36,0,43,0, 36,0,43,0,
-      43,0,50,0, 43,0,50,0, 36,0,43,0, 45,0,41,0,
-      43,0,47,0, 50,0,47,0, 36,0,40,0, 43,0,36,0
-    ],
-    mel: [
-      60,62,64,67, 69,67,64,60, 62,0,64,65, 67,0,69,0,
-      72,71,69,67, 65,64,62,60, 59,60,62,64, 65,67,69,71,
-      72,0,76,0, 74,72,69,0, 67,0,69,72, 74,0,72,0,
-      74,0,76,0, 77,76,74,0, 72,0,74,72, 71,69,67,0,
-      72,0,76,0, 74,72,69,0, 67,69,72,0, 69,67,64,0,
-      65,0,69,0, 72,69,65,0, 64,65,67,0, 64,62,60,0,
-      62,0,65,0, 69,67,65,0, 67,0,71,0, 74,72,71,0,
-      72,74,76,77, 76,74,72,69, 67,64,62,60, 64,67,72,0
-    ]
   }
 };
+BGM_TRACKS.koplo = BGM_TRACKS.gameplay;
+BGM_TRACKS.circus = BGM_TRACKS.menu;
 
 window.BGM_TRACKS = BGM_TRACKS;
 window.soundManager = new SoundManager();
