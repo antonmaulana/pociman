@@ -4080,11 +4080,17 @@
     setTimeout(fitGameToScreen, 150);
   });
 
-  document.addEventListener('pointerdown', () => {
-    if (gameState === STATE.START && window.soundManager && !window.soundManager.currentBgm) {
-      window.soundManager.playMenuBgm();
+  const unlockAudioAndPlayMenu = () => {
+    if (window.soundManager) {
+      window.soundManager.init();
+      if (gameState === STATE.START && !window.soundManager.currentBgm) {
+        window.soundManager.playMenuBgm();
+      }
     }
-  }, { once: true });
+  };
+  ['pointerdown', 'touchstart', 'keydown', 'click'].forEach(evt => {
+    document.addEventListener(evt, unlockAudioAndPlayMenu, { once: true });
+  });
 
   function updateStartScreenUI() {
     if (!startBtn) return;
