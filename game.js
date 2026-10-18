@@ -132,11 +132,11 @@
   }
 
   function getStageDuration(stg) {
-    if (stg === 1) return 35;
-    if (stg === 2) return 40;
-    if (stg <= 5) return 45;
-    if (stg <= 8) return 48;
-    return 52;
+    if (stg === 1) return 30;
+    if (stg === 2) return 32;
+    if (stg <= 4) return 35;
+    if (stg <= 7) return 38;
+    return 42;
   }
 
   function getSkyColors(stg) {
@@ -872,7 +872,7 @@
 
 
   function getWargaX() {
-    const wargaMinX = -170;
+    const wargaMinX = -75;
     const wargaMaxX = player.x - 90;
     const gapRatio = (100 - escapeGap) / 100;
     return wargaMinX + gapRatio * (wargaMaxX - wargaMinX);
@@ -1266,7 +1266,12 @@
     { type: 'sandal', name: 'Sandal Jepit', w: 30, h: 14, color: '#16a34a' },
     { type: 'gayung', name: 'Gayung Merah', w: 32, h: 22, color: '#f43f5e' },
     { type: 'panci', name: 'Panci Gosong', w: 36, h: 22, color: '#334155' },
-    { type: 'sapu', name: 'Sapu Lidi', w: 40, h: 14, color: '#ca8a04' }
+    { type: 'sapu', name: 'Sapu Ijuk', w: 40, h: 14, color: '#ca8a04' },
+    { type: 'celana_dalam', name: 'Celana Dalam Pink', w: 28, h: 20, color: '#f472b6' },
+    { type: 'bh_merah', name: 'BH Renda Emak', w: 34, h: 18, color: '#e11d48' },
+    { type: 'ember', name: 'Ember Seng', w: 32, h: 28, color: '#94a3b8' },
+    { type: 'botol', name: 'Botol Kecap', w: 22, h: 32, color: '#1e293b' },
+    { type: 'kucing_terbang', name: 'Kucing Terbang', w: 34, h: 22, color: '#ea580c' }
   ];
 
   function spawnThrownItem(wargaX) {
@@ -1296,6 +1301,10 @@
       rotSpeed = 8 + Math.random() * 10;
     }
 
+    if (itemDef.type === 'kucing_terbang' && window.soundManager && window.soundManager.playCatMeow) {
+      window.soundManager.playCatMeow();
+    }
+
     thrownItems.push({
       x: startX, y: startY, vx, vy,
       w: itemDef.w, h: itemDef.h,
@@ -1313,8 +1322,7 @@
   ];
 
   function getStageObstaclePool(stg) {
-    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type === 'batu' || o.type === 'kubangan' || o.type === 'ayam');
-    if (stg === 2) return OBSTACLE_TYPES.filter(o => o.type !== 'kucing');
+    if (stg === 1) return OBSTACLE_TYPES.filter(o => o.type !== 'pagar');
     return OBSTACLE_TYPES;
   }
 
@@ -1344,12 +1352,46 @@
       hit: false,
       scratched: false,
       revengeDodged: false,
+      closeReacted: false,
       aiTimer: 1.5 + Math.random() * 1.5,
       furiousTimer: 0,
       runSpeed: 0,
       walkSpeed: 38,
       animTime: 0
     });
+  }
+
+  function spawnLandedCat(landX) {
+    if (landX < -50 || landX > V_WIDTH + 150) return;
+    const catDef = OBSTACLE_TYPES.find(o => o.type === 'kucing') || { w: 38, h: 24, yOffset: 24, color: '#f97316', name: 'Kucing Oren' };
+    const zoomLeft = Math.random() < 0.65;
+    obstacles.push({
+      x: landX,
+      y: GROUND_Y - catDef.yOffset,
+      w: catDef.w,
+      h: catDef.h,
+      type: 'kucing',
+      name: 'Kucing Oren',
+      color: catDef.color,
+      state: zoomLeft ? 'sprint_left' : 'sprint_right',
+      facing: zoomLeft ? -1 : 1,
+      spooked: false,
+      meowed: true,
+      hit: false,
+      scratched: false,
+      revengeDodged: false,
+      closeReacted: true,
+      aiTimer: 2.0,
+      furiousTimer: 0,
+      runSpeed: 0,
+      walkSpeed: 42,
+      animTime: 0
+    });
+    if (window.soundManager && window.soundManager.playCatMeow) {
+      window.soundManager.playCatMeow();
+    }
+    createDust(landX, GROUND_Y);
+    addComicText("MENDARAT SELAMAT! 🐾💨", landX, GROUND_Y - 25, '#fb923c');
   }
 
   function createDust(x, y) {
@@ -1661,17 +1703,29 @@
 
   function triggerBarrageThrows(wargaX) {
     spawnThrownItem(wargaX);
-    const doubleChance = stage >= 4 ? Math.min(0.42, 0.15 + (stage - 4) * 0.02) : 0;
+    const doubleChance = stage >= 2 ? Math.min(0.45, 0.15 + (stage - 2) * 0.04) : 0;
     if (Math.random() < doubleChance) {
       setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 400);
     }
-    const tripleChance = stage >= 12 ? Math.min(0.24, (stage - 12) * 0.022) : 0;
+    const tripleChance = stage >= 6 ? Math.min(0.30, 0.10 + (stage - 6) * 0.05) : 0;
     if (Math.random() < tripleChance) {
       setTimeout(() => { if (gameState === STATE.PLAYING) spawnThrownItem(wargaX); }, 820);
     }
   }
 
+  function getItemHitMessage(item) {
+    if (!item) return "POYONGAN! -40% SPEED! 🤕";
+    if (item.type === 'celana_dalam') return "KECELUP CD PINK! 🩲😵";
+    if (item.type === 'bh_merah') return "KETAMPAR BH RENDA! 👙😳";
+    if (item.type === 'ember') return "KEMBALIKAN EMBERKU! 🪣💥";
+    if (item.type === 'sapu') return "DISAPU BERSIH! 🧹💢";
+    if (item.type === 'botol') return "PECAH KECAP! 🍾🤕";
+    if (item.type === 'kucing_terbang') return "DICAKAR KUCING TERBANG! 🙀⚡";
+    return "POYONGAN! -40% SPEED! 🤕";
+  }
+
   function handleItemHit(index) {
+    const item = thrownItems[index];
     bumpCount++;
     totalBumps++;
     player.bumpLevel = Math.min(3, player.bumpLevel + 1);
@@ -1684,7 +1738,11 @@
     escapeGap = Math.max(0, escapeGap - penalty);
 
     window.soundManager.playBonk();
-    addComicText("POYONGAN! -40% SPEED! 🤕", player.x, player.y - 25, '#ef4444');
+    const hitMsg = getItemHitMessage(item);
+    if (item && item.type === 'kucing_terbang') {
+      spawnLandedCat(player.x - 20);
+    }
+    addComicText(hitMsg, player.x, player.y - 25, '#ef4444');
 
     thrownItems.splice(index, 1);
     updateHUD();
@@ -1702,8 +1760,8 @@
       triggerBarrageThrows(wargaX);
       warningActive = false;
       throwWarningEl.classList.add('hidden');
-      const baseCooldown = stage === 1 ? 5.2 : 4.4 - (stage - 1) * 0.095;
-      throwTimer = Math.max(2.1, baseCooldown + Math.random() * 0.5);
+      const baseCooldown = stage === 1 ? 4.0 : 3.6 - (stage - 1) * 0.12;
+      throwTimer = Math.max(1.8, baseCooldown + Math.random() * 0.4);
     }
   }
 
@@ -1730,6 +1788,9 @@
 
       if (item.y > GROUND_Y - 10) {
         createDust(item.x, GROUND_Y);
+        if (item.type === 'kucing_terbang') {
+          spawnLandedCat(item.x);
+        }
         if (!item.passed && item.x < player.x - 30) triggerPocimanTaunt(true);
         thrownItems.splice(i, 1);
         continue;
@@ -1768,6 +1829,28 @@
     updateHUD();
   }
 
+  function handleCatCloseReaction(obs) {
+    obs.closeReacted = true;
+    const r = Math.random();
+    if (r < 0.25) {
+      obs.state = 'idle';
+      obs.facing = -1;
+      addComicText("NGAMBEK NGE-REM! 😼", obs.x, obs.y - 20, '#fb923c');
+    } else if (r < 0.50) {
+      obs.state = 'walking_right';
+      obs.facing = 1;
+      addComicText("BALIK KANAN JALAN! 🐾", obs.x, obs.y - 20, '#38bdf8');
+    } else if (r < 0.72) {
+      obs.state = 'sprint_right';
+      obs.facing = 1;
+      addComicText("BALIK KANAN LARI! 💨", obs.x, obs.y - 20, '#facc15');
+    } else {
+      obs.state = 'sprint_left';
+      obs.facing = -1;
+      addComicText("LARI NABRAK! 🙀⚡", obs.x, obs.y - 20, '#ef4444');
+    }
+  }
+
   function updateCatAI(obs, dt) {
     if (obs.state === 'furious_prep') {
       obs.furiousTimer -= dt;
@@ -1782,25 +1865,24 @@
     }
     if (obs.state === 'furious_charge') return;
 
+    const dist = obs.x - player.x;
+    if (!obs.closeReacted && dist > 25 && dist < 105) {
+      handleCatCloseReaction(obs);
+      return;
+    }
+
     if (obs.x > player.x + 85) {
       obs.aiTimer -= dt;
       if (obs.aiTimer <= 0) {
         const roll = Math.random();
-        if (roll < 0.45) {
-          obs.state = 'walking_left';
-          obs.facing = -1;
-        } else if (roll < 0.70) {
-          obs.state = 'walking_right';
-          obs.facing = 1;
-        } else if (roll < 0.88) {
-          obs.state = 'idle';
-          obs.facing = -1;
-        } else {
-          obs.state = 'sprint_left';
-          obs.facing = -1;
+        if (roll < 0.40) { obs.state = 'walking_left'; obs.facing = -1; }
+        else if (roll < 0.65) { obs.state = 'walking_right'; obs.facing = 1; }
+        else if (roll < 0.85) { obs.state = 'idle'; obs.facing = -1; }
+        else {
+          obs.state = 'sprint_left'; obs.facing = -1;
           addComicText("ZOOMIES! 🐾💨", obs.x, obs.y - 18, '#fb923c');
         }
-        obs.aiTimer = 1.6 + Math.random() * 2.2;
+        obs.aiTimer = 1.4 + Math.random() * 1.8;
       }
     }
   }
@@ -1829,7 +1911,7 @@
     if (obs.state === 'walking_left') return -gameSpeed - obs.walkSpeed;
     if (obs.state === 'walking_right') return -gameSpeed + obs.walkSpeed;
     if (obs.state === 'sprint_left') return -gameSpeed - 200;
-    if (obs.state === 'sprint_right') return 260;
+    if (obs.state === 'sprint_right') return 160;
     return -gameSpeed;
   }
 
@@ -1837,7 +1919,7 @@
     obstacleTimer -= dt;
     if (obstacleTimer <= 0) {
       spawnObstacle();
-      obstacleTimer = Math.max(1.2, 2.2 - (stage - 1) * 0.09 + Math.random() * 0.4);
+      obstacleTimer = Math.max(1.1, 2.0 - (stage - 1) * 0.08 + Math.random() * 0.35);
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -2877,30 +2959,91 @@
     ctx.restore();
   }
 
+  function drawThrownApparel(ctx, type, w, h) {
+    if (type === 'celana_dalam') {
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.moveTo(-w / 2, -h / 2);
+      ctx.lineTo(w / 2, -h / 2);
+      ctx.lineTo(w * 0.25, h / 2);
+      ctx.lineTo(-w * 0.25, h / 2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#fbcfe8'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(-2, -1, 2, 0, Math.PI * 2); ctx.arc(2, -1, 2, 0, Math.PI * 2); ctx.fill();
+    } else if (type === 'bh_merah') {
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.arc(-w * 0.24, 0, h * 0.44, 0, Math.PI * 2);
+      ctx.arc(w * 0.24, 0, h * 0.44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fda4af'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.44, -h * 0.35); ctx.lineTo(-w * 0.24, 0); ctx.lineTo(0, -2); ctx.lineTo(w * 0.24, 0); ctx.lineTo(w * 0.44, -h * 0.35);
+      ctx.stroke();
+    }
+  }
+
+  function drawThrownUtensil(ctx, type, w, h, color) {
+    if (type === 'sandal') {
+      ctx.fillStyle = color; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(-w / 2, -h / 2, w, h, 4); ctx.fill(); ctx.stroke();
+    } else if (type === 'gayung') {
+      ctx.fillStyle = color;
+      ctx.fillRect(-w / 2, -h / 2, w * 0.65, h);
+      ctx.fillRect(w * 0.15, -h * 0.2, w * 0.45, 4);
+    } else if (type === 'panci') {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(0, 0, h / 2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillRect(h / 2, -2, 10, 4);
+    } else if (type === 'sapu') {
+      ctx.strokeStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-w / 2, 0); ctx.lineTo(w / 2, 0); ctx.stroke();
+      ctx.fillStyle = '#eab308'; ctx.fillRect(w * 0.1, -4, w * 0.4, 8);
+    } else if (type === 'ember') {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.moveTo(-w * 0.45, -h * 0.45); ctx.lineTo(w * 0.45, -h * 0.45);
+      ctx.lineTo(w * 0.32, h * 0.45); ctx.lineTo(-w * 0.32, h * 0.45); ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, -h * 0.45, w * 0.32, Math.PI, 0); ctx.stroke();
+    } else if (type === 'botol') {
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(-w * 0.3, -h * 0.1, w * 0.6, h * 0.55);
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(-w * 0.12, -h * 0.45, w * 0.24, h * 0.35);
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(-w * 0.15, -h * 0.5, w * 0.3, 3);
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(-w * 0.22, 0, w * 0.44, h * 0.25);
+    }
+  }
+
+  function drawFlyingCat(ctx, w, h) {
+    ctx.fillStyle = '#ea580c';
+    ctx.beginPath(); ctx.ellipse(0, 0, 16, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(8, -8); ctx.lineTo(13, -15); ctx.lineTo(15, -6);
+    ctx.moveTo(2, -9); ctx.lineTo(6, -16); ctx.lineTo(8, -7); ctx.fill();
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(-14, -8, 6, 4); ctx.fillRect(10, -8, 6, 4);
+    ctx.fillRect(-14, 4, 6, 4); ctx.fillRect(10, 4, 6, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(7, -2, 3, 0, Math.PI * 2); ctx.arc(12, -2, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath(); ctx.arc(7, -2, 1.2, 0, Math.PI * 2); ctx.arc(12, -2, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-14, 0); ctx.quadraticCurveTo(-22, -8, -18, -14); ctx.stroke();
+  }
+
   function drawThrownItem(ctx, item) {
     ctx.save();
     ctx.translate(item.x, item.y);
     ctx.rotate(item.rot);
-
-    if (item.type === 'sandal') {
-      ctx.fillStyle = item.color;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.roundRect(-item.w / 2, -item.h / 2, item.w, item.h, 4);
-      ctx.fill(); ctx.stroke();
-    } else if (item.type === 'gayung') {
-      ctx.fillStyle = item.color;
-      ctx.fillRect(-item.w / 2, -item.h / 2, item.w * 0.65, item.h);
-      ctx.fillRect(item.w * 0.15, -item.h * 0.2, item.w * 0.45, 4);
-    } else if (item.type === 'panci') {
-      ctx.fillStyle = item.color;
-      ctx.beginPath(); ctx.arc(0, 0, item.h / 2, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.fillRect(item.h / 2, -2, 10, 4);
-    } else if (item.type === 'sapu') {
-      ctx.strokeStyle = item.color; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(-item.w / 2, 0); ctx.lineTo(item.w / 2, 0); ctx.stroke();
-      ctx.fillStyle = '#eab308'; ctx.fillRect(item.w * 0.1, -4, item.w * 0.4, 8);
+    if (item.type === 'kucing_terbang') {
+      drawFlyingCat(ctx, item.w, item.h);
+    } else if (item.type === 'celana_dalam' || item.type === 'bh_merah') {
+      drawThrownApparel(ctx, item.type, item.w, item.h);
+    } else {
+      drawThrownUtensil(ctx, item.type, item.w, item.h, item.color);
     }
     ctx.restore();
   }
