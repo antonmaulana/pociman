@@ -1361,10 +1361,13 @@
     });
   }
 
-  function spawnLandedCat(landX) {
+  function spawnLandedCat(landX, alreadyScratched = false) {
     if (landX < -50 || landX > V_WIDTH + 150) return;
     const catDef = OBSTACLE_TYPES.find(o => o.type === 'kucing') || { w: 38, h: 24, yOffset: 24, color: '#f97316', name: 'Kucing Oren' };
-    const zoomLeft = Math.random() < 0.65;
+    const runTowardsPlayer = !alreadyScratched;
+    const runningRight = runTowardsPlayer ? (landX < player.x) : false;
+    const facing = runningRight ? 1 : -1;
+    const state = runningRight ? 'sprint_right' : 'sprint_left';
     obstacles.push({
       x: landX,
       y: GROUND_Y - catDef.yOffset,
@@ -1373,13 +1376,14 @@
       type: 'kucing',
       name: 'Kucing Oren',
       color: catDef.color,
-      state: zoomLeft ? 'sprint_left' : 'sprint_right',
-      facing: zoomLeft ? -1 : 1,
+      state: state,
+      facing: facing,
       spooked: false,
       meowed: true,
-      hit: false,
-      scratched: false,
-      revengeDodged: false,
+      hit: alreadyScratched,
+      scratched: alreadyScratched,
+      revengeDodged: alreadyScratched,
+      fromThrow: true,
       closeReacted: true,
       aiTimer: 2.0,
       furiousTimer: 0,
@@ -1387,11 +1391,11 @@
       walkSpeed: 42,
       animTime: 0
     });
-    if (window.soundManager && window.soundManager.playCatMeow) {
+    if (window.soundManager && window.soundManager.playCatMeow && !alreadyScratched) {
       window.soundManager.playCatMeow();
     }
     createDust(landX, GROUND_Y);
-    addComicText("MENDARAT SELAMAT! 🐾💨", landX, GROUND_Y - 25, '#fb923c');
+    addComicText(alreadyScratched ? "KABUURR! 🐾💨" : "MENDARAT NGEBUT! 🐾💨", landX, GROUND_Y - 25, '#fb923c');
   }
 
   function createDust(x, y) {
@@ -1740,12 +1744,20 @@
     const penalty = Math.min(16, 7 + stage * 0.8);
     escapeGap = Math.max(0, escapeGap - penalty);
 
-    window.soundManager.playBonk();
-    const hitMsg = getItemHitMessage(item);
     if (item && item.type === 'kucing_terbang') {
-      spawnLandedCat(player.x - 20);
+      if (window.soundManager && window.soundManager.playCatScratch) {
+        window.soundManager.playCatScratch();
+      }
+      if (window.soundManager && window.soundManager.playCatScreech) {
+        window.soundManager.playCatScreech();
+      }
+      spawnLandedCat(player.x - 20, true);
+      addComicText("CRET! DICAKAR KUCING TERBANG! 🙀🩸", player.x + 10, player.y - 30, '#ef4444');
+    } else {
+      window.soundManager.playBonk();
+      const hitMsg = getItemHitMessage(item);
+      addComicText(hitMsg, player.x, player.y - 25, '#ef4444');
     }
-    addComicText(hitMsg, player.x, player.y - 25, '#ef4444');
 
     thrownItems.splice(index, 1);
     updateHUD();
@@ -1857,7 +1869,7 @@
   }
 
   function updateCatAI(obs, dt) {
-    if (obs.scratched || obs.revengeDodged) return;
+    if (obs.scratched || obs.revengeDodged || obs.fromThrow) return;
     if (obs.state === 'furious_prep') {
       obs.furiousTimer -= dt;
       if (obs.furiousTimer <= 0) {
@@ -1968,17 +1980,27 @@
       const vx = obs.type === 'kucing' ? getCatVelocity(obs) : -gameSpeed;
       obs.x += vx * dt;
 
-      if (obs.type === 'kucing' && obs.state === 'furious_charge' && !obs.scratched && !obs.revengeDodged) {
-        if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
-          handleCatFuriousAttack(obs);
-        } else if (obs.x > player.x + player.w + 12) {
-          handleCatFuriousDodged(obs);
+      if (obs.type === 'kucing' && !obs.scratched) {
+        if (obs.state === 'furious_charge' && !obs.revengeDodged) {
+          if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
+            handleCatFuriousAttack(obs);
+          } else if (obs.x > player.x + player.w + 12) {
+            handleCatFuriousDodged(obs);
+          }
+        } else if (obs.fromThrow) {
+          if (!kuntiPowerup.active && checkRectOverlap(player, obs)) {
+            handleCatFuriousAttack(obs);
+          }
+        } else if (!obs.hit && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
+          handleObstacleHit(obs);
         }
       } else if (!obs.hit && !obs.scratched && !kuntiPowerup.active && player.invulnerableTime <= 0 && player.tripTimer <= 0 && checkRectOverlap(player, obs)) {
         handleObstacleHit(obs);
       }
 
-      if (!obs.passed && obs.x < player.x - 20) {
+      if (obs.fromThrow && !obs.passed && obs.x > player.x + player.w + 12) {
+        handleObstaclePassed(obs);
+      } else if (!obs.passed && obs.x < player.x - 20) {
         handleObstaclePassed(obs);
       }
 
