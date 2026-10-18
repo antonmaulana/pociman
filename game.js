@@ -3590,14 +3590,19 @@
     }[tag] || tag));
   }
 
+  function isDevName(name) {
+    return /\b(dev|developer|anton\s*maulana)\b/i.test(name || '');
+  }
+
   function renderWallOfHonor(list) {
     if (!honorListContainer) return;
-    if (!Array.isArray(list) || list.length === 0) {
+    const cleanList = (Array.isArray(list) ? list : []).filter(entry => !isDevName(entry.name));
+    if (cleanList.length === 0) {
       honorListContainer.innerHTML = '<div class="honor-empty">Belum ada jawara. Jadilah yang pertama! 🏆</div>';
       return;
     }
     let html = '';
-    list.slice(0, 50).forEach((entry, idx) => {
+    cleanList.slice(0, 50).forEach((entry, idx) => {
       const rankNum = idx + 1;
       const medal = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : (rankNum === 3 ? '🥉' : `#${rankNum}`));
       html += `
@@ -3623,8 +3628,9 @@
       const res = await fetch('/api/honor');
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      try { localStorage.setItem('pociman_cached_honor', JSON.stringify(data)); } catch (e) {}
-      renderWallOfHonor(data);
+      const cleanData = (Array.isArray(data) ? data : []).filter(entry => !isDevName(entry.name));
+      try { localStorage.setItem('pociman_cached_honor', JSON.stringify(cleanData)); } catch (e) {}
+      renderWallOfHonor(cleanData);
     } catch (err) {
       let cached = [];
       try {
@@ -3646,11 +3652,13 @@
     try {
       let cached = [];
       const c = localStorage.getItem('pociman_cached_honor');
-      if (c) cached = JSON.parse(c);
+      if (c) cached = JSON.parse(c).filter(entry => !isDevName(entry.name));
       const now = new Date();
       payload.date = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ', ' +
         String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-      cached.unshift(payload);
+      if (!isDevName(payload.name)) {
+        cached.unshift(payload);
+      }
       localStorage.setItem('pociman_cached_honor', JSON.stringify(cached));
       renderWallOfHonor(cached);
     } catch (e) {}

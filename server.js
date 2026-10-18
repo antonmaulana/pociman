@@ -43,14 +43,19 @@ function writeHonorData(data) {
   }
 }
 
+function isDevName(name) {
+  return /\b(dev|developer|anton\s*maulana)\b/i.test(name || '');
+}
+
 function handleGetHonor(req, res) {
   const data = readHonorData();
+  const visible = data.filter(entry => !isDevName(entry.name));
   res.writeHead(200, {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     'Access-Control-Allow-Origin': '*'
   });
-  res.end(JSON.stringify(data));
+  res.end(JSON.stringify(visible));
 }
 
 function parseHonorPayload(payload) {
@@ -83,11 +88,12 @@ function handlePostHonor(req, res) {
       const trimmed = current.slice(0, 100);
       writeHonorData(trimmed);
 
+      const visible = trimmed.filter(e => !isDevName(e.name));
       res.writeHead(201, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       });
-      res.end(JSON.stringify({ success: true, entry, list: trimmed }));
+      res.end(JSON.stringify({ success: true, entry, list: visible }));
     } catch (e) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: false, error: 'Invalid payload' }));
