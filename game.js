@@ -1320,7 +1320,7 @@
     const pool = getStageObstaclePool(stage);
     const obsDef = pool[Math.floor(Math.random() * pool.length)];
     const isCat = obsDef.type === 'kucing';
-    const isWalkingCat = isCat && Math.random() < 0.55;
+    const isWalkingCat = isCat && Math.random() < 0.6;
     obstacles.push({
       x: V_WIDTH + 30,
       y: GROUND_Y - obsDef.yOffset,
@@ -1331,14 +1331,12 @@
       color: obsDef.color,
       state: isCat ? (isWalkingCat ? 'walking' : 'idle') : 'idle',
       spooked: false,
+      meowed: false,
+      hit: false,
       runSpeed: 0,
-      walkSpeed: isCat ? -(28 + Math.random() * 20) : 0,
+      walkSpeed: isCat ? -35 : 0,
       animTime: 0
     });
-    if (isCat) {
-      if (window.soundManager && window.soundManager.playCatMeow) window.soundManager.playCatMeow();
-      addComicText("Meoong~ 🐾", V_WIDTH + 15, GROUND_Y - 45, '#fb923c');
-    }
   }
 
   function createDust(x, y) {
@@ -1399,6 +1397,14 @@
     stageBannerTimer = 2.4;
   }
 
+  function getStageKuntiQuota(stg) {
+    if (stg < 3) return 0;
+    const stageEligible = Math.random() < (stg >= 9 ? 0.48 : 0.40);
+    if (!stageEligible) return 0;
+    if (stg >= 12 && Math.random() < 0.30) return 2;
+    return 1;
+  }
+
   function resetStageState() {
     escapeGap = 50;
     bumpCount = 0;
@@ -1408,7 +1414,7 @@
     cemeteryGate.x = -999;
     player.reset();
     kuntiPowerup.reset();
-    kuntiPowerup.maxSpawnsPerStage = stage < 3 ? 0 : (stage <= 5 ? 1 : 2);
+    kuntiPowerup.maxSpawnsPerStage = getStageKuntiQuota(stage);
     obstacles = [];
     thrownItems = [];
     particles = [];
@@ -1596,24 +1602,26 @@
   }
 
   function trySporadicKuntiSpawn(dt) {
-    if (stage < 3) return;
+    if (kuntiPowerup.maxSpawnsPerStage <= 0) return;
+    if (kuntiPowerup.spawnedThisStage >= kuntiPowerup.maxSpawnsPerStage) return;
+    if (kuntiPowerup.spawnedThisStage >= 2) return;
+
     const progress = 1 - (stageTimer / stageTotalTime);
     kuntiPowerup.checkTimer -= dt;
     if (kuntiPowerup.checkTimer > 0) return;
-    kuntiPowerup.checkTimer = 4.5 + Math.random() * 2.5;
+    kuntiPowerup.checkTimer = 5.5 + Math.random() * 3.5;
 
-    const canRoll = progress > 0.15 && progress < 0.82 &&
-      kuntiPowerup.spawnedThisStage < kuntiPowerup.maxSpawnsPerStage &&
+    const canRoll = progress > 0.20 && progress < 0.80 &&
       !kuntiPowerup.itemActive && !kuntiPowerup.active;
 
     if (!canRoll) return;
-    const rollChance = escapeGap < 35 ? 0.50 : 0.28;
+    const rollChance = escapeGap < 35 ? 0.45 : 0.22;
     if (Math.random() < rollChance) {
       kuntiPowerup.itemActive = true;
       kuntiPowerup.itemX = V_WIDTH + 50;
       kuntiPowerup.itemY = GROUND_Y - 95;
       kuntiPowerup.spawnedThisStage++;
-      kuntiPowerup.checkTimer = 14.0 + Math.random() * 6.0;
+      kuntiPowerup.checkTimer = 16.0 + Math.random() * 6.0;
       addComicText("✨ MBAK KUNTI MUNCUL! ✨", V_WIDTH - 150, GROUND_Y - 130, '#c084fc');
     }
   }
@@ -1728,13 +1736,14 @@
     escapeGap = Math.max(0, escapeGap - penalty);
 
     if (obs.type === 'kucing') {
+      obs.hit = true;
       obs.state = 'running';
       obs.spooked = true;
-      obs.runSpeed = 260 + Math.random() * 40;
+      obs.runSpeed = 280;
       if (window.soundManager && window.soundManager.playCatScreech) {
         window.soundManager.playCatScreech();
       }
-      addComicText("TERINJAK! NGEBULL! 🙀💨", player.x, player.y - 25, '#f97316');
+      addComicText("TERINJAK! KABUR NGEBUT! 🙀💨", player.x, player.y - 25, '#f97316');
       createDust(obs.x + 8, GROUND_Y);
     } else {
       window.soundManager.playTrip();
@@ -1745,15 +1754,15 @@
     updateHUD();
   }
 
-  function updateCatSpookCheck(obs) {
-    if (!obs.spooked && obs.x - (player.x + player.w) < 80 && Math.random() < 0.08) {
-      obs.spooked = true;
-      obs.state = 'running';
-      obs.runSpeed = 260 + Math.random() * 40;
-      if (window.soundManager && window.soundManager.playCatScreech) window.soundManager.playCatScreech();
-      addComicText("KAGET! 🙀💨", obs.x, obs.y - 18, '#fbbf24');
+  function updateCatMechanics(obs, dt) {
+    if (!obs.meowed && obs.x <= V_WIDTH - 15) {
+      obs.meowed = true;
+      if (window.soundManager && window.soundManager.playCatMeow) {
+        window.soundManager.playCatMeow();
+      }
+      addComicText("Meoong~ 🐾", obs.x, obs.y - 18, '#fb923c');
     }
-    if (obs.state === 'running' && Math.random() < 0.3) {
+    if (obs.state === 'running' && Math.random() < 0.35) {
       createDust(obs.x + 4, GROUND_Y);
     }
   }
@@ -1769,11 +1778,11 @@
       const obs = obstacles[i];
       obs.animTime = (obs.animTime || 0) + dt;
 
-      if (obs.type === 'kucing') updateCatSpookCheck(obs);
+      if (obs.type === 'kucing') updateCatMechanics(obs, dt);
 
       let vx = -gameSpeed;
       if (obs.type === 'kucing') {
-        if (obs.state === 'running') vx = obs.runSpeed - gameSpeed;
+        if (obs.state === 'running') vx = obs.runSpeed;
         else if (obs.state === 'walking') vx = obs.walkSpeed - gameSpeed;
       }
       obs.x += vx * dt;
@@ -1785,6 +1794,9 @@
       if (!obs.passed && obs.x < player.x - 20) {
         obs.passed = true;
         escapeGap = Math.min(100, escapeGap + 0.6);
+        if (obs.type === 'kucing' && !obs.hit) {
+          addComicText("HUP! LOMPAT KUCING! 🐾", player.x + 10, player.y - 28, '#38bdf8');
+        }
       }
 
       if (obs.x < -80 || obs.x > V_WIDTH + 200) obstacles.splice(i, 1);
