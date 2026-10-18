@@ -2551,56 +2551,81 @@
     }
   }
 
+  function drawCameoDrink(ctx) {
+    // Es teh plastik kantong with ice & red straw
+    ctx.fillStyle = 'rgba(251, 146, 60, 0.95)';
+    ctx.strokeStyle = '#3e352d';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.roundRect(14, -8, 12, 16, [2, 2, 5, 5]);
+    ctx.fill(); ctx.stroke();
+
+    // Ice cube highlight
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.fillRect(16, -5, 4, 4);
+
+    // Karet gelang & red straw to mouth
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(17, -10, 6, 2.5);
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(20, -10); ctx.lineTo(10, -18);
+    ctx.stroke();
+  }
+
   function drawKuntiSkyCameo(ctx) {
     if (!kuntiSkyCameo.active) return;
     const x = kuntiSkyCameo.x;
     const y = kuntiSkyCameo.y + Math.sin(kuntiSkyCameo.animTime * 3) * 6;
+    const wave = Math.sin(kuntiSkyCameo.animTime * 5) * 5;
+
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(1.25, 1.25);
+    ctx.scale(1.3, 1.3);
 
-    const aura = ctx.createRadialGradient(0, 0, 4, 0, 0, 38);
-    aura.addColorStop(0, 'rgba(216, 180, 254, 0.7)');
-    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.3)');
+    // Lilac ethereal aura
+    const aura = ctx.createRadialGradient(0, 0, 6, 0, 0, 48);
+    aura.addColorStop(0, 'rgba(216, 180, 254, 0.75)');
+    aura.addColorStop(0.6, 'rgba(192, 132, 252, 0.35)');
     aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
     ctx.fillStyle = aura;
-    ctx.fillRect(-38, -38, 76, 76);
+    ctx.fillRect(-48, -48, 96, 96);
 
-    ctx.strokeStyle = '#3e352d';
-    ctx.lineWidth = 1.6;
-
-    const wave = Math.sin(kuntiSkyCameo.animTime * 6) * 5;
-    ctx.fillStyle = '#f8fafc';
+    // Flowing chibi white dress
+    ctx.strokeStyle = '#3e352d'; ctx.lineWidth = 1.8; ctx.fillStyle = '#f8fafc';
     ctx.beginPath();
-    ctx.moveTo(10, -4); ctx.lineTo(-10, -4);
-    ctx.quadraticCurveTo(-24 + wave, 12, -28 + wave, 18);
-    ctx.lineTo(14, 12);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#c084fc'; ctx.fillRect(-24 + wave, 15, 34, 2.5);
+    ctx.moveTo(8, -12); ctx.lineTo(-12, -12);
+    ctx.quadraticCurveTo(-28 + wave, 6, -34 + wave, 14);
+    ctx.lineTo(16, 14); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c084fc'; ctx.fillRect(-30 + wave, 11, 44, 3);
 
+    // Flowing long black hair
     ctx.fillStyle = '#1e1b18';
     ctx.beginPath();
-    ctx.arc(6, -10, 8.5, 0, Math.PI * 2);
-    ctx.quadraticCurveTo(-18 + wave, 0, -22 + wave, 16);
-    ctx.lineTo(0, 4);
-    ctx.closePath(); ctx.fill();
+    ctx.arc(4, -20, 15, 0, Math.PI * 2);
+    ctx.quadraticCurveTo(-24 + wave, -8, -32 + wave, 12);
+    ctx.lineTo(-4, 0); ctx.closePath(); ctx.fill();
 
-    ctx.fillStyle = '#fef3c7';
-    ctx.beginPath(); ctx.arc(6, -9, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // Round porcelain chibi face
+    ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.arc(4, -19, 13.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // Big shiny anime eyes & red lip smile
     ctx.fillStyle = '#1e1b18';
-    ctx.beginPath(); ctx.arc(7.5, -9, 1.8, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(7, -9.5, 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6, -20, 2.5, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(12, -20, 2.5, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(5.2, -21.5, 1.2, 0, Math.PI * 2); ctx.arc(11.2, -21.5, 1.2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#f472b6';
-    ctx.beginPath(); ctx.arc(6, -6, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -15, 2.5, 0, Math.PI * 2); ctx.arc(13, -15, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(8, -15, 3, 0.1, Math.PI - 0.1); ctx.stroke();
 
-    ctx.fillStyle = 'rgba(251, 146, 60, 0.9)';
-    ctx.fillRect(14, -6, 7, 9);
-    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(17, -10); ctx.lineTo(17, -4); ctx.stroke();
+    drawCameoDrink(ctx);
 
-    ctx.fillStyle = '#facc15';
-    const spX = -18 + Math.sin(kuntiSkyCameo.animTime * 5) * 8;
-    ctx.fillText("✦", spX, -6);
+    // Sparkling night star
+    ctx.fillStyle = '#fef08a';
+    ctx.fillText("✦", -22 + Math.sin(kuntiSkyCameo.animTime * 4) * 6, -16);
 
     ctx.restore();
   }
